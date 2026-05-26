@@ -1,0 +1,413 @@
+title.fetching: 正在获取世界数据...
+title.gathering:  news headlines
+title.intro: 世界正处于崩溃边缘。选择你将引导的国家——或将其推向混乱。控制台就是你的武器。
+title.select_prompt:  按下 Enter 键确认开始:
+title.selected_label: 已选择：
+title.press_enter: 按回车开始 ▸
+title.confirming: 正在确认...
+title.subtitle: 终端型世界模拟游戏
+eventlog.title: WARFIRE RISES — 战火升腾
+eventlog.day_briefing: 第 {day} 天 — 全球情报简报
+eventlog.separator: ──────────────────────────────────────────────
+eventlog.daily_briefing: ▼ 每日简报
+eventlog.event_log: ▼ 事件记录
+eventlog.no_events:   暂无事件。世界屏息以待。
+eventlog.affected: 受影响方：
+eventlog.type_pol: 政治
+eventlog.type_mil: 军事
+eventlog.type_eco: 经济
+eventlog.type_dip: 外交
+eventlog.type_dis: 灾害
+eventlog.type_cri: 危机
+sidebar.day: 第 {day} 天
+sidebar.stats: ─── 状态 ───
+sidebar.global: ─── 全球 ───
+sidebar.nation: ─── 国家 ───
+sidebar.rates: ─── 汇率 ───
+sidebar.keywords: ─── 关键词 ───
+sidebar.recent: ─── 最近 ───
+sidebar.diplomatic_pts: 外交点数：
+sidebar.army_endurance: 军队耐力：
+sidebar.national_endure: 国家耐力：
+sidebar.treasury: 国库：
+sidebar.world_collapse: 世界崩坏度：
+sidebar.allies: 盟友：
+sidebar.enemies: 敌人：
+sidebar.economy: 经济：
+sidebar.military: 军事：
+sidebar.stability: 稳定：
+sidebar.nuclear: 核武器：
+sidebar.yes: 有
+sidebar.no: 无
+statusbar.commands: 命令
+statusbar.advance_day: 推进一天
+statusbar.overview: 全局
+statusbar.quit: 退出
+gameover.tfr_title: ☢  烈焰升腾  ☢
+gameover.tfr_subtitle: 🔥  烈焰升腾  🔥
+gameover.tno_title:  新秩序
+gameover.tno_subtitle: THE NEW ORDER
+gameover.tfr_message: {flag} {name} 已成为全球毁灭的催化剂。你的激进行动粉碎了脆弱的世界秩序。战火吞噬了一切。历史将记住你——混乱的建筑师。
+gameover.tno_message:  a new global order takes shape under your guidance. The world bends the knee — not to destruction
+gameover.final_stats: 最终统计：
+gameover.nation: 国家：
+gameover.days_survived: 存活天数：
+gameover.final_wc: 最终世界崩坏度：
+gameover.final_ne: 国家耐力：
+gameover.final_ae: 军队耐力：
+gameover.final_treasury: 国库：
+gameover.final_allies: 盟友：
+gameover.final_enemies: 敌人：
+gameover.ending_label: 结局：
+gameover.tfr_epilogue: 世界在燃烧。你的名字刻在灰烬与火焰之中。历史诅咒你——但恐惧让他们顺从。
+gameover.tno_epilogue:  and with it — your legacy.
+gameover.exit_hint: 按 Ctrl+C 退出。世界将铭记。
+gameover.tfr_ending_label: 战火升腾 (TFR)
+gameover.tno_ending_label: 新秩序 (TNO)
+app.welcome: 欢迎来到 WARFIRE RISES。输入 'help' 查看可用命令。
+app.loading_title: ═══ WARFIRE RISES — 战火升腾 ═══
+app.fetching_intel: 正在获取全球情报...
+app.fetching_rates:  USD/HKD
+app.fetching_news: ▸ 世界新闻头条与关键词提取
+app.fetching_sim: ▸ 初始化地缘政治模拟矩阵
+app.fetching_wait: 请稍候——数据仅在每场战役开始时收集一次。
+app.game_header: === 战火升腾 ===
+app.date_label: 日期：
+app.you_control: 你掌控：
+app.type_help: 输入 'help' 查看可用命令。
+app.day_header: ═══ 第 {day} 天 ═══
+app.wc_status: 世界崩坏度：{wc}% | 外交点：{dp} | 军队耐力：{ae}% | 国家耐力：{ne}%
+app.gameover_already: 游戏已结束。按 Ctrl+C 退出。
+cmd.help.desc: 显示所有可用命令
+cmd.help.usage: help [command]
+cmd.help.unknown: 未知命令：{cmd}
+cmd.help.title: === WARFIRE RISES 控制台命令 ===
+cmd.help.detail_hint: 使用 'help <command>' 查看详细用法。
+cmd.help.aliases: 别名：{aliases}
+cmd.status.desc: 显示你国家的详细状态
+cmd.status.usage: status
+cmd.status.government: 政府：{gov} | 实力：{power}
+cmd.status.economy: 经济：{eco}/100 | 军事：{mil}/100 | 稳定：{stb}/100
+cmd.status.treasury: 国库：${treasury}B | 人口：{pop}M | 核武器：{nuke}
+cmd.status.allies: 盟友：{allies}
+cmd.status.enemies: 敌人：{enemies}
+cmd.status.points: 外交点数：{dp}
+cmd.status.endurance: 军队耐力：{ae}%
+cmd.status.national: 国家耐力：{ne}%
+cmd.status.collapse: 世界崩坏度：{wc}%
+cmd.status.rates_header: 汇率：
+cmd.status.keywords_header: 世界关键词：{kw}
+cmd.next.desc: 推进至下一天并处理世界事件
+cmd.next.usage: next
+cmd.diplomacy.desc: 对另一个国家执行外交行动
+cmd.diplomacy.usage: diplomacy <improve|treaty|sanction|condemn> <country_id>
+cmd.diplomacy.no_args: 用法：diplomacy <action> <country_id>
+cmd.diplomacy.unknown_country: 未知国家：{id}
+cmd.diplomacy.self: 你不能对自己进行外交活动。
+cmd.diplomacy.no_points:  have {have}
+cmd.diplomacy.improve: 与 {flag} {name} 的关系改善 (+15)。消耗：{cost} 外交点。
+cmd.diplomacy.treaty: 与 {flag} {name} 签署防务条约（+25 关系）。消耗：{cost} 外交点。
+cmd.diplomacy.sanction: 对 {flag} {name} 实施制裁。其经济遭受打击。消耗：{cost} 外交点。
+cmd.diplomacy.condemn: 在世界舞台上公开谴责 {flag} {name}。消耗：{cost} 外交点。
+cmd.diplomacy.unknown_action:  treaty
+cmd.military.desc: 执行军事行动
+cmd.military.usage: military <drill|deploy|strike|aid> <country_id>
+cmd.military.no_args: 用法：military <action> <country_id>
+cmd.military.unknown_country: 未知国家：{id}
+cmd.military.self: 你不能对自己执行军事行动。
+cmd.military.no_endurance:  have {have}%
+cmd.military.drill: 在 {flag} {name} 附近进行了军事演习。战备状态提升。消耗：{cost}% 军队耐力。
+cmd.military.deploy: 部队部署到 {flag} {name} 地区。区域紧张局势升级。消耗：{cost}% 军队耐力。
+cmd.military.strike: ⚡ 精确打击命中 {flag} {name}！军事能力下降。世界紧张不安。消耗：{cost}% 军队耐力。
+cmd.military.aid: 向 {flag} {name} 提供了军事援助。其军事实力增强。消耗：{cost}% 军队耐力。
+cmd.military.unknown_action:  deploy
+cmd.economy.desc: 管理经济政策
+cmd.economy.usage: economy <invest|stimulus|manipulate|sanction>
+cmd.economy.no_args: 用法：economy <action>
+cmd.economy.no_funds:  have ${have}B, need ${need}B
+cmd.economy.invest: ${amount}B 投资于国内产业。经济增长 (+{boost})。国家耐力 +{ne}%。
+cmd.economy.stimulus:  Stability +{stb}. Markets calm.
+cmd.economy.manipulate:  weakened vs EUR. WC +3%.
+cmd.economy.sanction: 对 {flag} {name} 实施了全面经济制裁。其经济萎缩。
+cmd.economy.no_targets: 没有可制裁的敌对国家。
+cmd.economy.unknown_action:  stimulus
+cmd.espionage.desc: 对另一个国家执行情报行动
+cmd.espionage.usage: espionage <infiltrate|sabotage|intel> <country_id>
+cmd.espionage.no_args: 用法：espionage <action> <country_id>
+cmd.espionage.unknown_country: 未知国家：{id}
+cmd.espionage.self: 你不能对自己进行间谍活动。
+cmd.espionage.no_points:  只有 {points} 点，需要 {cost} 点。
+cmd.espionage.infiltrate_success: 特工已渗透 {flag} {name} 政府。获得了其能力情报。
+cmd.espionage.infiltrate_fail: ⚠ 特工暴露！{flag} {name} 驱逐了我们的外交官。重大外交事件。
+cmd.espionage.sabotage: 秘密破坏行动损害了 {flag} {name} 的军事基础设施。
+cmd.espionage.intel_header: === 情报：{flag} {name} ===
+cmd.espionage.intel_gov: 政府：{gov} | 实力：{power}
+cmd.espionage.intel_stats: 经济：{eco}/100 | 军事：{mil}/100 | 稳定：{stb}/100
+cmd.espionage.intel_treasury: 国库：${treasury}B | 核武器：{nuke}
+cmd.espionage.intel_allies: 盟友：{allies}
+cmd.espionage.intel_enemies: 敌人：{enemies}
+cmd.espionage.unknown_action:  sabotage
+cmd.nuclear.desc: 发射核武器——不可逆转的灾难性行动
+cmd.nuclear.usage: nuclear <country_id> — 警告：此行动不可逆转！
+cmd.nuclear.no_args: 用法：nuclear <country_id> — 警告：此行动不可逆转！
+cmd.nuclear.unknown_country: 未知国家：{id}
+cmd.nuclear.self: 你不能核打击自己。
+cmd.nuclear.no_nukes: 你的国家没有核武器。
+cmd.nuclear.detected: ☢ ☢ ☢  检测到核发射  ☢ ☢ ☢
+cmd.nuclear.result: {flag} {name} 已被核武器摧毁。
+cmd.nuclear.survivors: {pop}M 幸存者。世界震惊。
+cmd.nuclear.wc_warning: 世界崩坏度 +30%。没有回头路了。
+cmd.propaganda.desc: 发起宣传运动以提升国家稳定
+cmd.propaganda.usage: propaganda <domestic|foreign>
+cmd.propaganda.no_args: 用法：propaganda <domestic|foreign>
+cmd.propaganda.no_points:  只有 {have} 点数，需要 {need} 点数。
+cmd.propaganda.domestic:  NE +3%.
+cmd.propaganda.foreign: 对外宣传攻势已启动。全球认知改善（全球关系 +5）。
+cmd.propaganda.unknown_target: 未知目标。请使用：domestic | foreign
+cmd.world.desc: 查看当前全球局势概览
+cmd.world.usage: world
+cmd.world.header: === 全球局势 — 第 {day} 天 ===
+cmd.world.collapse_line: 世界崩坏度：{wc}%
+cmd.world.alliances_header: 联盟与对抗：
+cmd.relations.desc: 查看与特定国家的外交关系
+cmd.relations.usage: relations <country_id>
+cmd.relations.no_args: 用法：relations <country_id>
+cmd.relations.unknown_country: 未知国家：{id}
+cmd.relations.header: === 外交关系：{flag} {name} ===
+cmd.relations.status: 状态：{status}（{rel}/100）
+cmd.relations.shared_allies: 共同盟友：{allies}
+cmd.relations.their_relations: 其他关系：
+cmd.relations.allied: 盟友
+cmd.relations.friendly: 友好
+cmd.relations.neutral: 中立
+cmd.relations.tense: 紧张
+cmd.relations.hostile: 敌对
+cmd.relations.at_war: 交战
+cmd.clear.desc: 清除屏幕
+cmd.clear.usage: clear
+cmd.quit.desc: 退出游戏
+cmd.quit.usage: quit
+cmd.language.desc: 切换游戏语言
+cmd.language.usage: language <en-us|zh-cn>\n    - en-us: English (US)\n    - zh-cn: 中文 (简体)
+cmd.language.switched: 语言已切换为 {lang}。
+cmd.language.invalid:  zh-cn
+event.military_drills.title: 军事演习加剧紧张局势
+event.military_drills.desc:  drawing sharp condemnation.
+event.missile_test.title: 导弹试验引发危机
+event.missile_test.desc: {A} 试射了新型远程导弹。{B} 要求召开联合国安理会紧急会议。
+event.naval_standoff.title: 争议水域海军对峙
+event.naval_standoff.desc: {A} 与 {B} 的军舰在争议水域危险接近。双方互相指责。
+event.cyber_attack.title: 网络攻击瘫痪基础设施
+event.cyber_attack.desc:  suspected to originate from {A}
+event.arms_deal.title: 军火交易重塑地区平衡
+event.arms_deal.desc:  shifting the military balance and alarming {B}.
+event.border_skirmish.title: 边境冲突爆发
+event.border_skirmish.desc: {A}-{B} 边境爆发战斗。双方均有伤亡，紧张局势急剧升级。
+event.government_crisis.title: 政府危机
+event.government_crisis.desc: {A} 政局动荡，执政政府面临不信任投票。
+event.contested_election.title: 选举结果争议
+event.contested_election.desc:  sparking mass protests and international concern.
+event.leader_speech.title: 领导人争议性演讲
+event.leader_speech.desc:  alarming diplomats worldwide.
+event.coup_attempt.title: 政变未遂
+event.coup_attempt.desc: {A} 的军事派系试图夺取政权。国家的命运悬于一线。
+event.market_crash.title: 市场崩溃
+event.market_crash.desc: {A} 股市突然崩盘，冲击波席卷全球经济。
+event.trade_war.title: 贸易战加剧
+event.trade_war.desc: {A} 对 {B} 的商品征收高额关税。{B} 誓言报复。市场暴跌。
+event.sanctions_crushing.title: 制裁压垮经济
+event.sanctions_crushing.desc: 全面的国际制裁摧毁了 {A} 的经济。平民苦难加剧。
+event.energy_crisis.title: 能源危机迫近
+event.energy_crisis.desc: 随着 {A} 限制出口，全球能源价格飙升。冬天临近，各国争相应对。
+event.tech_breakthrough.title: 技术突破宣布
+event.tech_breakthrough.desc:  reshaping global economic competition.
+event.peace_deal.title: 历史性和平协议
+event.peace_deal.desc:  easing decades of tension.
+event.alliance_treaty.title: 联盟条约签署
+event.alliance_treaty.desc:  reshaping the geopolitical landscape.
+event.summit_breakthrough.title: 峰会取得突破
+event.summit_breakthrough.desc:  agreeing to reduce tensions.
+event.diplomatic_expulsion.title: 外交驱逐
+event.diplomatic_expulsion.desc: {A} 以涉嫌间谍活动为由驱逐 {B} 的外交官。两国关系急剧恶化。
+event.un_resolution.title: 联合国决议引发辩论
+event.un_resolution.desc: 一项针对 {A} 的有争议的联合国决议使安理会沿着熟悉的裂痕分裂。
+event.earthquake.title: 毁灭性地震
+event.earthquake.desc:  infrastructure in ruins. International aid pours in.
+event.pandemic.title: 疫情爆发
+event.pandemic.desc: {A} 出现新的病毒疫情并迅速蔓延。各国关闭边境，恐慌蔓延。
+event.climate_catastrophe.title: 气候灾难
+event.climate_catastrophe.desc:  cities flood. Climate refugees surge across borders.
+event.nuclear_emergency.title: 核电站紧急事故
+event.nuclear_emergency.desc: {A} 的一座核设施报告了严重故障。随着对熔毁的恐惧蔓延，撤离行动开始。
+event.intro.title: 新世界秩序开启
+event.intro.desc: 你掌控了 {flag} {name}。世界屏息以待。全球头条：{headlines}。舞台已搭好。历史等待着你的命令。
+country.USA.name: 美国
+country.USA.desc: 拥有无与伦比的军事覆盖范围和世界储备货币的全球超级大国。面临内部分裂，但在全球投射力量。
+country.CHN.name: 中国
+country.CHN.desc: 拥有世界最多人口和快速现代化军队的崛起超级大国。一带一路在全球扩展影响力。
+country.RUS.name: 俄罗斯
+country.RUS.desc: 拥有核武器和丰富自然资源的强国，愿意投射力量。经济受制裁削弱，但军事依然强大。
+country.GBR.name: 英国
+country.GBR.desc: 拥有核武器的岛国，拥有强大的金融部门和全球情报网络。美国的紧密盟友，具有独立战略思维。
+country.FRA.name: 法国
+country.FRA.desc: 拥有强大独立外交政策传统的核大国。欧盟关键领导者，在非洲有重要影响力和地中海海军存在。
+country.DEU.name: 德国
+country.DEU.desc: 欧洲的经济引擎，军事投资不断增长。不情愿的全球领导者，应对能源转型和大陆安全挑战。
+country.JPN.name: 日本
+country.JPN.desc: 技术强国，和平宪法面临越来越大的压力。面对日益增长的区域威胁，争论军事正常化。
+country.IND.name: 印度
+country.IND.desc: 世界上最大的民主国家和增长最快的主要经济体。拥有核武器，在大国之间进行战略平衡。
+country.PRK.name: 朝鲜
+country.PRK.desc:  unpredictable
+country.IRN.name: 伊朗
+country.IRN.desc: 神权核门槛国家，在中东拥有广泛的代理网络。受制裁打击但战略韧性十足。
+country.ISR.name: 以色列
+country.ISR.desc: 拥有核武器的中东强国，拥有先进的科技部门和世界最强大的军队之一。永远处于高度戒备状态。
+country.BRA.name: 巴西
+country.BRA.desc: 南美洲最大的国家，拥有丰富的自然资源和未开发的潜力。金砖国家成员，在全球权力集团之间周旋。
+gov.democracy: 民主制度
+gov.authoritarian: 威权制度
+gov.theocracy: 神权制度
+gov.monarchy: 君主制度
+gov.communist: 共产主义
+power.superpower: 超级大国
+power.major: 普通大国
+power.regional: 地区强国
+power.minor: 普通小国
+rel.allied: 盟友
+rel.friendly: 友好
+rel.neutral: 中立
+rel.tense: 紧张
+rel.hostile: 敌对
+rel.at_war: 交战
+severity.low: 低
+severity.medium: 中
+severity.high: 高
+severity.critical: 严重
+event_type.political: 政治
+event_type.military: 军事
+event_type.economic: 经济
+event_type.diplomatic: 外交
+event_type.disaster: 灾害
+event_type.crisis: 危机
+collapse.sanctions: 对 {name} 实施制裁
+collapse.condemnation: 公开谴责 {name}
+collapse.forces_deployed: 部队部署至 {name} 地区
+collapse.military_strike: 对 {name} 的军事打击
+collapse.espionage_scandal: 涉及 {name} 的间谍丑闻
+collapse.covert_sabotage: 对 {name} 的秘密破坏
+collapse.currency_manipulation: 检测到货币操纵
+collapse.economic_sanctions: 对 {name} 的经济制裁
+collapse.markets_calm: 经济刺激计划稳定市场
+collapse.nuclear_strike: 对 {name} 发动核打击
+collapse.global_tensions: 全球紧张局势持续酝酿
+common.none: 无
+common.you: 你
+common.unknown: 未知
+# ── Attitudes ──
+att.peaceful: 和平共进
+att.neutral: 中规中矩
+att.strained: 难以协调
+att.irreconcilable: 不死不休
+att.peaceful_short: 和平共进
+att.neutral_short: 中规中矩
+att.strained_short: 难以协调
+att.irreconcilable_short: 不死不休
+
+# ── Force / Coercion ──
+force.label: 迫使值
+force.low: 低 — 民众不支持极端行动
+force.medium: 中等 — 民众对果断措施持开放态度
+force.high: 高 — 民众要求采取行动
+force.extreme: 极高 — 民众呼吁全面战争
+
+# ── War System ──
+war.category: WAR - 战斗命令
+war.start.desc: 对另一个国家宣战
+war.start.usage: war start <country_id>
+war.start.no_args: 用法：war start <country_id>
+war.start.unknown_country: 未知国家：{id}
+war.start.self: 你不能对自己宣战。
+war.start.already_at_war: 已与 {name} 交战。使用 war status 查看战况。
+war.start.no_attitude: 相互态度必须在"难以协调"以下才能宣战。当前：{att}
+war.start.no_support: 民众支持度太低（{sup}%，需要 >65%）。先凝聚国内民意。
+war.start.no_endurance: 军队耐力不足（{ae}%，需要 >79%）。先休整部队。
+war.start.success: ⚔ 对 {flag} {name} 宣战！世界屏息以待。
+war.status.desc: 查看当前战争状态
+war.status.usage: war status
+war.status.no_war: 没有活跃的战争。世界暂时和平...
+war.attack.desc: 发起进攻
+war.attack.usage: war attack
+war.attack.no_war: 没有活跃的战争可以进攻。
+war.attack.success: ⚔ 进攻发起！我军与敌军交战。
+war.defend.desc: 加固防御阵地
+war.defend.usage: war defend
+war.defend.no_war: 没有活跃的战争可以防御。
+war.defend.success: 🛡 防御阵地已加固。敌军推进受阻。
+war.retreat.desc: 撤退投降
+war.retreat.usage: war retreat
+war.retreat.no_war: 没有活跃的战争可以撤退。
+war.retreat.success: 🏳 {name} 投降。战争结束。国民士气崩溃。
+war.battle_header: ═══ 战斗报告 ═══
+war.attacker: 进攻方
+war.defender: 防守方
+war.phase: 阶段
+war.morale: 士气
+war.losses: 损失
+war.winner: 胜者
+war.decisive_victory: 决定性胜利
+war.stalemate: 僵局
+war.war_ended: 战争结束
+war.preparing: 准备阶段
+war.active: 活跃战斗
+war.decisive: 决战阶段
+war.ended: 已结束
+
+# ── AI Actions ──
+ai.action.diplomacy: {flag} {name} 进行外交接触。
+ai.action.military_drill: {flag} {name} 进行军事演习。
+ai.action.economic: {flag} {name} 调整经济政策。
+ai.action.propaganda: {flag} {name} 发起宣传运动。
+ai.action.espionage: 有关 {flag} {name} 秘密行动的传闻浮现。
+ai.sanction_imposed: {flag} {name} 对 {target} 实施制裁。
+ai.war_declared: ⚔ {flag} {name} 对 {target} 宣战！
+ai.peace_signed: 🕊 {flag} {name} 与 {target} 签署和平协议。
+
+# ── Categorized Help ──
+help.category.game: GAME - 游戏流程
+help.category.diplomacy: DIPLOMACY - 外交行动
+help.category.military: MILITARY - 军事行动
+help.category.economy: ECONOMY - 经济行动
+help.category.war: WAR - 战斗命令
+help.category.intelligence: INTELLIGENCE - 情报行动
+help.category.system: SYSTEM - 系统工具
+# ── Sub-command Descriptions ──
+help.subcmd.diplomacy.improve: improve <id> — 改善外交关系（+15，消耗10外交点）
+help.subcmd.diplomacy.treaty: treaty <id> — 签署防务条约（+25关系，消耗10外交点）
+help.subcmd.diplomacy.sanction: sanction <id> — 实施外交制裁（-15关系，目标经济-3，消耗10外交点）
+help.subcmd.diplomacy.condemn: condemn <id> — 在世界舞台公开谴责（-10关系，消耗10外交点）
+help.subcmd.military.drill: drill <id> — 举行军事演习（+2军事，+3迫使值，消耗15%军队耐力）
+help.subcmd.military.deploy: deploy <id> — 向边境部署部队（-8关系，WC +2，+3民意支持，消耗15%军队耐力）
+help.subcmd.military.strike: strike <id> — 发动精确打击（-25关系，目标军/稳-10，WC +5，消耗15%军队耐力）
+help.subcmd.military.aid: aid <id> — 提供军事援助（+10关系，目标军事+5，消耗15%军队耐力）
+help.subcmd.economy.invest: invest — 投资$500B于国内产业（+3经济，+2%国家耐力）
+help.subcmd.economy.stimulus: stimulus — 部署$1T经济刺激计划（+5经济，+5稳定，WC -1）
+help.subcmd.economy.manipulate: manipulate — 操纵货币市场（美元兑人民币走强、兑欧元走弱，WC +3）
+help.subcmd.economy.sanction: sanction — 对随机敌对国家实施全面经济制裁
+help.subcmd.war.start: start <id> — 宣战（需要：相互态度≤难以协调，民意支持>65%，军队耐力>79%）
+help.subcmd.war.status: status — 查看当前战争状态、士气、损失和战斗历史
+help.subcmd.war.attack: attack — 发起进攻（掷骰判定，军事+士气加成）
+help.subcmd.war.defend: defend — 加固防御阵地（+10士气，+3稳定）
+help.subcmd.war.retreat: retreat — 投降结束战争（-20稳定，-15民意，-15%国家耐力）
+help.subcmd.espionage.infiltrate: infiltrate <id> — 渗透政府（70%成功率，消耗12外交点）
+help.subcmd.espionage.sabotage: sabotage <id> — 破坏军事设施（目标军-8，经-3，消耗12外交点）
+help.subcmd.espionage.intel: intel <id> — 查看目标国家详细情报报告（消耗12外交点）
+help.subcmd.propaganda.domestic: domestic — 发起国内宣传（+5稳定，+3%国家耐力，+8民意支持，消耗8外交点）
+help.subcmd.propaganda.foreign: foreign — 发起对外宣传（与所有国家关系+5，消耗8外交点）
+help.subcmd.nuclear.launch: <id> — 发射核武器（需要：民意支持>70%，态度=不死不休，迫使值>55%，WC +30）
+cmd.save.desc: 保存当前游戏到磁盘（base64 编码）
+cmd.save.usage: save
+cmd.load.desc: 从磁盘加载已保存的游戏
+cmd.load.usage: load
+help.subcmd.save.default: (无参数) — 保存游戏状态到当前目录的 save.warfire
+help.subcmd.load.default: (无参数) — 从当前目录的 save.warfire 加载游戏状态

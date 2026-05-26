@@ -1,0 +1,22 @@
+{
+  "name": "warfire-rises",
+  "version": "1.0.3",
+  "private": true,
+  "description": "WARFIRE RISES - A World Simulation CLI Game",
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.tsx",
+    "dev": "bun run --watch src/index.tsx",
+    "build": "bun run scripts/build.ts"
+  },
+  "dependencies": {
+    "ink": "^4.4.1",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "react-devtools-core": "^7.0.1",
+    "typescript": "^5.5.0"
+  }
+}

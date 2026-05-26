@@ -1,0 +1,413 @@
+title.fetching: Fetching world data...
+title.gathering: Gathering exchange rates
+title.intro: The world is on the brink. Choose the nation you will guide — or drive into chaos. The console is your weapon.
+title.select_prompt: Select your nation (↑↓ or j/k)
+title.selected_label: Selected:
+title.press_enter: Press Enter to begin ▸
+title.confirming: Confirming...
+title.subtitle: A World Simulation Game for the Terminal
+eventlog.title: WARFIRE RISES — 战火升腾
+eventlog.day_briefing: Day {day} — Global Intelligence Briefing
+eventlog.separator: ──────────────────────────────────────────────
+eventlog.daily_briefing: ▼ DAILY BRIEFING
+eventlog.event_log: ▼ EVENT LOG
+eventlog.no_events:   No events yet. The world holds its breath.
+eventlog.affected: Affected:
+eventlog.type_pol: POL
+eventlog.type_mil: MIL
+eventlog.type_eco: ECO
+eventlog.type_dip: DIP
+eventlog.type_dis: DIS
+eventlog.type_cri: CRI
+sidebar.day: Day {day}
+sidebar.stats: ─── Stats ───
+sidebar.global: ─── Global ───
+sidebar.nation: ─── Nation ───
+sidebar.rates: ─── Rates ───
+sidebar.keywords: ─── Keywords ───
+sidebar.recent: ─── Recent ───
+sidebar.diplomatic_pts: Diplomatic Pts:
+sidebar.army_endurance: Army Endurance:
+sidebar.national_endure: National Endure:
+sidebar.treasury: Treasury:
+sidebar.world_collapse: World Collapse:
+sidebar.allies: Allies:
+sidebar.enemies: Enemies:
+sidebar.economy: Economy:
+sidebar.military: Military:
+sidebar.stability: Stability:
+sidebar.nuclear: Nuclear:
+sidebar.yes: YES
+sidebar.no: No
+statusbar.commands: Commands
+statusbar.advance_day: Advance Day
+statusbar.overview: Overview
+statusbar.quit: Quit
+gameover.tfr_title: ☢  THE FIRE RISES  ☢
+gameover.tfr_subtitle: 🔥  战火升腾  🔥
+gameover.tno_title: 🕊  THE NEW ORDER  🕊
+gameover.tno_subtitle: 新秩序
+gameover.tfr_message: {flag} {name} has become the catalyst for global annihilation. Your aggressive actions shattered the fragile world order. The flames of war consume everything. History will remember you as the architect of chaos.
+gameover.tno_message: {flag} {name} emerges from the ashes as the world's arbiter. Through calculated diplomacy and measured force
+gameover.final_stats: Final Statistics:
+gameover.nation: Nation:
+gameover.days_survived: Days survived:
+gameover.final_wc: Final World Collapse:
+gameover.final_ne: National Endurance:
+gameover.final_ae: Army Endurance:
+gameover.final_treasury: Treasury:
+gameover.final_allies: Allies:
+gameover.final_enemies: Enemies:
+gameover.ending_label: Ending:
+gameover.tfr_epilogue: The world burns. Your name is etched in ash and fire. History curses you — but fear keeps them obedient.
+gameover.tno_epilogue: A new world rises from the chaos. Your vision reshapes nations. Order emerges
+gameover.exit_hint: Press Ctrl+C to exit. The world remembers.
+gameover.tfr_ending_label: THE FIRE RISES (TFR)
+gameover.tno_ending_label: THE NEW ORDER (TNO)
+app.welcome: Welcome to WARFIRE RISES. Type 'help' for available commands.
+app.loading_title: ═══ WARFIRE RISES — 战火升腾 ═══
+app.fetching_intel: Fetching global intelligence...
+app.fetching_rates: ▸ Exchange rates (USD/CNY
+app.fetching_news: ▸ World news headlines and keyword extraction
+app.fetching_sim: ▸ Initializing geopolitical simulation matrix
+app.fetching_wait: Please wait — data is gathered only once per campaign.
+app.game_header: === WARFIRE RISES ===
+app.date_label: Date:
+app.you_control: You control:
+app.type_help: Type 'help' for available commands.
+app.day_header: ═══ DAY {day} ═══
+app.wc_status: World Collapse: {wc}% | DP: {dp} | AE: {ae}% | NE: {ne}%
+app.gameover_already: The game is over. Press Ctrl+C to exit.
+cmd.help.desc: Show all available commands
+cmd.help.usage: help [command]
+cmd.help.unknown: Unknown command: {cmd}
+cmd.help.title: === WARFIRE RISES CONSOLE COMMANDS ===
+cmd.help.detail_hint: Use 'help <command>' for detailed usage.
+cmd.help.aliases: Aliases: {aliases}
+cmd.status.desc: Display detailed status of your nation
+cmd.status.usage: status
+cmd.status.government: Government: {gov} | Power: {power}
+cmd.status.economy: Economy: {eco}/100 | Military: {mil}/100 | Stability: {stb}/100
+cmd.status.treasury: Treasury: ${treasury}B | Population: {pop}M | Nuclear: {nuke}
+cmd.status.allies: Allies: {allies}
+cmd.status.enemies: Enemies: {enemies}
+cmd.status.points: Diplomatic Points: {dp}
+cmd.status.endurance: Army Endurance: {ae}%
+cmd.status.national: National Endurance: {ne}%
+cmd.status.collapse: World Collapse: {wc}%
+cmd.status.rates_header: Exchange Rates:
+cmd.status.keywords_header: World Keywords: {kw}
+cmd.next.desc: Advance to the next day and process world events
+cmd.next.usage: next
+cmd.diplomacy.desc: Conduct diplomatic actions with another country
+cmd.diplomacy.usage: diplomacy <improve|treaty|sanction|condemn> <country_id>
+cmd.diplomacy.no_args: Usage: diplomacy <action> <country_id>
+cmd.diplomacy.unknown_country: Unknown country: {id}
+cmd.diplomacy.self: You cannot conduct diplomacy with yourself.
+cmd.diplomacy.no_points: Not enough diplomatic points (need {cost}
+cmd.diplomacy.improve: Relations with {flag} {name} improved (+15). Cost: {cost} DP.
+cmd.diplomacy.treaty: Defense treaty signed with {flag} {name} (+25 relations). Cost: {cost} DP.
+cmd.diplomacy.sanction: Sanctions imposed on {flag} {name}. Their economy suffers. Cost: {cost} DP.
+cmd.diplomacy.condemn: Publicly condemned {flag} {name} on the world stage. Cost: {cost} DP.
+cmd.diplomacy.unknown_action: Unknown diplomatic action: {action}. Try: improve
+cmd.military.desc: Execute military operations
+cmd.military.usage: military <drill|deploy|strike|aid> <country_id>
+cmd.military.no_args: Usage: military <action> <country_id>
+cmd.military.unknown_country: Unknown country: {id}
+cmd.military.self: You cannot conduct military operations against yourself.
+cmd.military.no_endurance: Not enough army endurance (need {cost}%
+cmd.military.drill: Military drills conducted near {flag} {name}. Readiness increased. Cost: {cost}% AE.
+cmd.military.deploy: Forces deployed near {flag} {name}. Regional tensions rise. Cost: {cost}% AE.
+cmd.military.strike: ⚡ Precision strikes hit {flag} {name}! Military capability reduced. World on edge. Cost: {cost}% AE.
+cmd.military.aid: Military aid sent to {flag} {name}. Their military strengthened. Cost: {cost}% AE.
+cmd.military.unknown_action: Unknown military action: {action}. Try: drill
+cmd.economy.desc: Manage economic policies
+cmd.economy.usage: economy <invest|stimulus|manipulate|sanction>
+cmd.economy.no_args: Usage: economy <action>
+cmd.economy.no_funds: Not enough funds (need ${need}B
+cmd.economy.invest: ${amount}B invested in domestic industry. Economy boosted (+{boost}). NE +{ne}%.
+cmd.economy.stimulus: ${amount}T stimulus package deployed. Economy +{boost}
+cmd.economy.manipulate: Currency markets manipulated. USD strengthened vs CNY
+cmd.economy.sanction: Sweeping economic sanctions imposed on {flag} {name}. Their economy shrinks.
+cmd.economy.no_targets: No hostile countries to sanction.
+cmd.economy.unknown_action: Unknown economic action: {action}. Try: invest
+cmd.espionage.desc: Conduct intelligence operations against another country
+cmd.espionage.usage: espionage <infiltrate|sabotage|intel> <country_id>
+cmd.espionage.no_args: Usage: espionage <action> <country_id>
+cmd.espionage.unknown_country: Unknown country: {id}
+cmd.espionage.self: You cannot spy on yourself.
+cmd.espionage.no_points: Not enough diplomatic points for covert ops (need {cost}
+cmd.espionage.infiltrate_success: Agent infiltrated {flag} {name}'s government. Intel gained on their capabilities.
+cmd.espionage.infiltrate_fail: ⚠ Agent compromised! {flag} {name} expels our diplomats. Major diplomatic incident.
+cmd.espionage.sabotage: Covert sabotage damages {flag} {name}'s military infrastructure.
+cmd.espionage.intel_header: === INTEL: {flag} {name} ===
+cmd.espionage.intel_gov: Government: {gov} | Power: {power}
+cmd.espionage.intel_stats: Economy: {eco}/100 | Military: {mil}/100 | Stability: {stb}/100
+cmd.espionage.intel_treasury: Treasury: ${treasury}B | Nuclear: {nuke}
+cmd.espionage.intel_allies: Allies: {allies}
+cmd.espionage.intel_enemies: Enemies: {enemies}
+cmd.espionage.unknown_action: Unknown espionage action: {action}. Try: infiltrate
+cmd.nuclear.desc: Launch nuclear weapons — irreversible and catastrophic
+cmd.nuclear.usage: nuclear <country_id> — WARNING: This action is irreversible!
+cmd.nuclear.no_args: Usage: nuclear <country_id> — WARNING: This action is irreversible!
+cmd.nuclear.unknown_country: Unknown country: {id}
+cmd.nuclear.self: You cannot nuke yourself.
+cmd.nuclear.no_nukes: Your country does not possess nuclear weapons.
+cmd.nuclear.detected: ☢ ☢ ☢  NUCLEAR LAUNCH DETECTED  ☢ ☢ ☢
+cmd.nuclear.result: {flag} {name} has been devastated by nuclear weapons.
+cmd.nuclear.survivors: {pop}M survivors remain. The world stands in shock.
+cmd.nuclear.wc_warning: World Collapse +30%. There is no going back.
+cmd.propaganda.desc: Launch propaganda campaign to boost national stability
+cmd.propaganda.usage: propaganda <domestic|foreign>
+cmd.propaganda.no_args: Usage: propaganda <domestic|foreign>
+cmd.propaganda.no_points: Not enough diplomatic points (need {need}
+cmd.propaganda.domestic: Domestic propaganda campaign launched. Citizens rally behind the government. Stability +5
+cmd.propaganda.foreign: Foreign propaganda blitz launched. Global perception improves (+5 relations worldwide).
+cmd.propaganda.unknown_target: Unknown target. Use: domestic | foreign
+cmd.world.desc: View the current global situation overview
+cmd.world.usage: world
+cmd.world.header: === GLOBAL SITUATION — DAY {day} ===
+cmd.world.collapse_line: World Collapse: {wc}%
+cmd.world.alliances_header: Alliances & Rivalries:
+cmd.relations.desc: View diplomatic relations with a specific country
+cmd.relations.usage: relations <country_id>
+cmd.relations.no_args: Usage: relations <country_id>
+cmd.relations.unknown_country: Unknown country: {id}
+cmd.relations.header: === RELATIONS: {flag} {name} ===
+cmd.relations.status: Status: {status} ({rel}/100)
+cmd.relations.shared_allies: Shared allies: {allies}
+cmd.relations.their_relations: Their other relations:
+cmd.relations.allied: allied
+cmd.relations.friendly: friendly
+cmd.relations.neutral: neutral
+cmd.relations.tense: tense
+cmd.relations.hostile: hostile
+cmd.relations.at_war: at war
+cmd.clear.desc: Clear the screen
+cmd.clear.usage: clear
+cmd.quit.desc: Exit the game
+cmd.quit.usage: quit
+cmd.language.desc: Switch game language
+cmd.language.usage: language <en-us|zh-cn>
+cmd.language.switched: Language switched to {lang}.
+cmd.language.invalid: Invalid language. Available: en-us
+event.military_drills.title: Military Drills Escalate Tensions
+event.military_drills.desc: {A} conducts large-scale military exercises near {B}'s borders
+event.missile_test.title: Missile Test Provokes Crisis
+event.missile_test.desc: {A} tests a new long-range missile. {B} calls an emergency UN Security Council session.
+event.naval_standoff.title: Naval Standoff in Disputed Waters
+event.naval_standoff.desc: {A} and {B} warships come dangerously close in contested waters. Both sides blame each other.
+event.cyber_attack.title: Cyber Attack Cripples Infrastructure
+event.cyber_attack.desc: A massive cyber attack
+event.arms_deal.title: Arms Deal Reshapes Regional Balance
+event.arms_deal.desc: {A} sells advanced weaponry to allies
+event.border_skirmish.title: Border Skirmish Erupts
+event.border_skirmish.desc: Fighting breaks out along the {A}-{B} border. Casualties reported on both sides as tensions spike.
+event.government_crisis.title: Government Crisis
+event.government_crisis.desc: Political turmoil in {A} as the ruling government faces a no-confidence vote.
+event.contested_election.title: Contested Election Results
+event.contested_election.desc: Allegations of fraud rock {A}'s election
+event.leader_speech.title: Leader's Controversial Speech
+event.leader_speech.desc: {A}'s leader makes inflammatory remarks on the world stage
+event.coup_attempt.title: Coup Attempt
+event.coup_attempt.desc: Military factions in {A} attempt to seize power. The fate of the nation hangs in the balance.
+event.market_crash.title: Market Crash
+event.market_crash.desc: A sudden crash in {A}'s stock market sends shockwaves through the global economy.
+event.trade_war.title: Trade War Intensifies
+event.trade_war.desc: {A} imposes heavy tariffs on {B}'s goods. {B} vows retaliation. Markets tumble.
+event.sanctions_crushing.title: Sanctions Crushing Economy
+event.sanctions_crushing.desc: Sweeping international sanctions devastate {A}'s economy. Civilian suffering grows.
+event.energy_crisis.title: Energy Crisis Looms
+event.energy_crisis.desc: Global energy prices spike as {A} restricts exports. Winter approaches and nations scramble.
+event.tech_breakthrough.title: Tech Breakthrough Announced
+event.tech_breakthrough.desc: {A} unveils a revolutionary technology breakthrough
+event.peace_deal.title: Historic Peace Deal
+event.peace_deal.desc: {A} and {B} sign a landmark peace agreement
+event.alliance_treaty.title: Alliance Treaty Signed
+event.alliance_treaty.desc: {A} and {B} formalize a defense pact
+event.summit_breakthrough.title: Summit Yields Breakthrough
+event.summit_breakthrough.desc: Leaders of {A} and {B} meet at a historic summit
+event.diplomatic_expulsion.title: Diplomatic Expulsion
+event.diplomatic_expulsion.desc: {A} expels {B}'s diplomats over alleged espionage. Relations plummet.
+event.un_resolution.title: UN Resolution Sparks Debate
+event.un_resolution.desc: A controversial UN resolution targeting {A} divides the Security Council along familiar fault lines.
+event.earthquake.title: Devastating Earthquake
+event.earthquake.desc: A massive earthquake strikes {A}. Thousands dead
+event.pandemic.title: Pandemic Outbreak
+event.pandemic.desc: A new viral outbreak in {A} spreads rapidly. Nations close borders and panic sets in.
+event.climate_catastrophe.title: Climate Catastrophe
+event.climate_catastrophe.desc: Extreme weather devastates {A}. Crops fail
+event.nuclear_emergency.title: Nuclear Plant Emergency
+event.nuclear_emergency.desc: A nuclear facility in {A} reports a critical malfunction. Evacuations begin as fears of meltdown spread.
+event.intro.title: A New World Order Begins
+event.intro.desc: You assume control of {flag} {name}. The world watches with bated breath. Global headlines: {headlines}. The stage is set. History awaits your command.
+country.USA.name: United States
+country.USA.desc: Global superpower with unmatched military reach and the world's reserve currency. Faces internal divisions but projects power worldwide.
+country.CHN.name: China
+country.CHN.desc: Rising superpower with the world's largest population and rapidly modernizing military. Belt and Road extends influence globally.
+country.RUS.name: Russia
+country.RUS.desc: Nuclear-armed power with vast natural resources and a willingness to project force. Economy weakened by sanctions but military remains formidable.
+country.GBR.name: United Kingdom
+country.GBR.desc: Nuclear-armed island nation with a powerful financial sector and global intelligence reach. Close US ally with independent strategic thinking.
+country.FRA.name: France
+country.FRA.desc: Nuclear power with a strong independent foreign policy tradition. Key EU leader with significant African influence and Mediterranean naval presence.
+country.DEU.name: Germany
+country.DEU.desc: Europe's economic engine with growing military investment. Reluctant global leader navigating energy transition and continental security challenges.
+country.JPN.name: Japan
+country.JPN.desc: Technological powerhouse with a pacifist constitution under increasing strain. Faces growing regional threats and debates military normalization.
+country.IND.name: India
+country.IND.desc: World's largest democracy and fastest-growing major economy. Nuclear-armed with a strategic balancing act between major powers.
+country.PRK.name: North Korea
+country.PRK.desc: Isolated nuclear state with a massive conventional military. The ultimate wildcard — erratic
+country.IRN.name: Iran
+country.IRN.desc: Theocratic nuclear-threshold state with extensive proxy networks across the Middle East. Sanctions-battered but strategically resilient.
+country.ISR.name: Israel
+country.ISR.desc: Nuclear-armed Middle Eastern power with advanced tech sector and one of the world's most capable militaries. Perpetually on high alert.
+country.BRA.name: Brazil
+country.BRA.desc: South America's largest nation with vast natural resources and untapped potential. BRICS member navigating between global power blocs.
+gov.democracy: democracy
+gov.authoritarian: authoritarian
+gov.theocracy: theocracy
+gov.monarchy: monarchy
+gov.communist: communist
+power.superpower: superpower
+power.major: major
+power.regional: regional
+power.minor: minor
+rel.allied: ALLIED
+rel.friendly: FRIENDLY
+rel.neutral: NEUTRAL
+rel.tense: TENSE
+rel.hostile: HOSTILE
+rel.at_war: AT WAR
+severity.low: low
+severity.medium: medium
+severity.high: high
+severity.critical: critical
+event_type.political: political
+event_type.military: military
+event_type.economic: economic
+event_type.diplomatic: diplomatic
+event_type.disaster: disaster
+event_type.crisis: crisis
+collapse.sanctions: Sanctions imposed on {name}
+collapse.condemnation: Public condemnation of {name}
+collapse.forces_deployed: Forces deployed to {name}'s region
+collapse.military_strike: Military strike against {name}
+collapse.espionage_scandal: Espionage scandal involving {name}
+collapse.covert_sabotage: Covert sabotage of {name}
+collapse.currency_manipulation: Currency manipulation detected
+collapse.economic_sanctions: Economic sanctions on {name}
+collapse.markets_calm: Economic stimulus calms markets
+collapse.nuclear_strike: NUCLEAR STRIKE on {name}!"
+collapse.global_tensions: Global tensions continue to simmer
+common.none: none
+common.you: YOU
+common.unknown: Unknown
+# ── Attitudes ──
+att.peaceful: Peaceful Cooperation
+att.neutral: Middle Ground
+att.strained: Difficult to Coordinate
+att.irreconcilable: Irreconcilable
+att.peaceful_short: PEACEFUL
+att.neutral_short: NEUTRAL
+att.strained_short: STRAINED
+att.irreconcilable_short: IRRECONCILABLE
+
+# ── Force / Coercion ──
+force.label: Coercion Readiness
+force.low: Low — public unwilling to support extreme actions
+force.medium: Moderate — public open to decisive measures
+force.high: High — public demands action
+force.extreme: Extreme — public clamors for total war
+
+# ── War System ──
+war.category: WAR - Battle Commands
+war.start.desc: Declare war on another country
+war.start.usage: war start <country_id>
+war.start.no_args: Usage: war start <country_id>
+war.start.unknown_country: Unknown country: {id}
+war.start.self: You cannot declare war on yourself.
+war.start.already_at_war: Already at war with {name}. Use war status to view.
+war.start.no_attitude: Mutual attitude must be "Difficult to Coordinate" or worse to declare war. Current: {att}
+war.start.no_support: Public support too low ({sup}%, need >65%). Rally domestic support first.
+war.start.no_endurance: Army endurance too low ({ae}%, need >79%). Rest and reorganize first.
+war.start.success: ⚔ War declared on {flag} {name}! The world holds its breath.
+war.status.desc: View current war status
+war.status.usage: war status
+war.status.no_war: No active war. The world is at peace... for now.
+war.attack.desc: Launch an offensive battle
+war.attack.usage: war attack
+war.attack.no_war: No active war to attack in.
+war.attack.success: ⚔ Offensive launched! Our forces engage the enemy.
+war.defend.desc: Fortify and defend positions
+war.defend.usage: war defend
+war.defend.no_war: No active war to defend in.
+war.defend.success: 🛡 Defensive positions fortified. Enemy advances slowed.
+war.retreat.desc: Retreat from the war (surrender)
+war.retreat.usage: war retreat
+war.retreat.no_war: No active war to retreat from.
+war.retreat.success: 🏳 {name} surrenders. The war is over. National morale crumbles.
+war.battle_header: ═══ BATTLE REPORT ═══
+war.attacker: ATTACKER
+war.defender: DEFENDER
+war.phase: Phase
+war.morale: Morale
+war.losses: Losses
+war.winner: WINNER
+war.decisive_victory: DECISIVE VICTORY
+war.stalemate: STALEMATE
+war.war_ended: WAR ENDED
+war.preparing: Preparing
+war.active: Active Combat
+war.decisive: Decisive Phase
+war.ended: Ended
+
+# ── AI Actions ──
+ai.action.diplomacy: {flag} {name} engages in diplomatic outreach.
+ai.action.military_drill: {flag} {name} conducts military exercises.
+ai.action.economic: {flag} {name} adjusts economic policies.
+ai.action.propaganda: {flag} {name} launches a propaganda campaign.
+ai.action.espionage: Rumors of covert operations by {flag} {name} surface.
+ai.sanction_imposed: {flag} {name} imposes sanctions on {target}.
+ai.war_declared: ⚔ {flag} {name} declares war on {target}!
+ai.peace_signed: 🕊 {flag} {name} and {target} sign a peace agreement.
+
+# ── Categorized Help ──
+help.category.game: GAME - Flow Control
+help.category.diplomacy: DIPLOMACY - Diplomatic Actions
+help.category.military: MILITARY - Military Actions
+help.category.economy: ECONOMY - Economic Actions
+help.category.war: WAR - Battle Commands
+help.category.intelligence: INTELLIGENCE - Covert Operations
+help.category.system: SYSTEM - Utilities
+# ── Sub-command Descriptions ──
+help.subcmd.diplomacy.improve: improve <id> — Improve diplomatic relations (+15, costs 10 DP)
+help.subcmd.diplomacy.treaty: treaty <id> — Sign a defense treaty (+25 relations, costs 10 DP)
+help.subcmd.diplomacy.sanction: sanction <id> — Impose diplomatic sanctions (-15 rel, -3 target economy, costs 10 DP)
+help.subcmd.diplomacy.condemn: condemn <id> — Publicly condemn on world stage (-10 rel, costs 10 DP)
+help.subcmd.military.drill: drill <id> — Conduct military exercises (+2 military, +3 force, costs 15% AE)
+help.subcmd.military.deploy: deploy <id> — Deploy forces to border (-8 rel, WC +2, +3 support, costs 15% AE)
+help.subcmd.military.strike: strike <id> — Launch precision strikes (-25 rel, -10 target mil/stb, WC +5, costs 15% AE)
+help.subcmd.military.aid: aid <id> — Send military aid (+10 rel, +5 target military, costs 15% AE)
+help.subcmd.economy.invest: invest — Invest $500B in domestic industry (+3 economy, +2% NE)
+help.subcmd.economy.stimulus: stimulus — Deploy $1T economic stimulus (+5 economy, +5 stability, WC -1)
+help.subcmd.economy.manipulate: manipulate — Manipulate currency markets (USD strengthens vs CNY, weakens vs EUR, WC +3)
+help.subcmd.economy.sanction: sanction — Impose sweeping economic sanctions on a random hostile nation
+help.subcmd.war.start: start <id> — Declare war (requires: mutual attitude ≤ strained, public support >65%, army endurance >79%)
+help.subcmd.war.status: status — View current war status, morale, losses, and battle history
+help.subcmd.war.attack: attack — Launch an offensive battle (dice roll with military + morale modifiers)
+help.subcmd.war.defend: defend — Fortify defensive positions (+10 morale, +3 stability)
+help.subcmd.war.retreat: retreat — Surrender and end the war (-20 stability, -15 support, -15% NE)
+help.subcmd.espionage.infiltrate: infiltrate <id> — Infiltrate government (70% success rate, costs 12 DP)
+help.subcmd.espionage.sabotage: sabotage <id> — Sabotage military infrastructure (-8 mil, -3 eco to target, costs 12 DP)
+help.subcmd.espionage.intel: intel <id> — View detailed intelligence report on target nation (costs 12 DP)
+help.subcmd.propaganda.domestic: domestic — Launch domestic propaganda (+5 stability, +3% NE, +8 public support, costs 8 DP)
+help.subcmd.propaganda.foreign: foreign — Launch foreign propaganda (+5 relations with all nations, costs 8 DP)
+help.subcmd.nuclear.launch: <id> — Launch nuclear strike (requires: public support >70%, attitude = irreconcilable, force >55%, WC +30)
+cmd.save.desc: Save current game to disk (base64 encoded)
+cmd.save.usage: save
+cmd.load.desc: Load saved game from disk
+cmd.load.usage: load
+help.subcmd.save.default: (no args) — Save game state to save.warfire in current directory
+help.subcmd.load.default: (no args) — Load game state from save.warfire in current directory
