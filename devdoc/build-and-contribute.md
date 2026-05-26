@@ -16,6 +16,9 @@ bun dev
 npx tsc --noEmit
 ```
 
+## Contribute & Pull Request / 贡献与拉取请求
+允许使用 AI 生成代码。推荐 Claude Opus 与 ChatGPT Codex & Deepseek V4，必须经过交叉验证与人工验证才可进行提交。
+
 ## Build / 构建
 
 ```bash
