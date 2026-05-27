@@ -1,13 +1,15 @@
 {
   "name": "warfire-rises",
-  "version": "1.0.3",
+  "version": "1.0.7",
   "private": true,
   "description": "WARFIRE RISES - A World Simulation CLI Game",
   "type": "module",
   "scripts": {
     "start": "bun run src/index.tsx",
     "dev": "bun run --watch src/index.tsx",
-    "build": "bun run scripts/build.ts"
+    "build": "bun run scripts/build.ts",
+    "build:linux": "bun run scripts/build.ts",
+    "build:windows": "bun run scripts/build.ts"
   },
   "dependencies": {
     "ink": "^4.4.1",

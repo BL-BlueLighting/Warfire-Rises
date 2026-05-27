@@ -1,4 +1,5 @@
 <div align="center">
+    <img src="./Logo.png" />
     <h1>WARFIRE RISES</h1>
     <i><h2>战火升腾</h2></i>
     <i><p>The World EmuGame based on React Ink.</p></i>
@@ -39,3 +40,6 @@
 代码都开源了，指挥官可以自行修改。
 
 开发文档：[开发文档目录](./devdoc/README.md)
+
+## 注：
+本游戏图标使用来自 [Haley Wakamatsu Monster friend 2](https://www.behance.net/gallery/100106185/Monster-Friend-2)
