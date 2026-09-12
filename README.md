@@ -1,119 +1,93 @@
 <div align="center">
+    <img src="./Logo.png" alt="WARFIRE RISES" />
     <h1>WARFIRE RISES</h1>
     <i><h2>战火升腾</h2></i>
-    <p>A geopolitical world simulation with a Hearts of Iron IV style map,<br/>rebuilt as a Tauri desktop game.</p>
+    <p>带钢铁雄心4式地图与操作面板的世界模拟游戏，<br/>基于 Tauri 重写。</p>
 </div>
 
-## What this is
+## 这是什么
 
-A rewrite of the terminal edition of *Warfire Rises*. The original was a React + Ink
-CLI app where you played through a text console. This edition keeps the simulation
-engine but replaces the console with a **HOI4-style map and control panels**: you
-click nations on a real world map, and drive diplomacy, economy, military and war
-from side panels instead of typed commands.
+原版《战火升腾》是一个 React + Ink 的终端游戏，你通过文字控制台指挥国家。这一版保留了模拟引擎，把控制台换成了**钢铁雄心4式的世界地图与操作面板**：在地图上点击国家，用侧边面板处理外交、经济、军事与战争。
 
-The world is generated from live data at the start of each campaign — real exchange
-rates and real news headlines distilled into world keywords — and then simulated
-forward, one day at a time, with 11 AI nations acting independently.
+每个战役开始时，游戏会抓取真实数据——实时汇率与世界新闻头条（提取为关键词）——然后以**连续流动的时间**向前推演，11 个 AI 国家各自独立行动。
 
-## Running it
+## 运行
 
 ```bash
 npm install
-npm run tauri:dev      # desktop app (Tauri)
-npm run dev            # browser only, http://localhost:1420
+npm run tauri:dev      # 桌面应用（Tauri）
+npm run dev            # 仅浏览器，http://localhost:1420
 ```
 
-Build a distributable:
+打包：
 
 ```bash
 npm run tauri:build    # → src-tauri/target/release/bundle/
 ```
 
-> **⚠ Note on the install path.** This affects *this working copy only*. It sits
-> in a directory whose name contains a colon (`RE: Warfire Rises`), and on Linux
-> a colon is the `PATH` separator, which breaks two things:
+推送 `v*` 标签会触发 GitHub Actions，同时构建 **Windows `.exe`、macOS `.dmg`、Linux `.deb`** 三种安装包（见 [`.github/workflows/build.yml`](./.github/workflows/build.yml)）。普通推送也会构建并作为 artifact 上传，不生成 Release。
+
+> **⚠ 关于安装路径。** 下面这点**只影响当前这份工作副本**。它所在目录名里带冒号（`RE: Warfire Rises`），而在 Linux 上冒号是 `PATH` 的分隔符，会破坏两件事：
 >
-> 1. **`npm run`** can no longer find `node_modules/.bin`. The scripts in
->    `package.json` therefore call `./node_modules/.bin/<tool>` directly.
-> 2. **Cargo cannot build at all** — it constructs `LD_LIBRARY_PATH` from the
->    target directory and rejects the path outright:
->    `error: failed to join paths from $LD_LIBRARY_PATH together … path segment contains separator ':'`.
->    `src-tauri/.cargo/config.toml` works around this by redirecting build
->    output to `~/.cache/warfire-rises-target`.
+> 1. **`npm run` 找不到 `node_modules/.bin`。** 所以 `package.json` 里的脚本直接写 `./node_modules/.bin/<工具>`。
+> 2. **cargo 完全无法构建** —— 它会用目标目录拼 `LD_LIBRARY_PATH` 并直接报错：
+>    `error: failed to join paths from $LD_LIBRARY_PATH together … path segment contains separator ':'`。
+>    `src-tauri/.cargo/config.toml` 把产物重定向到 `~/.cache/warfire-rises-target` 绕开它。
 >
-> **The clean fix is to move this project to a directory without a colon.** Once
-> you do, delete `src-tauri/.cargo/config.toml` and you can simplify the
-> `package.json` scripts back to plain `vite` / `tsc` / `tauri`.
+> **干净的做法是把项目移到不含冒号的路径**，之后删掉 `src-tauri/.cargo/config.toml`，脚本也能简化回 `vite` / `tsc` / `tauri`。
 >
-> **Nothing of this is committed.** `src-tauri/.cargo/` is git-ignored precisely
-> because it holds an absolute path that only makes sense on one machine — a
-> fresh clone builds normally, and CI never sees it.
+> **这些都不会进仓库。** `src-tauri/.cargo/` 被 git 忽略，正是因为里面是只对一台机器有意义的绝对路径——新克隆下来照常构建，CI 也看不到它。
 
-## Known limitations
+## 已知限制
 
-- **World news keywords fall back to a static list in the browser/webview.**
-  `open.er-api.com` (exchange rates) sends CORS headers and works live, but
-  `news.google.com/rss` does not, so the browser fetch is blocked. The CLI
-  edition did this fetch server-side in Bun, where CORS does not apply. To
-  restore live headlines, move the fetch into a Rust command (it would need an
-  HTTP client such as `reqwest`).
+- **世界新闻关键词在浏览器 / webview 里会退回内置列表。** 汇率接口（`open.er-api.com`）带 CORS 头，能实时获取；但 `news.google.com/rss` 没有，浏览器请求会被拦。原版是在 Bun 服务端抓的，没有这个问题。要恢复实时头条，需要把抓取挪到 Rust 侧（要引入 `reqwest` 之类的 HTTP 客户端）。
 
-## Controls
+## 操作
 
-| Input | Action |
+| 操作 | 说明 |
 |---|---|
-| Click a nation | Select it; the right panel switches to that nation's context |
-| Drag the map | Pan |
-| Scroll | Zoom toward the cursor |
-| **Space** | Pause / resume time |
-| `1`–`5` (speed ticks) | Set game speed |
-| **`** (backtick) | Toggle the command console — there is no on-screen button |
-| Right-click a bubble | Dismiss it |
+| 点击国家 | 选中该国，右侧面板切换到该国的上下文 |
+| 拖动地图 | 平移 |
+| 滚轮 | 以光标为中心缩放 |
+| **空格** | 暂停 / 继续时间 |
+| `1`–`5` | 设置游戏速度 |
+| **`` ` ``**（反引号） | 打开 / 关闭控制台——界面上没有按钮 |
+| 右键气泡 | 关闭该条通知 |
 
-Clicking a nation changes what the panels operate on. With **nothing** selected the
-panels act on your own nation; the action buttons apply to whoever is selected.
+选中国家会改变面板的操作对象。**未选中任何国家**时面板作用于本国；选中后按钮作用于选中的国家。
 
-## Time flows
+## 时间流动
 
-Time is continuous, not turn-based. `clock.time` is a fractional day count and
-`state.day` is its floor; a render loop pumps real elapsed milliseconds into it,
-multiplied by the speed tier.
+时间是连续的，不是回合制。`clock.time` 是小数天，`state.day` 是它的整数部分；一个渲染循环把真实流逝的毫秒乘以速度档位灌进去。
 
-| Tier | Days / real second | 1 day takes |
+| 档位 | 每天秒数 | 一天耗时 |
 |---|---|---|
-| Paused | 0 | — |
-| 1 | 0.25 | 4 s |
-| 2 | 0.5 | 2 s |
-| 3 | 1 | 1 s |
-| 4 | 2 | 0.5 s |
-| 5 | 5 | 0.2 s |
+| 暂停 | 0 | — |
+| 1 | 0.25 | 4 秒 |
+| 2 | 0.5 | 2 秒 |
+| 3 | 1 | 1 秒 |
+| 4 | 2 | 0.5 秒 |
+| 5 | 5 | 0.2 秒 |
 
-**Everything takes time.** No action resolves instantly — each one is a task with
-a start and end day, shown in the *In Progress* queue with a progress bar. Cost is
-paid when you give the order; the effect lands when the timer expires. Cancelling
-refunds half.
+**所有事情都要花时间。** 没有任何行动是瞬间完成的——每个行动都是一个带起止时间的任务，显示在「进行中」队列里并有进度条。**下令时即扣成本，计时结束时才生效。** 取消会返还一半。
 
-| Action | Days | Action | Days |
+| 行动 | 天数 | 行动 | 天数 |
 |---|---|---|---|
-| Condemn | 3 | Infiltrate | 45 |
-| Currency manipulation | 5 | Invest | 60 |
-| Sanction (diplomatic) | 5 | Stimulus | 90 |
-| Strike | 10 | Research | 60–180 |
-| Improve relations | 10 | Construction | 120–180 |
-| Drill | 20 | Recruit (per division) | 30 |
-| Treaty | 30 | **Justify war goal** | 1–180 |
+| 谴责 | 3 | 渗透 | 45 |
+| 操纵汇率 | 5 | 投资 | 60 |
+| 外交制裁 | 5 | 刺激计划 | 90 |
+| 精确打击 | 10 | 科研 | 60–180 |
+| 改善关系 | 10 | 建造 | 120–180 |
+| 军事演习 | 20 | 征兵（每师） | 30 |
+| 防御条约 | 30 | **正当化宣战理由** | 1–180 |
 
-## Decisions (`decisions/*.warf-decision`)
+## 国策（`decisions/*.warf-decision`）
 
-National decisions are plain JSON, authored outside the code. Drop a file into
-`decisions/` and press **reload from disk** in the Decisions panel — no rebuild
-needed in the desktop app. Files are also bundled at build time so the browser
-build works without a filesystem.
+国策是纯 JSON，在代码之外编写。把文件丢进 `decisions/`，在国策面板点「从磁盘重新载入」即可——桌面版无需重新编译。构建时也会把文件打包进去，所以浏览器版没有文件系统也能用。
 
 ```jsonc
 {
-  "Country": "CHN",              // a country id, or "all" for everyone
+  "Country": "CHN",              // 国家 id，或 "all" 表示所有国家
   "Decisions": [
     {
       "Type": "Decisions",
@@ -122,8 +96,8 @@ build works without a filesystem.
       "Require": [
         { "Type": "CountryEndurance", "To": "self", "Condition": ">=", "Num": 50 }
       ],
-      "Time": "inf",             // a number (capped at 180), or "inf"
-      "InfinityPhases": [        // required when Time is "inf"
+      "Time": "inf",             // 数字（上限 180），或 "inf"
+      "InfinityPhases": [        // Time 为 "inf" 时必填
         {
           "Type": "Phase",
           "Get": [ { "Type": "Get", "Rewards": [["CountryEndurance", "+", 10], ["Nuke", "+", 5]] } ],
@@ -131,7 +105,7 @@ build works without a filesystem.
           "Time": 60
         }
       ],
-      "Result": [                // optional for "inf", applied on every completion
+      "Result": [                // inf 国策可选，每次完成阶段都会结算
         { "Type": "Result", "Rewards": [ { "Type": "Reward", "Rewards": [["Economy", "+", 2]] } ] }
       ]
     }
@@ -139,67 +113,43 @@ build works without a filesystem.
 }
 ```
 
-**Requirements** are `{ Type, To, Condition, Num }` where `Condition` is one of
-`>= <= > < == !=`, and `To` is `self`, `target`, `enemy`, or a country id.
+**条件**写作 `{ Type, To, Condition, Num }`，`Condition` 可取 `>= <= > < == !=`，`To` 可以是 `self`、`target`、`enemy` 或国家 id。
 
-**Rewards** are `[Attribute, Operator, Value]` with `Operator` one of
-`+ - * / =`. They appear in three places: `InfinityPhases[].Get[].Rewards`,
-`Result[].Rewards[].Rewards`, and — for `Require` — as `Type`.
+**奖励**写作 `[属性, 运算符, 数值]`，运算符可取 `+ - * / =`。它出现在三个位置：`InfinityPhases[].Get[].Rewards`、`Result[].Rewards[].Rewards`，以及作为 `Require` 的 `Type`。
 
-Usable attributes: `CountryEndurance` `ArmyEndurance` `DiplomaticPoints`
-`WorldCollapse` `Day` `Economy` `Military` `Stability` `PublicSupport`
-`ForceValue` `Treasury` `Population` `Manpower` `Nuke` `Divisions`
-`DivisionStrength` `Nuclear`, plus `Relation` (which reads your opinion of the
-country named by `To`).
+可用属性：`CountryEndurance` `ArmyEndurance` `DiplomaticPoints` `WorldCollapse` `Day` `Economy` `Military` `Stability` `PublicSupport` `ForceValue` `Treasury` `Population` `Manpower` `Nuke` `Divisions` `DivisionStrength` `Nuclear` `AutoArmy`，以及 `Relation`（读取你对 `To` 所指定国家的好感度）。
 
-> `CountryEndurance`, `ArmyEndurance` and `DiplomaticPoints` live on the player's
-> nation. When a decision resolves `To` to an AI country they fall back to that
-> country's stability / military, so a decision written for an AI nation still
-> reads sensibly instead of silently using your numbers.
+> `CountryEndurance`、`ArmyEndurance`、`DiplomaticPoints` 存在于玩家国家上。当国策把 `To` 解析到某个 AI 国家时，它们会退回到该国的稳定度 / 军力，这样为 AI 写的国策读起来仍然合理，而不是悄悄用了玩家的数值。
 
-Malformed files don't break the game — each one is reported in the Decisions panel
-with the parse error, and the rest still load.
+写坏的文件不会拖垮游戏——每个失败的文件都会连同解析错误列在国策面板里，其余照常加载。
 
-## Combat
+## 战斗
 
-Modelled on Hearts of Iron IV rather than a single dice roll. The central idea:
+参照《钢铁雄心4》设计，而不是单次掷骰。核心是这一句：
 
-> **Losing organisation loses the battle; losing strength costs men.**
+> **输掉组织度就输掉战斗，损失兵力才死人。**
 
-A division fights until its organisation (morale, cohesion, supply) is gone, then
-disengages and a reserve takes its place. Strength — manpower and equipment —
-only bleeds once a unit is being hit while already broken. A battle is won by
-grinding the enemy's organisation down, not by killing.
+师会战斗到组织度（士气、凝聚力、补给）耗尽为止，然后脱离接触、由预备队顶上。兵力——真正的人和装备——只会在一个已经崩溃的单位继续挨打时才流失。**战斗靠磨掉对方的组织度取胜，不是靠杀伤。**
 
-| Mechanic | How it works |
+| 机制 | 规则 |
 |---|---|
-| **Combat width** | The front fits so many divisions; each occupies 20 width against a base 80 (100 for a defender). The rest wait in reserve and rotate in as units break. |
-| **Defence / breakthrough pools** | A defender's Defence — or an attacker's thinner Breakthrough — absorbs incoming fire. Attacks *under* the pool land ~10% of the time; attacks *beyond* it land ~40%. Concentrating more attack than the enemy can absorb is how a line breaks. |
-| **Entrenchment** | Grows daily while a side holds, up to +30, raising the defender's pool by up to 35%. Pressing the attack burns it off. |
-| **Stances** | Attacking raises output 15% but swaps your Defence pool for Breakthrough, so it costs more than it earns unless you outnumber or out-tech the defender. |
-| **Tech** | Attack scales ~2.5× faster with technology than defence does. If they scaled together a battle between equals would never resolve — both pools would swallow the other's entire weight of fire. |
+| **战线宽度** | 前线只能容纳一定数量的师；每师占 20 宽度，基础战线 80（防守方 100）。装不下的在预备队等待，随部队崩溃轮换上场。 |
+| **防御 / 突破池** | 防守方的 Defence（或进攻方薄得多的 Breakthrough）会吸收来袭火力。**落在池内**的攻击只有约 10% 命中，**超出池**的部分约 40% 命中。堆出超过对方承受力的火力，才能破线。 |
+| **工事** | 固守时每天累积，上限 +30，最高把防守方池子提高 35%。主动进攻会把它烧掉。 |
+| **姿态** | 进攻提高 15% 输出，但把防御池换成突破池——除非你兵力或科技占优，否则得不偿失。 |
+| **科技** | 攻击随科技的成长速度约为防御的 **2.5 倍**。若两者同速成长，势均力敌的战斗永远不会分出结果——双方的池子会把对方的全部火力吞掉。 |
 
-Battles tick **daily on their own**. `war attack` / `war defend` are orders, not
-attacks: they set your stance and the fighting continues.
+战斗**每天自动推进**。`war attack` / `war defend` 是**命令**而非攻击：它们设定姿态，然后仗自己打下去。
 
-### Command
+## 指挥
 
-Divisions belong to **army groups**, each with a commander and a standing order.
-Only groups set to assault or hold take the field — a group on **reserve** sits
-the battle out entirely, which is how a broken formation is rested without
-disbanding it.
+师隶属于**集团军**，每个集团军有指挥官和常设命令。只有设为**进攻**或**固守**的集团军会上阵——设为**预备**的完全不下场，这是让打残的部队休整而不解散的方式。
 
-Generals carry three 1–5 skills that feed straight into the combat pools: attack
-for weight of fire, defence for absorbing it, planning for how fast a line digs
-in. An uncommanded group still fights, it just dilutes the average — so leaving a
-formation leaderless is a real cost. The Command panel currently shows the
-generals, groups and orders, and per-group organisation bars.
+将领有三项 1–5 的技能，直接乘算进战斗池：**攻**影响火力，**防**影响承受力，**谋**影响构筑工事的速度。没有指挥官的集团军照样能打，只是会拉低平均值——所以放着不管是有代价的。
 
-### The general staff
+## 参谋部
 
-The **邀请军事指挥家** decision (25 days) hands the army to the general staff.
-It is an ordinary `.warf-decision` file — it works by setting the `AutoArmy`
-attribute, which is why it needs no special-case code:
+**「邀请军事指挥家」**国策（25 天）会把军队交给参谋部。它就是一个普通的 `.warf-decision` 文件——通过设置 `AutoArmy` 属性实现，所以不需要任何专门代码：
 
 ```jsonc
 "Result": [{ "Type": "Result", "Rewards": [
@@ -207,447 +157,251 @@ attribute, which is why it needs no special-case code:
 ]}]
 ```
 
-Once in charge, the staff works every day: it pulls formations below 45%
-organisation out of the line to refit and returns them when rested, puts the
-commander with the right skill in front of each order (attack for assault,
-defence for hold), spreads replacements into the thinnest group, and raises a
-new division every 45 quiet days if the treasury allows.
+接管之后，参谋部每天工作：把平均组织度低于 45% 的军团撤下来休整、恢复后归队；按任务选派技能对口的指挥官（进攻选攻击最高的，固守选防御最高的）；把补充兵员分给最薄的集团军；每 45 个和平日且国库允许时新征一个师。
 
-**The player can still give orders — and the staff will object.** A manual
-change opens a dialogue with the chief of staff, who says one of five lines
-("首领，这样的指派不正确。您这样做会消耗我们的耐力的！"). Complying cancels the
-order; insisting applies it and costs **1–23% army endurance**, unpredictably.
+**玩家仍然可以下令——而参谋部会提出异议。** 手动改动会弹出一位参谋长的对话，随机从五句话里选一句（「首领，这样的指派不正确。您这样做会消耗我们的耐力的！」）。听从则取消命令；坚持则命令生效，并**不可预测地损耗 1–23% 军队耐力**。
 
-> The first version had a real flaw: the staff simply undid the player's order
-> the next morning, which made overruling pointless. Being overruled now makes
-> it stand down on dispositions for 15 days, so the decision sticks long enough
-> to matter.
+> 第一版有个真实缺陷：参谋部第二天早上就把玩家的命令改了回去，让「坚持执行」毫无意义。现在被否决后它会**停止干预部署 15 天**，让决定真正生效。
 
-### Peace conferences
+## 战后分地谈判
 
-When a nation is conquered, its land does not change hands as one lump — the
-victors sit down and divide it along its actual **administrative regions**, which
-is the payoff for carrying province data.
+一个国家的**领土不会整块易主**——战胜国会坐下来，按它的**实际行政区划**瓜分。这正是携带省份数据的回报。
 
-The victor takes the chair and the largest claim budget; allies who fought
-alongside them get a seat and a smaller one. Every region costs a point. AI
-delegations spend their share automatically, and whatever nobody claims stays
-with the defeated nation. Ownership is written to `state.regionOwner`, and the
-map repaints those provinces in their new owner's colour — so the border changes
-are visible on the map itself.
+战胜国坐主席并拿到最大的索取额度；与其并肩作战的盟国获得席位和较小的额度。每个地区消耗 1 点。AI 代表团会自动花掉自己的份额，无人认领的地区仍归战败国。归属写入 `state.regionOwner`，地图会把这些省按新主人的颜色重新上色——**边界变化在地图上看得到**。
 
-## Research, nukes and the army
+## 科研、核武与军队
 
-**Every weapon needs research.** Nuclear powers begin with `nuclear_weapons`
-already unlocked; everyone else must research it. Holding the technology is not
-enough to *use* it — you also need a **nuclear facility** (180 days, $1500B),
-which then produces one warhead every 30 days. A nuclear strike consumes a
-warhead from the stockpile.
+**任何武器都需要科研。** 拥核国家默认解锁 `nuclear_weapons`，其他国家必须先研究。光有技术还不够——还需要建**核设施**（180 天、$1500B），之后每 30 天产出一枚弹头。核打击**消耗一枚库存弹头**。
 
-**Release authority.** The gating depends on whether you are actually fighting:
+**核打击的授权取决于你是否真的在打仗：**
 
-| | At peace | At war, against a belligerent |
+| | 和平时 | 战时（针对交战国） |
 |---|---|---|
-| Warhead in stockpile | required | required |
-| Nuclear technology | required | required |
-| Public support > 70% | required | **waived** |
-| Coercion readiness > 55% | required | **waived** |
-| Attitude *irreconcilable* | required | **waived** |
+| 库存有弹头 | 需要 | 需要 |
+| 核技术 | 需要 | 需要 |
+| 民众支持 > 70% | 需要 | **免除** |
+| 迫使值 > 55% | 需要 | **免除** |
+| 态度为「不死不休」 | 需要 | **免除** |
 
-Once war is joined the warhead is the argument — there is no domestic persuasion
-left to do. Because the strike is then a normal wartime act, it is also offered
-directly on the War panel, aimed at the enemy you are fighting. Firing on a
-country you are *not* at war with still goes through the full peacetime checks,
-even if you are busy elsewhere.
+一旦开战，弹头就是论据——没有国内说服可做了。因此核打击也会直接出现在战争面板上，瞄准你正在交战的那个敌人。对**非交战国**动手仍要走完整的和平时期检查，即便你正忙别的事。
 
-**Manpower** is measured in thousands and drawn from a pool capped at 1% of
-population. Recruiting a division (50K manpower, $80B, 30 days) commits that
-manpower permanently — it returns only when the division is disbanded. Ten
-divisions is the minimum to go to war.
+**人力**以千为单位，来自人口 1% 的储备池。征募一个师（50K 人力、$80B、30 天）会**永久占用**这些人力——只有解散该师才会归还。开战下限是 500K 已投入兵力（即十个师）。
 
-> **Interpretation.** You asked for "at least 500 people" before a war can start.
-> I read that as 500 *thousand* troops (`WAR_MIN_MANPOWER = 500` in
-> `src/game/army.ts`) so it means ten divisions. Change the constant if you meant
-> it literally.
+> **关于「至少 500 个人」的理解。** 我按 **50 万人**（`src/game/army.ts` 里的 `WAR_MIN_MANPOWER = 500`）实现，也就是十个师。如果你要的是字面意义的 500 人，改这个常量即可。
 
-**Justifying a war goal** is now a precondition for declaring war:
+**正当化宣战理由**是宣战的前置条件：
 
 ```
-days = 90 × (1 − |relation| / 100)   when relation < 0
-days = 90 × (1 + relation / 100)     when relation ≥ 0
+天数 = 90 × (1 − |关系| / 100)   关系为负时
+天数 = 90 × (1 + 关系 / 100)     关系为正时
 ```
 
-Both forms agree at 0, so the curve is continuous: 90 days at neutral, 11 days at
-−88 relations, 180 at +100.
+两式在 0 处相接，曲线连续：中立时 90 天，关系 −88 时 11 天，+100 时 180 天。
 
-## Events and pacing
+## 事件与节奏
 
-Two things had to change once time stopped being turn-based.
+时间不再是回合制之后，有两件事必须调整。
 
-**Events are rare.** The CLI edition generated 1–3 world events *every day*,
-which was fine when the player clicked through one day at a time. At 5
-days/second that floods the screen, so `DAILY_EVENT_CHANCE = 0.08`
-(`src/game/events.ts`) means most days are quiet.
+**事件变得稀有。** 终端版**每天**生成 1–3 个世界事件，手动点日期时没问题，但在 5 天/秒下会刷屏。现在 `DAILY_EVENT_CHANCE = 0.08`（`src/game/events.ts`），绝大多数日子是平静的。
 
-**Collapse was rescaled.** With the original per-day rates, a campaign ended
-**in about six seconds** at 5×. Gains now accumulate fractionally in
-`worldCollapseRaw` (with `worldCollapse` as the displayed floor) and
-`COLLAPSE_SCALE` in `src/game/state.ts` is the single dial for campaign length.
-A campaign currently runs **~140 days** — enough for 60–180 day research and
-multi-phase decisions to pay off. Tuning knobs, in order of effect:
-`DAILY_EVENT_CHANCE`, `COLLAPSE_SCALE`, and the AI's `AI_WAR_CHANCE`.
+**崩坏度被重新标定。** 沿用原来的每日数值，一个战役在 5× 下**约 6 秒就结束了**。收益现在以小数累积在 `worldCollapseRaw` 中（`worldCollapse` 是显示用的取整值），`src/game/state.ts` 里的 `COLLAPSE_SCALE` 是调节战役长度的唯一旋钮。目前一个战役约 **140 天**，足够让 60–180 天的科研和跨国策产生意义。按影响排序的调节项：`DAILY_EVENT_CHANCE`、`COLLAPSE_SCALE`、AI 的 `AI_WAR_CHANCE`。
 
-**Everything notable surfaces as a bubble**, pinned to the map's bottom-right
-corner: world events *and* AI actions. Each lasts 30 seconds; a right-click
-dismisses it permanently (nothing is archived or re-shown). The full history
-stays in the Log panel, which keeps every AI action — only the *notable* ones
-(declarations of war, peace deals, sanctions) interrupt you as bubbles, because
-eleven nations acting every day is a firehose, not news.
+**事件以气泡呈现**，钉在地图右下角：世界事件**和** AI 行动都在那里。每条存活 30 秒，右键永久关闭（不存档、不重播）。完整记录保留在日志面板。AI 国家每天行动，所以只有**值得注意**的（宣战、和平、制裁）会打断你——十一个国家天天动，那是噪音不是新闻。世界新闻限流为每 5 个游戏日一条。
 
-There is no bottom bar; the map fills the window and the console only opens with
-a backtick.
+界面没有底栏；地图铺满窗口，控制台只能用反引号打开。
 
-Eleven AI nations acting every day produce a constant stream of war, peace and
-sanction notices, which buries the world events worth reading. AI news is
-therefore throttled to **one bubble per 5 game days** and only the most recent
-notice in that window is shown. The Log panel keeps the complete record.
+> **顺带修掉的一个真实 bug。** 原版 AI 会**每天重复宣战同一个国家**——它从不检查是否已在该国交战，于是每天追加一次崩坏度。30 回合的旧战役里看不出来，时间连续后就是雪崩。
 
-> **Bug fixed along the way.** The original AI re-declared the same war every
-> single day — it never checked whether it was already fighting that country, so
-> each day added another collapse tick. Invisible across a 30-turn campaign;
-> fatal once time ran continuously. It now checks first, and only takes the
-> plunge 15% of the time even when every precondition is met.
+## 地图
 
-## The map
+地图是真实地理——通过 `world-atlas` 使用 Natural Earth 110m 边界，用 `d3-geo`（Natural Earth I 投影）渲染为 SVG。约 177 个国家全部绘制，其中 12 个可玩国家可交互、有颜色，其余是惰性的灰色地形。
 
-The map is real geography — Natural Earth 110m boundaries via `world-atlas`,
-projected with `d3-geo` (Natural Earth I) into SVG. All ~177 nations are drawn; the
-12 playable ones are interactive and coloured, the rest are inert grey terrain.
+六种地图模式按不同指标重新上色：
 
-### Cities
+- **政治** —— 与你的关系，从盟友到不死不休（默认）
+- **阵营** —— 你的盟友与敌人
+- **军事** / **经济** / **稳定** —— 强度热力图
+- **战争** —— 高亮交战方
 
-Provincial capitals and major cities come from Natural Earth's
-`ne_10m_populated_places` (18.5 MB, trimmed to 899 cities across the twelve
-nations, 68 KB shipped). They are bucketed into three tiers that appear as you
-close in, so a world view stays readable:
+### 国界
 
-| Tier | Contents | Appears at | Count |
-|---|---|---|---|
-| 3 | National capitals | 1.5× | 12 |
-| 2 | Major cities — province capitals and prefecture-level cities | 2.4× | 591 |
-| 1 | Remaining notable cities (300k+) | 4.4× | 296 |
+地图数据来自 **Natural Earth**（`world-atlas`，美国发布的数据集），按原样使用，上面做了两处修正：
 
-> **Natural Earth's ranking is not usable outside the US.** For China its
-> numbers are plainly wrong: Zibo outranks Suzhou, Foshan ties with Zunyi, and
-> Hechi is credited with 3.8 million people. Neither `POP_MAX` nor `SCALERANK`
-> knows that Zunyi is a prefecture-level city (地级市) while Xingyi is only a
-> county-level one — which is the distinction that actually decides what a
-> Chinese reader calls a major city. Chinese cities therefore carry an explicit
-> importance table in the build script; the other eleven nations fall back to
-> cartographic rank plus population, which behaves acceptably.
+1. **台湾并入中国。** Natural Earth 把台湾作为独立要素（id 158）与中国（156）分开。不做处理的话，台湾会被画在中国领土之外——而且由于 12 个可玩国家之外都是背景，这会等于把该岛呈现为一个独立国家。`src/map/geo.ts` 里的 `TERRITORY_MERGES` 把它的多边形折进中国，因此它按中国的颜色渲染、点击也归属中国。已通过命中测试验证：岛上每个采样点都解析为 `PLAYABLE:CHN`。
 
-Each city is a dot with its name set alongside — larger and brighter for a
-capital. Names switch with the UI language (`NAME_ZH` for Chinese).
+2. **背景不被描述为一组国家。** 灰色填充标注为「其他地区」，而不是「非参战国」。游戏不对它不模拟的任何事物主张国家地位。
 
-City labels collide as **text boxes**, not as a radius. A radius has to be wide
-enough for the longest name, which wipes out a whole dense province at once: at
-7× zoom a 40-unit radius culled Zunyi and Liupanshui while letting the more
-distant Xingyi through — exactly backwards. Box collision raised the number of
-labels that fit in one view from 322 to 558.
-
-Text halos are set as a fraction of the font size, never as a fixed
-`stroke-width`. Labels scale their font by 1/zoom to stay a constant size on
-screen, so a fixed outline width ends up wider than the glyphs themselves past
-a certain zoom, smearing the text into spikes.
-
-### Borders
-
-The map is drawn from **Natural Earth** (`world-atlas`), a US-published dataset,
-taken as-is. Two things are corrected on top of it:
-
-1. **Taiwan is merged into China.** Natural Earth carries Taiwan as its own
-   feature (id 158), separate from China (156). Left alone, that draws Taiwan
-   outside Chinese territory — and because everything outside the twelve
-   playable nations is background, it would effectively present the island as a
-   separate country. `TERRITORY_MERGES` in `src/map/geo.ts` folds its polygon
-   into China's geometry, so it renders in China's colour and clicks through to
-   China. Verified by hit-testing the island: every sample point resolves to
-   `PLAYABLE:CHN`.
-
-2. **The background is not described as a set of nations.** The grey fill is
-   labelled 其他地区 / *Other territories*, not "non-participating nations".
-   The game makes no claim about the statehood of anything it does not simulate.
-
-`TERRITORY_MERGES` is a plain table — add an entry to fold any other piece of
-geometry into a playable nation:
+`TERRITORY_MERGES` 就是一张普通的表——加一行就能把任何其他几何并入某个可玩国家：
 
 ```ts
 const TERRITORY_MERGES = [
-  { territory: "158", into: "CHN" },   // Taiwan → China
+  { territory: "158", into: "CHN" },   // 台湾 → 中国
 ];
 ```
 
-Natural Earth also carries, among others, Kosovo, N. Cyprus, Somaliland,
-W. Sahara, Palestine, Puerto Rico, the Falklands, Greenland and Antarctica as
-their own features. These are left as neutral background: the legend no longer
-asserts they are states, and the game takes no position on them. If you want any
-of them drawn as part of a playable nation, add a row to the table above.
+Natural Earth 还把科索沃、北塞浦路斯、索马里兰、西撒哈拉、巴勒斯坦、波多黎各、福克兰群岛、格陵兰和南极洲等作为独立要素携带。这些一律保留为中性背景：图例不再声称它们是主权国家，游戏也不对它们表态。若要把其中任何一个并入某个可玩国家，在上表加一行即可。
 
-### Names on the map
+### 行政区划
 
-Nations are labelled with their **flag and full name** — 🇨🇳 中国, not `CHN`. The
-internal codes are an implementation detail, so they only appear when you type
-`debug` in the console (`~`), which appends them: 🇨🇳 中国 (CHN).
+每个可玩国家都细分为它的一级行政区——中国的省、美国的州、俄罗斯的州、德国的联邦州等等——以细线绘制。不可玩邻国保持空白，这让十二个国家读起来就是**重要的那些**。
 
-Because the labels are now variable-width, they collide as **text boxes** rather
-than by a circular radius — a radius sized for "United States" would blank out
-most of Europe.
+数据源是 Natural Earth 的 `ne_10m_admin_1_states_provinces_lakes`（公有领域）。原始文件 39 MB，构建时裁剪：
 
-### Administrative regions
-
-Each playable nation is subdivided into its first-order administrative regions —
-Chinese provinces, US states, Russian oblasts, German Länder, and so on — drawn
-as thin interior lines. Non-playable neighbours stay plain, which makes the
-twelve nations read as the ones that matter.
-
-The source is Natural Earth's `ne_10m_admin_1_states_provinces_lakes` (public
-domain). It is 39 MB raw, so it is trimmed at build time:
-
-| Step | Result |
+| 步骤 | 结果 |
 |---|---|
-| Source features | 4,596 |
-| Kept (the 12 playable nations) | 676 |
-| — after dropping interior rings and specks | 847 rings |
-| — after Douglas–Peucker at 0.08° | 17,386 points |
+| 源要素 | 4,596 |
+| 保留（12 个可玩国家） | 676 |
+| ——去掉内环与碎块后 | 847 个环 |
+| ——0.08° Douglas–Peucker 简化后 | 17,386 个点 |
 | `src/map/data/admin1.json` | 278 KB |
 
-Two details worth knowing:
+有两个细节值得知道：
 
-- **The provinces are stored as raw lon/lat**, not pre-projected points. The
-  runtime projects them with the very same d3 projection the country outlines
-  use, so the two can never drift apart.
-- **Each nation's provinces are clipped to that nation's own outline** via an
-  SVG `clipPath`. The provinces are 10 m data and the countries are 110 m, so
-  without clipping the finer province lines would spill into the sea and over
-  neighbouring countries. Clipping makes the mismatch invisible.
+- **省份以原始经纬度存储**，而非预投影坐标。运行时用**与国界完全相同**的 d3 投影来投影它们，所以两者永远不会错位。
+- **每个国家的省份都被裁切到该国自己的轮廓内**（SVG `clipPath`）。省份是 10m 数据而国界是 110m，不裁切的话更精细的省界会溢出到海里和邻国上。裁切让这个差异不可见。
 
-Rendering 847 extra paths cost about half the frame budget until the static
-layers were memoised — the province and backdrop geometry never changes, so
-they now render once and ride along with the map transform instead of being
-re-diffed on every store notification. That took the frame rate at 5× speed
-from 31.6 to 54.9 fps.
+多渲染 847 条路径一度吃掉了一半的帧预算，直到把这些静态图层 memo 化——省份和背景几何从不改变，现在只渲染一次，随地图变换一起移动，而不必在每次 store 通知时重新 diff。这让 5× 速度下的帧率从 31.6 提升到 54.9 fps。
 
-Six map modes recolour every nation by a different metric:
+### 城市
 
-- **Political** — relation to you, from allied to irreconcilable (the default)
-- **Faction** — your allies vs. your enemies
-- **Military** / **Economy** / **Stability** — strength heatmaps
-- **War** — highlights active belligerents
+省会与主要城市来自 Natural Earth 的 `ne_10m_populated_places`（18.5 MB，裁剪为十二个国家的 899 座城市，发布 68 KB）。它们分三个层级，随缩放逐步显现，让世界视角保持可读：
 
-Nations you are at war with are drawn with a hatched overlay so they read as
-contested regardless of map mode.
-
-## Game systems
-
-Ported from the CLI edition with the simulation semantics preserved.
-
-**Attitude** — relations run -100…100 and map to four stances: peaceful (≥50),
-neutral (≥0), strained (≥-50), irreconcilable (<-50). Crossing ±75 automatically
-adds or removes the nation from your allies/enemies lists.
-
-**War** — declaring war requires, in order: a **justified war goal** against the
-target, at least **500K manpower committed** to standing divisions, a mutual
-attitude of *strained* or worse, public support >65%, and army endurance >79%.
-Battles are dice rolls modified by military strength, morale, and a bonus derived
-from the size of each side's army (capped at +15). Each side tracks morale and
-losses; morale hitting zero ends the war. Phases run
-`preparing → active → decisive → ended`.
-
-**Nuclear weapons** — the only action gated on coercion readiness. Requires public
-support >70%, an *irreconcilable* target, and force value >55%. Sets the target's
-military, economy, stability and 70% of its population to zero, and adds +30% to
-World Collapse. Guarded by a confirmation dialog.
-
-**World Collapse** — the global pressure gauge, starting at 8%. Every event and
-aggression pushes it up. It **caps at 100% and no longer ends the campaign**;
-past 60% it throttles your daily regeneration of diplomatic points and army
-endurance (down to 40% of normal at 100%), so a burning world is a slow squeeze
-rather than a countdown.
-
-**Resources** — diplomatic points (max 100, +8/day), army endurance (+5/day),
-national endurance, and treasury. Actions spend them; they regenerate daily.
-
-## How a campaign ends
-
-There is exactly one way out: **your nation is conquered.**
-
-- The world-collapse meter no longer ends anything — it is pressure, not a timer.
-- War only ends a campaign when you are the **defender** and your side breaks
-  (morale hits zero), or you surrender while being invaded. Losing a war *you*
-  started is just a setback.
-- The AI can invade you directly. When it does, the war opens as a defensive war
-  and the War panel shows a red warning strip: *losing this war means the end of
-  your nation*.
-
-Being conquered is not the end of the campaign, though. The fallen nation is
-looted (armed forces destroyed, economy and stability gutted, warheads seized)
-and marked out of play; then you pick a successor from the nations still
-standing. **The world carries over untouched** — same day, same collapse level,
-same relations, same AI wars — and only your own affairs reset. You can lose
-nation after nation and keep going as long as anyone is left.
-
-## Embedded fonts
-
-The game ships its own fonts rather than trusting the player's machine. They
-live in `public/fonts/` as WOFF2 and total **~1.4 MB**.
-
-| File | Role | Source | Size |
+| 层级 | 内容 | 出现于 | 数量 |
 |---|---|---|---|
-| `flags-emoji.woff2` | Country flags and UI icons | Segoe UI Emoji + Twemoji flags | 194 KB |
-| `body-cjk.woff2` | Body text, Latin and CJK | Noto Sans CJK SC | 1.15 MB |
-| `display.woff2` / `display-bold.woff2` | Condensed headings and buttons | Nimbus Sans Narrow | 20 KB each |
-| `mono.woff2` | Figures | JetBrains Mono | 26 KB |
+| 3 | 首都 | 1.5× | 12 |
+| 2 | 主要城市——省会与地级市 | 2.4× | 591 |
+| 1 | 其余知名城市（30 万以上） | 4.4× | 296 |
 
-**Why flags need embedding.** Windows ships Segoe UI Emoji *without* country
-flags — deliberately, for political reasons — so 🇺🇸 renders as the letters "US"
-for every Windows player, and the top bar and nation lists lose their flags
-entirely. The embedded face has Twemoji's flag set grafted in.
+> **Natural Earth 的排序字段在美国之外不可用。** 对中国的数据明显是错的：淄博排在苏州前面，佛山与遵义同级，河池被记成 383 万人。`POP_MAX` 和 `SCALERANK` 都不知道遵义是地级市而兴义只是县级市——**而这恰恰是中文读者判断「主要城市」的标准**。所以中国城市在构建脚本里带一份显式的重要度表；其余十一国回退到制图等级加人口，表现尚可。
 
-> The first flag font tried was a `seguiemj_*_mod` build circulating online.
-> Its Chinese flag is the **1912–1928 five-colour banner**, not the five-star
-> red flag, so it was discarded. The Twemoji set is correct.
+每座城市是一个点加旁边的名字，首都更大更亮。名字随界面语言切换（中文用 `NAME_ZH`）。
 
-The flag face is listed **first** in every font stack. It carries no Latin or
-CJK glyphs, so ordinary text falls straight through to the next family and only
-emoji are claimed by it.
+城市标签按**文字包围盒**碰撞，而不是半径。半径必须按最长的名字取，会一次性抹掉整个密集省份：7× 缩放下 40 单位的半径剔掉了遵义和六盘水，却放过了更远的兴义——完全反了。改成包围盒碰撞后，单屏能放下的标签从 322 条提升到 558 条。
 
-Each face is subset with `pyftsubset` to the characters the game can print,
-plus a margin: the CJK face covers ~4,500 characters rather than the 1,370 in
-the repo today, because decision files are authored by the player and a subset
-carved to exactly today's text would show tofu the moment they typed a new word.
-Language files, decision files and the province/city datasets were all scanned
-to build the character set.
+文字光晕始终按字号的比例设置，绝不用固定的 `stroke-width`。标签的字号随缩放按 1/zoom 缩小以保持屏幕尺寸恒定，而固定的描边宽度会在某个缩放之后变得比字还宽，把文字糊成尖刺。
 
-Rebuild them with `python3 <build-fonts.py>` after changing the fonts; it needs
-`brotli` for WOFF2, which on Arch means a venv (`pyftsubset`'s shebang pins it
-to the system Python either way).
+### 地图上的名字
 
-## Look
+国家标注为**国旗加全名**——🇨🇳 中华人民共和国，而不是 `CHN`。内部代码是实现细节，只有在控制台（`` ` ``）输入 `debug` 时才会追加显示：🇨🇳 中华人民共和国 (CHN)。
 
-The chrome follows the game it borrows from: **flat near-black panels edged in
-bright brass**, gold headings over parchment body text, no rounded corners, no
-soft gradients, no drop shadows. Selected controls fill with a brass gradient;
-everything else is a hairline outline. Density is high — small type, tight
-padding — and the top bar carries its resource readouts abreast like a status
-strip.
+由于标签现在是变宽的，它们按**文字包围盒**碰撞而非圆形半径——按 "United States" 取的半径会把欧洲大部分抹掉。
 
-On top of that sits a light period wash: a paper grain over the whole board, a
-lamp-lit vignette at the edges, brass corner brackets on panels, and rivets
-along the top bar.
+## 内嵌字体
 
-Typography uses what the machine actually has — `Nimbus Sans Narrow` /
-`DejaVu Sans Condensed` for display, `Noto Sans CJK` for Chinese body text,
-`JetBrains Mono` for figures. No web fonts are fetched, so it works offline.
+游戏自带字体，不依赖玩家机器上装了什么。它们以 WOFF2 放在 `public/fonts/`，合计约 **1.4 MB**。
 
-The map palette is warmed to match, except the `neutral` relation colour, which
-stays blue-grey on purpose: against all that brass it reads instantly as
-"unaligned".
+| 文件 | 用途 | 来源 | 大小 |
+|---|---|---|---|
+| `flags-emoji.woff2` | 国旗与界面图标 | Twemoji Color Font | 192 KB |
+| `body-cjk.woff2` | 正文（中英） | Noto Sans CJK SC | 1.16 MB |
+| `display.woff2` / `display-bold.woff2` | 窄体标题与按钮 | Barlow Condensed | 各 18 KB |
+| `mono.woff2` | 数字 | JetBrains Mono | 26 KB |
 
-## Layout
+**为什么国旗必须内嵌。** Windows 自带的 Segoe UI Emoji **不含国旗**（出于政治原因）——所以 🇺🇸 在每一个 Windows 玩家那里都渲染成字母「US」，顶栏和国家列表里的国旗全部消失。
+
+字体选型试错了四个，前三个都弃用了：网上流传的 `seguiemj_*_mod` 是**微软专有字体**的改版，不可再发布，而且它的中国国旗是 **1912–1928 年的五色旗**而非五星红旗；「Segoe UI Emoji with Twemoji Flags」国旗是对的，但底子仍是微软的字体；Noto Color Emoji 授权正当（OFL）国旗也正确，但字形是 CBDT 位图，一放大就糊。最终采用的 Twemoji Color Font 是**矢量**（SVG-in-OpenType）、授权正当（MIT + CC-BY 4.0），并且与地图上的国旗 SVG 用的是同一套素材。
+
+国旗字体排在所有字体栈**最前面**。它不含拉丁字母和汉字，普通文字会直接落到下一个字体，只有 emoji 会被它接管。
+
+每个字体都用 `pyftsubset` 子集化到游戏能打印的字符，并留了余量：CJK 字体覆盖约 4,500 字，而仓库里当前只用了 1,370 字——因为国策文件是**玩家自己写的**，按当前文本切分的子集会在他们打出一个新词的瞬间变成豆腐块。字符集通过扫描语言文件、国策文件以及省名/城市数据集得出。
+
+改动字体后用 `python3 <build-fonts.py>` 重建；WOFF2 需要 `brotli`，在 Arch 上意味着要用 venv（而且 `pyftsubset` 的 shebang 指向系统 Python，无论如何都得用 `python -m fontTools.subset` 调用）。
+
+## 观感
+
+界面风格是**1940 年代的作战室**而非现代深色 UI：暖调、低饱和的黄铜与牛血红配色；窄体大写标题；带拉丝接缝的冲压金属按钮；每个面板四角的黄铜角标；顶栏的铆钉；整块面板上覆着细纸纹与灯下暗角。
+
+地图配色也随之暖化，唯独 `neutral`（中立）关系色**故意保留蓝灰**——在一片黄铜里它一眼就能读出「不结盟」。
+
+## 游戏系统
+
+从终端版移植，模拟语义保持不变。
+
+**态度** —— 关系在 -100…100 之间，映射为四种立场：和平共进（≥50）、中规中矩（≥0）、难以协调（≥-50）、不死不休（<-50）。越过 ±75 会自动把该国加入或移出你的盟友 / 敌人列表。
+
+**战争** —— 宣战依次需要：针对目标的**正当化宣战理由**、至少 **500K 已投入兵力**的常备师、双方态度为「难以协调」或更差、民众支持 >65%、军队耐力 >79%。战斗掷骰受军力、士气和双方军队规模（上限 +15）修正。每方跟踪士气与损失；组织度归零则战争结束。
+
+**世界崩坏度** —— 全球压力表，从 8% 起步，每个事件与侵略行为都会推高它。它**封顶 100% 且不再结束战役**；超过 60% 后它会拖慢你每日的外交点与军队耐力恢复（100% 时只剩正常的 40%），所以燃烧的世界是慢性绞杀而非倒计时。
+
+## 战役如何结束
+
+只有一条出路：**你的国家被征服。**
+
+- 世界崩坏度不再终结任何东西——它是压力，不是计时器。
+- 战争只有在你是**防守方**且己方崩溃（士气归零）时，或者你在被侵略时投降，才会终结战役。**你发动的**战争打输了只是挫折。
+- AI 可以直接入侵你。它这么做时战争会以防御战开局，战争面板会显示红色警告条：*输掉这场战争意味着亡国*。
+
+不过被征服也不是战役的终点。沦陷国会被洗劫（军队清零、经济与稳定度腰斩、核弹被缴）并移出牌桌；然后你从仍站立的国家中挑选一个继任者。**世界原样延续**——同一天、同样的崩坏度、同样的关系、同样的 AI 战争——只有你自己的事务重置。只要还有国家站着，你可以输掉一个又一个国家继续下去。
+
+## 目录结构
 
 ```
 src/
-  main.tsx                 Entry; mounts App
-  App.tsx                  Phase router: title → playing → gameover
-  styles.css               HOI4-inspired theme
-  game/                    Simulation
-    types.ts               Domain types (incl. clock, tasks, divisions)
-    countries.ts           12 nations + geo id mapping
-    state.ts               State CRUD, relations, collapse, the clock
-    events.ts              24 weighted event templates
-    war.ts                 War declaration, battles, morale, retreat
-    ai.ts                  Per-day AI actions for 11 nations
-    actions.ts             Timed-action registry (the one action path)
-    scheduler.ts           Time advance + task completion
-    decisions.ts           .warf-decision parser + requirement/reward engine
-    attributes.ts          Attribute namespace for decision files
-    research.ts            Tech tree, buildings, warhead production
-    army.ts                Manpower, divisions, recruitment
-    commands.ts            Console layer (delegates to actions.ts)
-    store.ts               Reactive store + render loop
-    save.ts                base64 serialization; Tauri fs or localStorage
-    worldData.ts           Live exchange rates + news keyword extraction
+  main.tsx                 入口，挂载 App
+  App.tsx                  阶段路由：标题 → 游戏 → 结束
+  styles.css               钢铁雄心4风格主题
+  game/                    模拟层
+    types.ts               领域类型（含时钟、任务、师、将领）
+    countries.ts           12 个国家 + 地理 id 映射
+    state.ts               状态增删改、关系、崩坏度、时钟
+    events.ts              24 个加权事件模板
+    war.ts                 宣战、战斗结算、士气、撤退
+    combat.ts              钢铁雄心4式战斗：组织度、宽度、防御池
+    command.ts             集团军、将领、命令
+    autoArmy.ts            参谋部 AI
+    peace.ts               和平会议与领土瓜分
+    ai.ts                  11 个 AI 国家的每日行动
+    actions.ts             限时行动注册表（唯一的行动入口）
+    scheduler.ts           时间推进与任务完成
+    decisions.ts           .warf-decision 解析器与条件/奖励引擎
+    attributes.ts          国策文件可用的属性命名空间
+    research.ts            科技树、建筑、弹头生产
+    army.ts                人力、师、征募
+    commands.ts            控制台层（委托给 actions.ts）
+    store.ts               响应式 store 与渲染循环
+    save.ts                base64 序列化（Tauri 文件系统或 localStorage）
+    worldData.ts           实时汇率与新闻关键词提取
   map/
-    geo.ts                 TopoJSON → GeoJSON → projected SVG paths
-    colors.ts              Map-mode palettes and legends
-    WorldMap.tsx           SVG map: pan, zoom, hover, select
-    worldmap.css
-  panels/                  Right-hand control panels
-    NationPanel.tsx  DiplomacyPanel.tsx  MilitaryPanel.tsx
-    EconomyPanel.tsx IntelligencePanel.tsx WarPanel.tsx
-    LogPanel.tsx     PanelHost.tsx
-  components/              TopBar, LeftRail, BottomBar, Console,
-                           ConfirmDialog, Toasts, screens
-  i18n/index.ts            `key: value` lang files, zh-cn + en-us
-  langs/                   Translation data
-src-tauri/                 Rust shell: window config + save/load commands
+    geo.ts                 TopoJSON → GeoJSON → 投影后的 SVG 路径
+    provinces.ts           行政区划数据与标注
+    cities.ts              城市数据与分层
+    colors.ts              地图模式配色与图例
+    WorldMap.tsx           SVG 地图：平移、缩放、悬停、选中
+  panels/                  右侧操作面板
+    NationPanel / DecisionPanel / ResearchPanel / ArmyPanel
+    CommandPanel / DiplomacyPanel / MilitaryPanel / EconomyPanel
+    IntelligencePanel / WarPanel / LogPanel / PanelHost
+  components/              TopBar、LeftRail、BottomBar、Console、
+                           ConfirmDialog、Toasts、各阶段界面、参谋部异议
+  i18n/index.ts            `key: value` 语言文件，zh-cn 与 en-us
+  langs/                   翻译数据
+decisions/                 *.warf-decision 国策文件
+src-tauri/                 Rust 外壳：窗口配置与存档读写命令
 ```
 
-## Fixes carried in from the original's data
+## 架构说明
 
-The CLI edition's `langs/*.txt` files were generated from `langs/strings.csv`
-with a naive `split(",")`, which silently corrupted any entry whose English text
-contained a comma. This edition repairs them from the CSV (the untruncated
-source):
-
-- **31 English strings were truncated mid-sentence** — e.g.
-  `cmd.diplomacy.no_points` ended at `…(need {cost}`, dropping `, have {have})`.
-  Eight of these were event descriptions (earthquakes ending at "Thousands dead",
-  cyber attacks at "A massive cyber attack").
-- **27 Chinese strings were English sentence fragments.** The field shift pushed
-  the *tail of the English value* into the Chinese column, so a Chinese UI showed
-  text like `event.tech_breakthrough.desc: reshaping global economic competition.`
-  These are restored to their real translations.
-- **Localised country names are now actually used.** The lang files have always
-  carried `country.<ID>.name` (美国, 中国, 俄罗斯 …), but the original printed the
-  English `country.name` everywhere. The panel/map/event text now goes through
-  `src/game/names.ts`, so the Chinese UI reads 俄罗斯 instead of "Russia".
-
-`langs/strings.csv` and the repair scripts are the record of what changed; the
-repairs are one-way (the CSV is authoritative for any key it contains, and the
-141 keys added to the `.txt` files afterwards are left untouched).
-
-## Architecture notes
-
-**State.** The simulation object is mutated in place and a version counter is
-bumped to trigger re-renders — the same approach the CLI edition used, which suits
-a deeply nested game object better than rebuilding an immutable tree every frame:
+**状态。** 模拟对象就地修改，靠一个版本计数器触发重渲染——终端版用的就是这个办法，对一棵深度嵌套的游戏对象树来说，它比每帧重建不可变树更合适：
 
 ```ts
 useSyncExternalStore(subscribe, getSnapshot)   // store.ts
-// mutate → notify() → version++ → subscribers re-render
+// 就地修改 → notify() → version++ → 订阅者重渲染
 ```
 
-**One action path.** Panel buttons and the console both funnel through
-`runAction(command)`, which executes a CLI-style command string. The original
-command set is intact, so `war attack` from the console does exactly what the
-ATTACK button does.
+**单一行动路径。** 面板按钮和控制台都汇入 `runAction(command)`，它执行一条命令行风格的字符串。原版命令集完整保留，所以从控制台输入 `war attack` 和点击「进攻」按钮做的事情完全一样。
 
-**Dual persistence.** The same bundle runs in the Tauri webview and in a plain
-browser. `save.ts` detects `window.__TAURI_INTERNALS__` and uses the Rust
-`save_game`/`load_game` commands, falling back to `localStorage` in a browser.
+**双重持久化。** 同一份产物既跑在 Tauri webview 里，也跑在普通浏览器里。`save.ts` 检测 `window.__TAURI_INTERNALS__` 并使用 Rust 的 `save_game` / `load_game` 命令，在浏览器里退回 `localStorage`。
 
-## Credits
+## 从原版数据中修复的问题
 
-Original terminal edition: [Warfire Rises](https://github.com/) (React + Ink).
-Map data: [Natural Earth](https://www.naturalearthdata.com/) via
-[world-atlas](https://github.com/topojson/world-atlas).
-Icon from [Haley Wakamatsu, Monster Friend 2](https://www.behance.net/gallery/100106185/Monster-Friend-2).
+终端版的 `langs/*.txt` 是用朴素的 `split(",")` 从 `langs/strings.csv` 生成的，凡是英文文本里带逗号的条目都被静默破坏了。这一版按 CSV（未截断的源）修复：
 
-## License
+- **31 条英文被截断在句子中间** —— 例如 `cmd.diplomacy.no_points` 停在 `…(need {cost}`，丢了 `, have {have})`。其中八条是事件描述（地震停在「Thousands dead」，网络攻击停在「A massive cyber attack」）。
+- **27 条中文里存的是英文句子片段。** 字段错位把**英文值的后半截**推进了中文列，所以中文界面会显示 `event.tech_breakthrough.desc: reshaping global economic competition.`。这些已还原为真正的中文翻译。
+- **本地化国名现在真正被使用了。** 语言文件里一直带着 `country.<ID>.name`（美国、中国、俄罗斯……），但原版到处打印英文的 `country.name`。现在面板 / 地图 / 事件文本都走 `src/game/names.ts`，中文界面显示「俄罗斯」而不是 "Russia"。
 
-**GNU Lesser General Public License v3.0** — see [LICENSE](./LICENSE).
+## 协议
 
-Third-party assets (fonts, map data, the icon) keep their own licences and are
-credited in [NOTICE.md](./NOTICE.md). The Twemoji flags in particular are
-CC BY 4.0, which requires attribution — it is in that file.
+**GNU 宽通用公共许可证 v3.0（LGPL-3.0）** —— 见 [LICENSE](./LICENSE)。
+
+第三方素材（字体、地图数据、图标）各自保留其授权，署名见 [NOTICE.md](./NOTICE.md)。特别是 Twemoji 国旗使用 CC BY 4.0，**要求署名**——署名就在那个文件里。
