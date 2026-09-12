@@ -2,11 +2,12 @@ name: Build
 
 # Produces installable packages for all three desktop platforms:
 #   Windows  .exe  (NSIS installer)
-#   macOS    .dmg
+#   macOS    .dmg  (Apple Silicon)
 #   Linux    .deb
 #
-# Every push builds and uploads them as artefacts; pushing a tag also attaches
-# them to a GitHub Release.
+# Every push builds and uploads them as artefacts. Pushing a v* tag additionally
+# publishes a Release whose notes follow the house template — see the `release`
+# job for the body it generates.
 
 on:
   push:
@@ -24,8 +25,6 @@ jobs:
   build:
     name: ${{ matrix.label }}
     runs-on: ${{ matrix.platform }}
-    permissions:
-      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -71,16 +70,13 @@ jobs:
       - name: Type-check
         run: npm run typecheck
 
+      # Builds only. The release is assembled by the `release` job, which needs
+      # every platform's artefacts in hand before it can hash them.
       - name: Build the app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # Only a tag push creates a Release; ordinary pushes just build and
-          # upload artifacts. Tagged releases are published immediately.
-          tagName: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
-          releaseName: ${{ startsWith(github.ref, 'refs/tags/v') && format('WARFIRE RISES {0}', github.ref_name) || '' }}
-          releaseDraft: false
           args: --bundles ${{ matrix.bundles }}
 
       - name: Upload installers
@@ -93,3 +89,78 @@ jobs:
             src-tauri/target/release/bundle/dmg/*.dmg
             src-tauri/target/release/bundle/appimage/*.AppImage
           if-no-files-found: error
+
+  # Only a tag push publishes. Everything else stops at artefacts.
+  release:
+    name: Publish release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history, so the notes can list the commits this tag introduces.
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Assemble release notes
+        run: |
+          set -euo pipefail
+
+          TAG="$GITHUB_REF_NAME"
+          VERSION="${TAG#v}"
+          REPO="$GITHUB_REPOSITORY"
+
+          # Commits introduced by this tag: everything since the previous one,
+          # or the whole history if this is the first.
+          PREV="$(git tag --sort=-creatordate | grep -v "^${TAG}$" | head -1 || true)"
+          if [ -n "$PREV" ]; then
+            RANGE="${PREV}..${TAG}"
+          else
+            RANGE="$TAG"
+          fi
+
+          {
+            echo '<div align="center">'
+            echo "    <img src=\"https://raw.githubusercontent.com/${REPO}/${TAG}/Logo.png\" alt=\"Warfire Rises\" />"
+            echo '    <h1>Warfire Rises</h1>'
+            echo "    <p>战火升腾 - ${VERSION}</p>"
+            echo '</div>'
+            echo
+            echo '# What'"'"'s New? / 什么更新了？'
+            echo
+            git log --pretty=format:'- `%h` %s' --reverse "$RANGE"
+            echo
+            echo
+            echo '# Files / 文件'
+            echo
+            # Sorted so the order is stable between runs.
+            find artifacts -type f | sort | while read -r f; do
+              name="$(basename "$f")"
+              bytes="$(stat -c%s "$f")"
+              human="$(awk -v b="$bytes" 'BEGIN { if (b >= 1048576) printf "%.2f MB", b/1048576; else printf "%.0f KB", b/1024 }')"
+              sum="$(sha256sum "$f" | cut -d' ' -f1)"
+              echo "- \`${name}\` - ${human} - \`${sum}\`"
+            done
+          } > release-body.md
+
+          echo "----- release-body.md -----"
+          cat release-body.md
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Collect every installer the build jobs produced.
+          mapfile -t FILES < <(find artifacts -type f | sort)
+          gh release create "$GITHUB_REF_NAME" \
+            --title "WARFIRE RISES $GITHUB_REF_NAME" \
+            --notes-file release-body.md \
+            "${FILES[@]}"
