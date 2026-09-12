@@ -76,10 +76,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # Only a tag push creates a Release; ordinary pushes just build.
+          # Only a tag push creates a Release; ordinary pushes just build and
+          # upload artifacts. Tagged releases are published immediately.
           tagName: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
           releaseName: ${{ startsWith(github.ref, 'refs/tags/v') && format('WARFIRE RISES {0}', github.ref_name) || '' }}
-          releaseDraft: true
+          releaseDraft: false
           args: --bundles ${{ matrix.bundles }}
 
       - name: Upload installers
