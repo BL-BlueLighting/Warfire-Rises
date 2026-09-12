@@ -20,7 +20,7 @@ const IntelligencePanel: React.FC = () => {
   const target = getCountryById(state, selectedId);
   const isSelf = !target || target.id === state.playerCountryId;
 
-  const others = state.countries.filter((c) => c.id !== state.playerCountryId);
+  const others = state.countries.filter((c) => c.id !== state.playerCountryId && !c.destroyed);
 
   return (
     <>

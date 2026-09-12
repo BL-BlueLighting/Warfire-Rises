@@ -290,6 +290,7 @@ event_type.economic: 经济
 event_type.diplomatic: 外交
 event_type.disaster: 灾害
 event_type.crisis: 危机
+event_type.news: 新闻
 collapse.sanctions: 对 {name} 实施制裁
 collapse.condemnation: 公开谴责 {name}
 collapse.forces_deployed: 部队部署至 {name} 地区
@@ -598,9 +599,12 @@ ui.loading.wait: 每个战役仅收集一次数据。
 ui.over.restart: 开始新战役
 ui.over.stats: 最终统计
 ui.toast.saved: 游戏已保存至 {path}
+ui.toast.saved_slot: 已保存到存档 {slot} — {path}
+ui.toast.save_deleted: 存档 {slot} 已删除
+
 ui.toast.loaded: 游戏已读取 — 第 {day} 天
 ui.toast.save_failed: 保存失败：{err}
-ui.toast.no_save: 未找到存档。
+ui.toast.no_save: 该存档位是空的。
 ui.toast.day: 第 {day} 天 — 世界继续运转。
 ui.toast.war_over: 战争已结束。
 ui.toast.language: 语言已切换。
@@ -675,6 +679,8 @@ ui.decision.errors: {n} 个文件载入失败
 ui.decision.none: 没有可用的国策。
 ui.decision.infinite: 持续性
 ui.decision.target: 目标国
+ui.subject.of_you: 我方附属国
+ui.subject.overlord: 我方宗主国
 ui.decision.clear_target: 清除
 ui.decision.pick_target: 请先在地图上选择一个国家
 ui.decision.phase: 阶段
@@ -694,8 +700,44 @@ dec.err.missing_country: 缺少 "Country" 字符串或 "Decisions" 数组。
 dec.err.decision: 第 {n} 项国策格式错误（缺少 Name）。
 dec.err.inf_no_phase: "{name}" 的 Time 为 "inf"，但没有提供 InfinityPhases。
 dec.err.bad_time: "{name}" 的 Time 无效。
+dec.err.news: 第 {n} 项新闻格式错误（缺少 NewsId、Title 或 Content）。
+dec.err.news_dup: 新闻 id 重复：{id}（后一条未生效）。
 dec.req.relation: 与
+dec.req.nuked: 我方对其核打击次数
+dec.req.casus_belli: 我方对其战争理由
+dec.req.war: 我方与其交战状态
+dec.req.subject: 我方对其宗主状态
+dec.req.news: 新闻发布状态
+dec.req.destroyed: 完全毁灭状态
+dec.req.news_unknown: 未知新闻：{id}
 dec.req.unknown: 未知条件：{type}
+dec.reward.nuked: 已对 {flag} {name} 实施核打击
+dec.reward.casus_belli: 获得对 {flag} {name} 的战争理由
+dec.reward.casus_belli_revoked: 放弃对 {flag} {name} 的战争理由
+dec.reward.no_target: "{name}" 未指定目标国，未执行
+dec.reward.bad_country: "{to}" 不是有效的国家，未执行
+dec.reward.to_country_label: 作用于指定国家
+dec.reward.subject: 已使 {flag} {name} 成为我方附属国
+dec.reward.subject_released: 已解除与 {flag} {name} 的附属关系
+dec.reward.subject_self: {name} 不能成为自己的附属国
+dec.reward.subject_label: 使目标国成为附属国
+dec.reward.news_published: 已发布新闻「{title}」
+dec.reward.news_already: 新闻「{title}」此前已发布
+dec.reward.news_unknown: 未知新闻：{id}，未发布
+dec.reward.news_label: 📰 发布指定新闻
+dec.reward.destroyed: {flag} {name} 已彻底毁灭，领土没入海中
+dec.reward.destroyed_already: {flag} {name} 此前已毁灭
+dec.reward.destroy_self: 不能毁灭自己的国家（{name}）
+dec.reward.destroyed_label: 💣 使目标国彻底毁灭
+dec.reward.subject_released_label: 解除目标国的附属关系
+dec.reward.nuke_label: ☢ 对目标国实施核打击
+dec.reward.war_declared: 已向 {flag} {name} 宣战
+dec.reward.war_received: {flag} {name} 已向我方宣战
+dec.reward.war_failed: 无法向 {flag} {name} 宣战（已处于交战状态）
+dec.reward.war_label: ⚔ 向目标国宣战
+dec.reward.war_received_label: ⚔ 目标国向我方宣战
+dec.reward.casus_belli_label: ⚖ 获得目标国的战争理由
+dec.reward.casus_belli_revoked_label: ⚖ 放弃目标国的战争理由
 ui.act.justify: 正当化宣战理由
 ui.justify.title: 宣战理由
 ui.justify.have: 已拥有针对该国的宣战理由。
@@ -821,6 +863,17 @@ diff.veteran.name: 老兵
 diff.veteran.desc: 更喧嚣的世界：事件更多、战争更频、崩坏更快、恢复更慢。
 diff.hardened.name: 身经百战
 diff.hardened.desc: 世界已在燃烧。所有概率都对你不利。
+ui.save.title: 存档
+ui.save.slot: 存档 {n}
+ui.save.empty: 空存档位
+ui.save.save: 保存
+ui.save.load: 载入
+ui.save.overwrite: 覆盖
+ui.save.delete: 删除
+ui.save.day: 第 {day} 天
+ui.save.unknown_time: 时间未知
+ui.save.need_campaign: 需要先开始一场战役
+ui.save.note: 存档记录战役进程；显示与语言设置不在其中。
 ui.settings.title: 游戏设置
 ui.settings.map_labels: 地图标注
 ui.settings.country_names: 国家名
@@ -829,6 +882,11 @@ ui.settings.province_capitals: 省会
 ui.settings.major_cities: 主要城市
 ui.settings.difficulty: 难度
 ui.settings.difficulty_note: 在开始战役时选择。
+ui.settings.decision_files: 决策文件
+ui.settings.decisions_count: {n} 项国策 · {news} 条新闻
+ui.settings.decisions_locked: （必需，不可关闭）
+ui.settings.decisions_loading: 正在读取决策文件…
+ui.settings.decisions_note: 仅在战役开始前可改。关闭的文件不会加载 —— 它的国策与新闻都不会出现在这一局里。
 ui.settings.persist_note: 显示设置保存在本机，对所有战役生效。
 ui.settings.reset: 恢复默认
 ui.settings.stat_events: 事件频率
@@ -841,8 +899,8 @@ ui.title.inspect: 点击地图或列表中的任意国家查看详情。
 ui.title.map_hint: 点击地图选择国家 · 拖动平移 · 滚轮缩放
 
 # ── Debug ──
-cmd.debug.desc: 切换地图上的内部国家代码显示
-cmd.debug.usage: debug
+cmd.debug.desc: 调试工具：国家代码显示、免除准备等待、直接执行奖励
+cmd.debug.usage: debug [disable_prepare_wait|enable_prepare_wait|execute <Rewards[]>]
 
 # ── Official full names ──
 country.USA.full: 美利坚合众国
@@ -887,6 +945,10 @@ ui.war.front_value: {front} 宽 / 每师 {width}
 cmd.debug.no_wait_on: 已关闭准备等待 — 战役将立即开始。
 cmd.debug.no_wait_off: 已开启准备等待。
 cmd.debug.unknown: 未知调试选项：{sub}
+cmd.debug.execute_usage: 用法：debug execute [["属性","运算符",数值], …]（与国策 Rewards 同格式）
+cmd.debug.execute_bad: 无法解析奖励：{raw}
+cmd.debug.execute_done: 已执行 {n} 条奖励：
+cmd.debug.execute_none: （没有一条生效 —— 检查属性名与运算符）
 
 # ── Streaming mode ──
 ui.disclaimer.text: 本游戏所有内容均属虚构，与现实无关。游戏走向由玩家决定，不属于任何现实。
@@ -954,3 +1016,6 @@ ui.staff.appointed: 参谋部任命 {name} 指挥第 {group} 集团军。
 ui.staff.assigned: 参谋部将 {div} 编入第 {group} 集团军。
 ui.staff.formed: 参谋部组建了第 {n} 集团军。
 ui.staff.recruited: 参谋部征募了一个新师。
+
+# ── Nuclear aftermath ──
+cmd.nuclear.army_gone: 仅剩 {n} 个师，且已残破不堪、群龙无首。

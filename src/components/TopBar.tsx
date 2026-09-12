@@ -1,5 +1,5 @@
 import React from "react";
-import { useStore, saveGame, loadGame, quitToTitle, switchLanguage, openSettings } from "../game/store";
+import { useStore, openSaveDialog, quitToTitle, switchLanguage, openSettings } from "../game/store";
 import SpeedControls from "./SpeedControls";
 import { getPlayerCountry } from "../game/state";
 import { t, useLanguage, type Language } from "../i18n";
@@ -82,11 +82,8 @@ const TopBar: React.FC = () => {
 
       <div className="topbar__actions">
         <SpeedControls />
-        <button className="btn btn--sm" onClick={() => void saveGame()} title={t("cmd.save.desc")}>
+        <button className="btn btn--sm" onClick={openSaveDialog} title={t("ui.save.title")}>
           {t("ui.btn.save")}
-        </button>
-        <button className="btn btn--sm" onClick={() => void loadGame()} title={t("cmd.load.desc")}>
-          {t("ui.btn.load")}
         </button>
         <button
           className="btn btn--sm"

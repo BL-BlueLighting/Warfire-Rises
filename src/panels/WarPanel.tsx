@@ -33,7 +33,7 @@ const WarPanel: React.FC = () => {
 
   const declareCheck = target && !isSelf ? canDeclareWar(state, target) : null;
 
-  const others = state.countries.filter((c) => c.id !== state.playerCountryId);
+  const others = state.countries.filter((c) => c.id !== state.playerCountryId && !c.destroyed);
 
   return (
     <>

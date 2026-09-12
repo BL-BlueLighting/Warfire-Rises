@@ -1,0 +1,89 @@
+{
+    "Country": "all",
+    "Decisions": [
+        {
+            "Type": "Decisions",
+            "Name": "示例·宣布胜利",
+            "Description": "新闻模板：发布一条新闻稿。\n\n新闻写在文件顶层的 News 数组里，用 EffectNews 奖励发布：元组第四项填 NewsId（不是国家）。\n发布是幂等的 —— 同一条再发一次只会写一行日志，Effects 不会重复结算。",
+            "Require": [
+                {
+                    "Type": "War",
+                    "To": "JPN",
+                    "Condition": "==",
+                    "Num": 1
+                },
+                {
+                    "Type": "EffectNews",
+                    "To": "sample_victory",
+                    "Condition": "==",
+                    "Num": 0
+                }
+            ],
+            "Time": 30,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["EffectNews", "+", 1, "sample_victory"]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "示例·胜利之后",
+            "Description": "EffectNews 作为条件：只有在「宣布胜利」那条新闻发布过之后才解锁。\n这就是「新闻驱动剧情」的基本写法 —— 前一条国策发新闻，后一条读它。",
+            "Require": [
+                {
+                    "Type": "EffectNews",
+                    "To": "sample_victory",
+                    "Condition": "==",
+                    "Num": 1
+                }
+            ],
+            "Time": 45,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["PublicSupport", "+", 10],
+                                ["Stability", "+", 5]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "News": [
+        {
+            "Type": "News",
+            "Title": "日本陷落",
+            "Countries": ["CHN", "JPN"],
+            "Content": "中华人民共和国 对 日本国 宣战过后，日本国 被其重创，今已成为其附属国。",
+            "Effects": [
+                ["WorldCollapse", "+", 30]
+            ],
+            "NewsId": "sample_victory"
+        },
+        {
+            "Type": "News",
+            "Title": "世界屏息以待",
+            "Countries": ["USA", "RUS"],
+            "Content": "两个超级大国之间的紧张关系达到了新的高度，观察家们警告说，任何误判都可能点燃整个大陆。",
+            "Effects": [
+                ["WorldCollapse", "+", 8],
+                ["ForceValue", "+", 10]
+            ],
+            "NewsId": "sample_tension"
+        }
+    ]
+}

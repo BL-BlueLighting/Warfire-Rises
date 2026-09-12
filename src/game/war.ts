@@ -80,6 +80,54 @@ export function canDeclareWar(state: GameState, target: Country): { ok: boolean;
   return { ok: true, reason: "" };
 }
 
+/**
+ * Declare war between two nations, whoever they may be.
+ *
+ * This is the scripted path — the `War` decision reward runs through it — so it
+ * deliberately skips the diplomatic gates `canDeclareWar` enforces (casus
+ * belli, public support, army endurance, coercion readiness). A decision file
+ * is the authority on what its own scenario permits. What it will not do is
+ * contradict the world: nobody declares on themselves, and two nations already
+ * at war cannot start over.
+ */
+export function declareWarBetween(
+  state: GameState,
+  attackerId: string,
+  defenderId: string
+): boolean {
+  const attacker = getCountryById(state, attackerId);
+  const defender = getCountryById(state, defenderId);
+  if (!attacker || !defender || attacker.id === defender.id) return false;
+  if (attacker.atWarWith.includes(defender.id)) return false;
+
+  // There is exactly one `activeWar` and it belongs to the player, so a war
+  // between two other nations is recorded in the `atWarWith` lists alone —
+  // the same way AI wars are when the AI starts one. Anything else would let a
+  // decision file hijack the war the player is actually fighting.
+  const involvesPlayer =
+    attacker.id === state.playerCountryId || defender.id === state.playerCountryId;
+
+  // Only one war runs at a time; an unfinished one is archived, exactly as it
+  // is when the player declares a fresh war through the action.
+  if (involvesPlayer && state.activeWar?.active) {
+    state.warHistory.push({ ...state.activeWar, active: false, phase: "ended" });
+  }
+
+  attacker.atWarWith.push(defender.id);
+  defender.atWarWith.push(attacker.id);
+  // The casus belli is spent when war is declared.
+  attacker.warGoals = attacker.warGoals.filter((id) => id !== defender.id);
+
+  if (involvesPlayer) state.activeWar = createWarState(attacker.id, defender.id, state.day);
+  adjustRelation(state, attacker.id, defender.id, -30);
+  applyCollapse(
+    state,
+    8,
+    `War declared: ${countryShortName(attacker)} vs ${countryShortName(defender)}`
+  );
+  return true;
+}
+
 export function startWar(state: GameState, targetId: string): string {
   const target = getCountryById(state, targetId);
   if (!target) return t("war.start.unknown_country", { id: targetId });
@@ -88,37 +136,9 @@ export function startWar(state: GameState, targetId: string): string {
   const check = canDeclareWar(state, target);
   if (!check.ok) return check.reason;
 
-  if (state.activeWar?.active) {
-    // End previous war if attacker is the same player
-    state.warHistory.push({ ...state.activeWar, active: false, phase: "ended" });
+  if (!declareWarBetween(state, state.playerCountryId, target.id)) {
+    return t("war.start.already_at_war", { name: countryShortName(target) });
   }
-
-  const player = getPlayerCountry(state);
-  player.atWarWith.push(target.id);
-  target.atWarWith.push(state.playerCountryId);
-  // The casus belli is spent when war is declared.
-  player.warGoals = player.warGoals.filter((id) => id !== target.id);
-
-  state.activeWar = {
-    active: true,
-    attacker: state.playerCountryId,
-    defender: targetId,
-    dayStarted: state.day,
-    attackerMorale: 100,
-    defenderMorale: 100,
-    attackerLosses: 0,
-    defenderLosses: 0,
-    battles: [],
-    phase: "preparing",
-    winner: null,
-    attackerStance: "assault",
-    defenderStance: "hold",
-    attackerEntrenchment: 0,
-    defenderEntrenchment: 0,
-  };
-
-  adjustRelation(state, state.playerCountryId, target.id, -30);
-  applyCollapse(state, 8, `War declared: ${countryShortName(getPlayerCountry(state))} vs ${countryShortName(target)}`);
 
   return t("war.start.success", { flag: target.flag, name: countryShortName(target) });
 }

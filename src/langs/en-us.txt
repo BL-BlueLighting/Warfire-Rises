@@ -290,6 +290,7 @@ event_type.economic: economic
 event_type.diplomatic: diplomatic
 event_type.disaster: disaster
 event_type.crisis: crisis
+event_type.news: News
 collapse.sanctions: Sanctions imposed on {name}
 collapse.condemnation: Public condemnation of {name}
 collapse.forces_deployed: Forces deployed to {name}'s region
@@ -598,9 +599,12 @@ ui.loading.wait: Data is gathered only once per campaign.
 ui.over.restart: NEW CAMPAIGN
 ui.over.stats: Final Statistics
 ui.toast.saved: Game saved to {path}
+ui.toast.saved_slot: Saved to slot {slot} — {path}
+ui.toast.save_deleted: Slot {slot} deleted
+
 ui.toast.loaded: Game loaded — Day {day}
 ui.toast.save_failed: Save failed: {err}
-ui.toast.no_save: No save file found.
+ui.toast.no_save: That save slot is empty.
 ui.toast.day: Day {day} — the world moves on.
 ui.toast.war_over: The war has ended.
 ui.toast.language: Language switched.
@@ -675,6 +679,8 @@ ui.decision.errors: {n} file(s) failed to load
 ui.decision.none: No decisions available.
 ui.decision.infinite: Continuous
 ui.decision.target: Target
+ui.subject.of_you: Our subject
+ui.subject.overlord: Our overlord
 ui.decision.clear_target: clear
 ui.decision.pick_target: Select a nation on the map first
 ui.decision.phase: Phase
@@ -694,8 +700,44 @@ dec.err.missing_country: Missing a "Country" string or a "Decisions" array.
 dec.err.decision: Decision #{n} is malformed (needs a Name).
 dec.err.inf_no_phase: "{name}" has Time "inf" but no InfinityPhases.
 dec.err.bad_time: "{name}" has an invalid Time.
+dec.err.news: News #{n} is malformed (needs NewsId, Title and Content).
+dec.err.news_dup: Duplicate NewsId: {id} (later definition ignored).
 dec.req.relation: Relation with
+dec.req.nuked: Nuclear strikes we have dealt
+dec.req.casus_belli: Our casus belli against
+dec.req.war: At war with
+dec.req.subject: Our subject status over
+dec.req.news: Publication of
+dec.req.destroyed: Erased from the map:
+dec.req.news_unknown: Unknown news: {id}
 dec.req.unknown: Unknown requirement: {type}
+dec.reward.nuked: Nuclear strike delivered to {flag} {name}
+dec.reward.casus_belli: Casus belli gained against {flag} {name}
+dec.reward.casus_belli_revoked: Casus belli against {flag} {name} dropped
+dec.reward.no_target: "{name}" has no target country — skipped
+dec.reward.bad_country: "{to}" is not a valid country — skipped
+dec.reward.to_country_label: Applies to another nation
+dec.reward.subject: {flag} {name} is now our subject nation
+dec.reward.subject_released: {flag} {name} is no longer our subject
+dec.reward.subject_self: {name} cannot be its own subject
+dec.reward.subject_label: Make the target a subject nation
+dec.reward.news_published: Published: {title}
+dec.reward.news_already: "{title}" was published earlier
+dec.reward.news_unknown: Unknown news: {id} — nothing published
+dec.reward.news_label: 📰 Publish the named bulletin
+dec.reward.destroyed: {flag} {name} has been erased — its land has sunk
+dec.reward.destroyed_already: {flag} {name} was already erased
+dec.reward.destroy_self: A nation cannot destroy itself ({name})
+dec.reward.destroyed_label: ☠ Erase the target from the map
+dec.reward.subject_released_label: Release the target's subject status
+dec.reward.nuke_label: ☢ Nuclear strike on the target
+dec.reward.war_declared: War declared on {flag} {name}
+dec.reward.war_received: {flag} {name} has declared war on us
+dec.reward.war_failed: Cannot declare war on {flag} {name} (already at war)
+dec.reward.war_label: ⚔ Declare war on the target
+dec.reward.war_received_label: ⚔ The target declares war on us
+dec.reward.casus_belli_label: ⚖ Casus belli against the target
+dec.reward.casus_belli_revoked_label: ⚖ Drop the casus belli against the target
 ui.act.justify: Justify War Goal
 ui.justify.title: CASUS BELLI
 ui.justify.have: A war goal against them already exists.
@@ -821,6 +863,17 @@ diff.veteran.name: Veteran
 diff.veteran.desc: A busier world: more events, more wars, faster collapse, slower recovery.
 diff.hardened.name: Battle-Hardened
 diff.hardened.desc: The world is already on fire. Every rate is against you.
+ui.save.title: Saves
+ui.save.slot: Slot {n}
+ui.save.empty: Empty slot
+ui.save.save: Save
+ui.save.load: Load
+ui.save.overwrite: Overwrite
+ui.save.delete: Delete
+ui.save.day: Day {day}
+ui.save.unknown_time: time unknown
+ui.save.need_campaign: Start a campaign first
+ui.save.note: A save holds the campaign; display and language settings live outside it.
 ui.settings.title: SETTINGS
 ui.settings.map_labels: MAP LABELS
 ui.settings.country_names: Country names
@@ -829,6 +882,11 @@ ui.settings.province_capitals: Province capitals
 ui.settings.major_cities: Other major cities
 ui.settings.difficulty: DIFFICULTY
 ui.settings.difficulty_note: Chosen when the campaign starts.
+ui.settings.decision_files: Decision files
+ui.settings.decisions_count: {n} decisions · {news} news
+ui.settings.decisions_locked: (required — cannot be turned off)
+ui.settings.decisions_loading: Reading decision files…
+ui.settings.decisions_note: Editable before a campaign starts only. A file that is off is not loaded at all — its decisions and news never appear in the run.
 ui.settings.persist_note: Display settings are saved for this browser and apply to every campaign.
 ui.settings.reset: Reset to defaults
 ui.settings.stat_events: Event rate
@@ -841,8 +899,8 @@ ui.title.inspect: Click any nation on the map or in this list to inspect it.
 ui.title.map_hint: Click a nation to choose it · Drag to pan · Scroll to zoom
 
 # ── Debug ──
-cmd.debug.desc: Toggle internal country codes on the map
-cmd.debug.usage: debug
+cmd.debug.desc: Debug tools: country codes, skip the prepare wait, run rewards directly
+cmd.debug.usage: debug [disable_prepare_wait|enable_prepare_wait|execute <Rewards[]>]
 
 # ── Official full names ──
 country.USA.full: United States of America
@@ -887,6 +945,10 @@ ui.war.front_value: {front} width / {width} per division
 cmd.debug.no_wait_on: Preparation wait disabled — campaigns start immediately.
 cmd.debug.no_wait_off: Preparation wait enabled.
 cmd.debug.unknown: Unknown debug option: {sub}
+cmd.debug.execute_usage: Usage: debug execute [["Attribute","op",value], …] (same format as a decision's Rewards)
+cmd.debug.execute_bad: Cannot parse rewards: {raw}
+cmd.debug.execute_done: Applied {n} reward(s):
+cmd.debug.execute_none: (nothing took effect — check the attribute names and operators)
 
 # ── Streaming mode ──
 ui.disclaimer.text: All content in this game is fictional and unrelated to reality. Its course is decided by the player and represents no real-world outcome.
@@ -954,3 +1016,6 @@ ui.staff.appointed: The staff appointed {name} to Army Group {group}.
 ui.staff.assigned: The staff assigned {div} to Army Group {group}.
 ui.staff.formed: The staff formed Army Group {n}.
 ui.staff.recruited: The staff raised a new division.
+
+# ── Nuclear aftermath ──
+cmd.nuclear.army_gone: {n} division(s) remain, wrecked and leaderless.

@@ -1,5 +1,5 @@
 import { GameState, GameTask, TaskKind } from "./types";
-import { getCountryById, applyCollapse, adjustRelation, addPublicSupport } from "./state";
+import { getCountryById, applyCollapse, adjustRelation, addPublicSupport, detonateNuke } from "./state";
 import { t } from "../i18n";
 import { countryName } from "./names";
 
@@ -200,19 +200,12 @@ export const ACTIONS: ActionDef[] = [
       const c = getCountryById(state, targetId!)!;
       // A strike consumes one warhead from the stockpile.
       p.nukes = Math.max(0, p.nukes - 1);
-      c.military = 0;
-      c.economy = 0;
-      c.stability = 0;
-      c.population = Math.floor(c.population * 0.3);
-      adjustRelation(state, actorId, c.id, -100);
-      state.armyEndurance = Math.max(0, state.armyEndurance - 40);
-      state.nationalEndurance = Math.max(0, state.nationalEndurance - 30);
-      p.publicSupport = Math.max(0, p.publicSupport - 25);
-      applyCollapse(state, 25, t("collapse.nuclear_strike", { name: c.name }));
+      detonateNuke(state, actorId, c.id);
       return (
         `${t("cmd.nuclear.detected")}\n` +
         t("cmd.nuclear.result", { flag: c.flag, name: c.name }) + "\n" +
-        t("cmd.nuclear.survivors", { pop: c.population })
+        t("cmd.nuclear.survivors", { pop: c.population }) + "\n" +
+        t("cmd.nuclear.army_gone", { n: c.divisions.length })
       );
     },
   },

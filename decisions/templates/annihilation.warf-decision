@@ -1,0 +1,88 @@
+{
+    "Country": "all",
+    "Decisions": [
+        {
+            "Type": "Decisions",
+            "Name": "示例·彻底毁灭",
+            "Description": "FullDestroy 模板：把一个国家从地图上抹掉。\n\n执行后目标国的地块会直接沉入海底 —— 地图上不再绘制它的国土、省界、城市与国名，那片区域就是海。\n不可逆：没有任何属性可以把它变回来。\n\n目标国用元组第四项写死（PRK），所以面板不需要选目标。",
+            "Require": [
+                {
+                    "Type": "Nuclear",
+                    "To": "self",
+                    "Condition": "==",
+                    "Num": 1
+                },
+                {
+                    "Type": "Nuke",
+                    "To": "self",
+                    "Condition": ">=",
+                    "Num": 5
+                },
+                {
+                    "Type": "FullDestroy",
+                    "To": "PRK",
+                    "Condition": "==",
+                    "Num": 0
+                }
+            ],
+            "Time": 90,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["Nuke", "-", 5],
+                                ["FullDestroy", "+", 1, "PRK"],
+                                ["EffectNews", "+", 1, "example_annihilation"],
+                                ["WorldCollapse", "+", 20]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "示例·废墟上的新秩序",
+            "Description": "FullDestroy 作为条件：只有当上面那个国家已经毁灭时才可执行。\n适合做「战后接管」「幸存者安置」这类后续国策。",
+            "Require": [
+                {
+                    "Type": "FullDestroy",
+                    "To": "PRK",
+                    "Condition": "==",
+                    "Num": 1
+                }
+            ],
+            "Time": 60,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["Stability", "+", 6],
+                                ["PublicSupport", "-", 10],
+                                ["WorldCollapse", "+", 5]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "News": [
+        {
+            "Type": "News",
+            "Title": "半岛沉没",
+            "Countries": ["USA", "PRK"],
+            "Content": "持续数月的毁灭性打击之后，朝鲜半岛的陆地已经没入海中。卫星图像显示那里只剩一片汪洋。",
+            "Effects": [
+                ["WorldCollapse", "+", 15]
+            ],
+            "NewsId": "example_annihilation"
+        }
+    ]
+}

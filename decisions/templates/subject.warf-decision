@@ -1,0 +1,102 @@
+{
+    "Country": "all",
+    "Decisions": [
+        {
+            "Type": "Decisions",
+            "Name": "示例·建立傀儡政权",
+            "Description": "SideCountry 奖励模板：把目标国变成我方附属国。\n\n前提是已经在和它交战 —— 通常是你先占了它的地，再点这条国策把占领变成名分。\n注意：只要我方还占着它的任何一块地，SideCountry 条件就一直是 1，即使没有这条国策。",
+            "Require": [
+                {
+                    "Type": "War",
+                    "To": "target",
+                    "Condition": "==",
+                    "Num": 1
+                },
+                {
+                    "Type": "SideCountry",
+                    "To": "target",
+                    "Condition": "==",
+                    "Num": 0
+                }
+            ],
+            "Time": 30,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["SideCountry", "+", 1],
+                                ["PublicSupport", "-", 5],
+                                ["DiplomaticPoints", "-", 10]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "示例·从附属国抽取人力",
+            "Description": "SideCountry 作为条件 + ToCountry 抽资源。\n附属国人力 -80K，我方 +40K —— 差额就是「宗主国拿走的那部分」。",
+            "Require": [
+                {
+                    "Type": "SideCountry",
+                    "To": "target",
+                    "Condition": "==",
+                    "Num": 1
+                },
+                {
+                    "Type": "Manpower",
+                    "To": "target",
+                    "Condition": ">=",
+                    "Num": 80
+                }
+            ],
+            "Time": 45,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["Manpower", "+", 40],
+                                ["ToCountry", "+", 1, "target", "Manpower", "-", 80, "PublicSupport", "-", 5]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "示例·归还土地并解除附属",
+            "Description": "反向操作：清掉附属标记。\n\n⚠ 如果这时候我方还占着它的行政区，SideCountry 条件仍然是 1 —— 土地的实际归属才是那条判定的根据，归还土地才是真正的解除。",
+            "Require": [
+                {
+                    "Type": "SideCountry",
+                    "To": "target",
+                    "Condition": "==",
+                    "Num": 1
+                }
+            ],
+            "Time": 20,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["SideCountry", "-", 1],
+                                ["Relation", "+", 10]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

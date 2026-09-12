@@ -1,0 +1,75 @@
+{
+    "Country": "all",
+    "Decisions": [
+        {
+            "Type": "Decisions",
+            "Name": "示例·对敌宣传攻势",
+            "Description": "目标国模板。\n条件里写了 To: \"target\"，面板上就会出现目标选择器——先在地图或外交面板点一个国家，再执行。\n\n奖励元组没有第四项，因此跟着同一个目标国走。",
+            "Require": [
+                {
+                    "Type": "Relation",
+                    "To": "target",
+                    "Condition": "<=",
+                    "Num": -30
+                }
+            ],
+            "Time": "inf",
+            "InfinityPhases": [
+                {
+                    "Type": "Phase",
+                    "Get": [
+                        {
+                            "Type": "Get",
+                            "Rewards": [
+                                ["Relation", "-", 6],
+                                ["DiplomaticPoints", "-", 5]
+                            ]
+                        }
+                    ],
+                    "Content": "传单与广播越过边境，对方的民调开始松动。",
+                    "Time": 30
+                }
+            ],
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["PublicSupport", "+", 1]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "示例·承认目标国",
+            "Description": "把目标国拉近的一次性国策：好感度双向提升。\nRelation 奖励会同时修改两国互相的看法。",
+            "Require": [
+                {
+                    "Type": "Relation",
+                    "To": "target",
+                    "Condition": ">=",
+                    "Num": -100
+                }
+            ],
+            "Time": 15,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["Relation", "+", 20]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

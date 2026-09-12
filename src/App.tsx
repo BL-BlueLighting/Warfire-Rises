@@ -9,6 +9,7 @@ import EventBubbles from "./components/EventBubbles";
 import Toasts from "./components/Toasts";
 import ConfirmDialog from "./components/ConfirmDialog";
 import SettingsDialog from "./components/SettingsDialog";
+import SaveDialog from "./components/SaveDialog";
 import StartupBar from "./components/StartupBar";
 import { DisclaimerCard, DisclaimerNotice } from "./components/Disclaimer";
 import PeaceConference from "./components/PeaceConference";
@@ -41,7 +42,7 @@ const App: React.FC = () => {
   // The console is available before a campaign too — the `debug` options
   // that control preparation have to be reachable from here.
   if (!state) {
-    return <><TitleScreen /><StartupBar /><SettingsDialog /><Console /><DisclaimerCard /><Toasts /></>;
+    return <><TitleScreen /><StartupBar /><SettingsDialog /><SaveDialog /><Console /><DisclaimerCard /><Toasts /></>;
   }
   if (state.phase === "loading") return <LoadingScreen />;
   if (state.phase === "gameover") return <><GameOverScreen /><Toasts /></>;
@@ -60,6 +61,7 @@ const App: React.FC = () => {
         </main>
         <PanelHost />
       </div>
+      <SaveDialog />
       <Console />
       <ConfirmDialog />
       <SettingsDialog />

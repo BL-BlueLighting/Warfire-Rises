@@ -77,6 +77,12 @@ export interface Country {
   nukes: number;
   /** Days of progress toward the next warhead (0..NUKE_PRODUCTION_DAYS). */
   nukeProgress: number;
+  /**
+   * Who has used a warhead on this nation, one entry per strike — so the same
+   * id twice means two strikes. Written by `detonateNuke`, read by the
+   * `NukedCountry` decision attribute ("has To been nuked *by me*").
+   */
+  nukedBy: string[];
   /** Manpower pool, in thousands. */
   manpower: number;
   /** Recruited divisions; each carries its own manpower commitment. */
@@ -103,6 +109,21 @@ export interface Country {
   // ── Diplomacy ──
   /** Country ids this nation has a completed casus belli against. */
   warGoals: string[];
+  /**
+   * The nation this one answers to, or null when it is independent.
+   *
+   * Only half the story: a nation also counts as a subject while another one
+   * occupies any of its regions, and that is computed rather than stored — see
+   * `isSubjectOf` in subjects.ts.
+   */
+  overlordId: string | null;
+  /**
+   * Erased from the world: the nation's land has sunk and nothing brings it
+   * back. Set by the `FullDestroy` decision reward; the map, the AI and every
+   * country list skip it, but it stays in the roster because relations, war
+   * records and decision runtimes still reference its id.
+   */
+  destroyed: boolean;
 }
 
 /** A commander. Skills are 1-5 and feed the combat pools. */
@@ -182,7 +203,8 @@ export interface GameEvent {
   day: number;
   title: string;
   description: string;
-  type: "political" | "military" | "economic" | "diplomatic" | "disaster" | "crisis";
+  /** `news` is a bulletin published by a decision file — see `NewsDef`. */
+  type: "political" | "military" | "economic" | "diplomatic" | "disaster" | "crisis" | "news";
   severity: "low" | "medium" | "high" | "critical";
   affectedCountries: string[];
   worldCollapseChange: number;
@@ -261,6 +283,8 @@ export interface GameState {
   log: string[];
   /** Set when the player's nation has been conquered; null while it stands. */
   conquered: ConquestRecord | null;
+  /** News ids already published by a decision file's `EffectNews` reward. */
+  publishedNews: string[];
   /**
    * Nations already lost. They stay out of play — ruined, and unavailable to
    * pick when the player succeeds to a new one.
@@ -306,7 +330,14 @@ export interface ClockState {
 /** What a finished task actually does. */
 export type TaskPayload =
   | { type: "action"; actionId: string; actorId: string; targetId?: string }
-  | { type: "decision"; decisionId: string; actorId: string; phaseIndex: number }
+  | {
+      type: "decision";
+      decisionId: string;
+      actorId: string;
+      phaseIndex: number;
+      /** The counterpart picked in the panel, for `To: "target"` and Relation. */
+      targetId?: string;
+    }
   | { type: "research"; countryId: string; techId: string }
   | { type: "build"; countryId: string; buildingId: string }
   | { type: "recruit"; countryId: string; divisions: number; manpowerEach: number };

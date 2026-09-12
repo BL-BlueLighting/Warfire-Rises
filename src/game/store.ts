@@ -16,7 +16,7 @@ import {
   MAX_SPEED,
   continueAs,
 } from "./state";
-import { DEFAULT_DIFFICULTY, type Difficulty } from "./difficulty";
+import { DEFAULT_DIFFICULTY, isDifficulty, type Difficulty } from "./difficulty";
 import { getSettings } from "./settings";
 import { closeConference, runAIClaims } from "./peace";
 import { pickObjection, overruleCost } from "./autoArmy";
@@ -24,9 +24,20 @@ import { countryName } from "./names";
 import { processDayEvents } from "./events";
 import { executeCommand } from "./commands";
 import { fetchExchangeRates, fetchWorldKeywords, getTodayDate } from "./worldData";
-import { loadFromDisk, saveToDisk, deserialize } from "./save";
+import {
+  deserialize,
+  listSaves,
+  peekSave,
+  toSaveSlot,
+  loadFromDisk,
+  saveToDisk,
+  deleteSave,
+  type SaveSlot,
+  type SaveSlotInfo,
+} from "./save";
 import { advanceTime, taskProgress as computeProgress, dropTask } from "./scheduler";
-import { loadDecisions, decisionsForCountry, type DecisionDef, type DecisionFile } from "./decisions";
+import { loadDecisions, decisionsForCountry, registerNews, type DecisionDef, type DecisionFile } from "./decisions";
+import { setDecisionFileEnabled } from "./settings";
 import { cancelTask } from "./actions";
 import { t, setLanguage, getLanguage, Language } from "../i18n";
 
@@ -84,6 +95,16 @@ export interface UiState {
 
   // ── Decision files ──
   decisionFiles: DecisionFile[];
+  /**
+   * Every decision file the game can see, for the pre-game manager. Read
+   * before a campaign exists, which is the only time it can be changed.
+   */
+  decisionCatalog: { name: string; decisions: number; news: number }[];
+  /** Occupied slots, for the save dialog. Refreshed whenever it opens. */
+  saveSlots: SaveSlotInfo[];
+  saveDialogOpen: boolean;
+  /** The slot this campaign was loaded from (or last written to). */
+  currentSlot: string;
   decisionErrors: { source: string; message: string }[];
   decisionSource: "bundled" | "disk" | "none";
 }
@@ -135,6 +156,7 @@ const SEVERITY_COLOR: Record<string, string> = {
 };
 
 const TYPE_ICON: Record<string, string> = {
+  news: "📰",
   political: "🏛",
   military: "⚔",
   economic: "💰",
@@ -199,6 +221,10 @@ const store: Store = {
     bubbles: [],
     lastWorldBubbleDay: 0,
     decisionFiles: [],
+    decisionCatalog: [],
+    saveSlots: [],
+    saveDialogOpen: false,
+    currentSlot: "1",
     decisionErrors: [],
     decisionSource: "none",
   },
@@ -215,6 +241,15 @@ function rebuildDecisionMap(): void {
     }
   }
   decisionMap = map;
+  // Bulletins live in the same files; a duplicated NewsId is a load error the
+  // panel should show, not a silent shadowing.
+  const clashes = registerNews(store.ui.decisionFiles);
+  for (const clash of clashes) {
+    store.ui.decisionErrors = [
+      ...store.ui.decisionErrors,
+      { source: clash.source, message: t("dec.err.news_dup", { id: clash.id }) },
+    ];
+  }
 }
 
 // ── Reactivity ─────────────────────────────────────────────────────
@@ -385,6 +420,7 @@ export function confirmArmyChange(): void {
 }
 
 export function openSettings(): void {
+  if (!store.state) void refreshDecisionCatalog();
   store.ui.settingsOpen = true;
   notify();
 }
@@ -648,6 +684,28 @@ export async function newGame(countryId: string, difficulty: Difficulty = DEFAUL
   notify();
 }
 
+/**
+ * Read the file list for the pre-game manager.
+ *
+ * Nothing here can change once a campaign is running, so this is only useful
+ * on the title screen — but it is harmless (and cheap) to call again later.
+ */
+export async function refreshDecisionCatalog(): Promise<void> {
+  const result = await loadDecisions();
+  store.ui.decisionCatalog = result.files.map((f) => ({
+    name: (f.__source ?? f.Country).split("/").pop() ?? f.Country,
+    decisions: f.Decisions.length,
+    news: (f.News ?? []).length,
+  }));
+  notify();
+}
+
+/** Switch a decision file on or off for the next campaign. */
+export function toggleDecisionFile(name: string, enabled: boolean): void {
+  setDecisionFileEnabled(name, enabled);
+  notify();
+}
+
 /** Re-read decision files from disk without restarting the campaign. */
 export async function reloadDecisions(): Promise<void> {
   const result = await loadDecisions();
@@ -677,38 +735,45 @@ export function runAction(command: string): CommandResult {
   const result = executeCommand((state ?? {}) as GameState, input);
   if (!result) return { success: false, message: "" };
 
-  // Marker messages are control signals, not text for the transcript.
-  const isMarker = result.message.startsWith("__") && result.message.endsWith("__");
+  // Marker messages are control signals, not text for the transcript. Some
+  // carry an argument after a colon — the save slot, so far.
+  const isMarker = result.message.startsWith("__");
   store.ui.consoleLines = [
     ...store.ui.consoleLines.slice(-300),
     `▶ ${command}`,
     ...(isMarker ? [] : result.message.split("\n")),
   ];
 
-  switch (result.message) {
-    case "__LOAD__":
-      void loadGame();
-      return result;
-    case "__CLEAR__":
-      store.ui.consoleLines = [];
-      notify();
-      return result;
-    case "__LANGUAGE__":
-      switchLanguage(getLanguage() === "zh-cn" ? "en-us" : "zh-cn");
-      return result;
-    case "__QUIT__":
-      return result;
-    case "__DEBUG__":
-      toggleDebugCodes();
-      return result;
-    case "__DEBUG_NOWAIT__":
-      store.ui.skipPrepareWait = true;
-      pushToast("info", t("cmd.debug.no_wait_on"));
-      return result;
-    case "__DEBUG_WAIT__":
-      store.ui.skipPrepareWait = false;
-      pushToast("info", t("cmd.debug.no_wait_off"));
-      return result;
+  if (isMarker) {
+    const [marker, arg] = result.message.split(":");
+    switch (marker) {
+      case "__LOAD__":
+        void loadGame(arg);
+        return result;
+      case "__SAVE__":
+        void saveGame(arg);
+        return result;
+      case "__CLEAR__":
+        store.ui.consoleLines = [];
+        notify();
+        return result;
+      case "__LANGUAGE__":
+        switchLanguage(getLanguage() === "zh-cn" ? "en-us" : "zh-cn");
+        return result;
+      case "__QUIT__":
+        return result;
+      case "__DEBUG__":
+        toggleDebugCodes();
+        return result;
+      case "__DEBUG_NOWAIT__":
+        store.ui.skipPrepareWait = true;
+        pushToast("info", t("cmd.debug.no_wait_on"));
+        return result;
+      case "__DEBUG_WAIT__":
+        store.ui.skipPrepareWait = false;
+        pushToast("info", t("cmd.debug.no_wait_off"));
+        return result;
+    }
   }
 
   if (result.message) pushToast(result.success ? "success" : "error", firstLine(result.message));
@@ -744,21 +809,30 @@ export function taskProgress(taskId: number): number {
   return task ? computeProgress(state, task) : 0;
 }
 
-export async function saveGame(): Promise<void> {
+/** Slot ids the UI and console may use; anything else falls back to the current one. */
+function slotOrDefault(slot?: string): SaveSlot {
+  return toSaveSlot(slot ?? store.ui.currentSlot);
+}
+
+export async function saveGame(slot?: string): Promise<void> {
   const state = store.state;
   if (!state) return;
+  const target = slotOrDefault(slot);
   try {
-    const path = await saveToDisk(state);
-    pushToast("success", t("ui.toast.saved", { path }));
+    const path = await saveToDisk(state, target);
+    store.ui.currentSlot = target;
+    await refreshSaves();
+    pushToast("success", t("ui.toast.saved_slot", { slot: target, path }));
   } catch (err) {
     pushToast("error", t("ui.toast.save_failed", { err: err instanceof Error ? err.message : String(err) }));
   }
 }
 
-export async function loadGame(): Promise<void> {
+export async function loadGame(slot?: string): Promise<void> {
   const state = store.state;
   if (!state) return;
-  const encoded = await loadFromDisk();
+  const target = slotOrDefault(slot);
+  const encoded = await loadFromDisk(target);
   if (!encoded) {
     pushToast("warn", t("ui.toast.no_save"));
     return;
@@ -767,10 +841,59 @@ export async function loadGame(): Promise<void> {
     pushToast("error", t("ui.toast.save_failed", { err: "corrupt save data" }));
     return;
   }
+  store.ui.currentSlot = target;
   store.ui.selectedCountryId = state.playerCountryId;
   store.ui.tab = "nation";
+  store.ui.saveDialogOpen = false;
   pushToast("success", t("ui.toast.loaded", { day: state.day }));
   startClock();
+  notify();
+}
+
+/**
+ * Load a slot from the title screen.
+ *
+ * A save is poured into an existing campaign, so one has to be started first.
+ * The nation and difficulty are read back out of the blob so the preparation
+ * screens describe the campaign being resumed rather than the nation that
+ * happened to be highlighted on the title screen.
+ */
+export async function loadGameFromTitle(slot: string): Promise<void> {
+  const target = toSaveSlot(slot);
+  const encoded = await loadFromDisk(target);
+  if (!encoded) {
+    pushToast("warn", t("ui.toast.no_save"));
+    return;
+  }
+  const meta = peekSave(encoded);
+  const difficulty: Difficulty =
+    meta && isDifficulty(meta.difficulty) ? meta.difficulty : DEFAULT_DIFFICULTY;
+  // The nation only matters for the preparation screens: `deserialize` replaces
+  // the player's country with the one the save was written for.
+  await newGame(meta?.countryId ?? "USA", difficulty);
+  await loadGame(target);
+}
+
+export async function deleteSaveSlot(slot: string): Promise<void> {
+  await deleteSave(toSaveSlot(slot));
+  await refreshSaves();
+  pushToast("info", t("ui.toast.save_deleted", { slot }));
+}
+
+/** Re-read the slot list. Cheap: it only parses each blob's header. */
+export async function refreshSaves(): Promise<void> {
+  store.ui.saveSlots = await listSaves();
+  notify();
+}
+
+export function openSaveDialog(): void {
+  store.ui.saveDialogOpen = true;
+  void refreshSaves();
+  notify();
+}
+
+export function closeSaveDialog(): void {
+  store.ui.saveDialogOpen = false;
   notify();
 }
 

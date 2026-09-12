@@ -1,0 +1,107 @@
+{
+    "Country": "all",
+    "Decisions": [
+        {
+            "Type": "Decisions",
+            "Name": "示例·先发制人核打击",
+            "Description": "核打击模板。\n奖励元组第四项写死了目标国，所以不需要在面板上选目标。\n\n注意：投放本身不检查条件、也不消耗弹头，代价要自己写出来——下面就用 Nuke 条件 + Nuke 奖励做到了。",
+            "Require": [
+                {
+                    "Type": "Nuclear",
+                    "To": "self",
+                    "Condition": "==",
+                    "Num": 1
+                },
+                {
+                    "Type": "Nuke",
+                    "To": "self",
+                    "Condition": ">=",
+                    "Num": 1
+                },
+                {
+                    "Type": "NukedCountry",
+                    "To": "JPN",
+                    "Condition": "==",
+                    "Num": 0
+                }
+            ],
+            "Time": 2,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["Nuke", "-", 1],
+                                ["NukedCountry", "+", 1, "JPN"]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "示例·战后索赔",
+            "Description": "NukedCountry 作为条件：只有当我们**已经核平过**日本时才可执行。\n读数是我方对 To 国的核打击次数，所以 >= 1 表示「干过」。\n\n所有国家和条件都写死为 JPN，因此面板不需要选目标国。",
+            "Require": [
+                {
+                    "Type": "NukedCountry",
+                    "To": "JPN",
+                    "Condition": ">=",
+                    "Num": 1
+                },
+                {
+                    "Type": "GetCasusBelli",
+                    "To": "JPN",
+                    "Condition": "==",
+                    "Num": 0
+                }
+            ],
+            "Time": 10,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["GetCasusBelli", "+", 1, "JPN"],
+                                ["PublicSupport", "+", 10]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "示例·撤回报复计划",
+            "Description": "GetCasusBelli 的反向用法：运算符写 \"-\" 撤销战争理由。\n适合「和解」类国策：愿意放弃宣战借口换取好感度。",
+            "Require": [
+                {
+                    "Type": "GetCasusBelli",
+                    "To": "target",
+                    "Condition": "==",
+                    "Num": 1
+                }
+            ],
+            "Time": 20,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["GetCasusBelli", "-", 1],
+                                ["Relation", "+", 15]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

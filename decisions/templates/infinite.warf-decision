@@ -1,0 +1,64 @@
+{
+    "Country": "all",
+    "Decisions": [
+        {
+            "Type": "Decisions",
+            "Name": "示例·战时经济动员",
+            "Description": "持续性国策模板。\nTime 必须是字符串 \"inf\"，阶段按 InfinityPhases 的顺序循环。\n每次执行 = 走完当前阶段的 Time 天，结算该阶段奖励 + Result，然后推进到下一阶段。",
+            "Require": [
+                {
+                    "Type": "WorldCollapse",
+                    "To": "self",
+                    "Condition": ">=",
+                    "Num": 30
+                }
+            ],
+            "Time": "inf",
+            "InfinityPhases": [
+                {
+                    "Type": "Phase",
+                    "Get": [
+                        {
+                            "Type": "Get",
+                            "Rewards": [
+                                ["Military", "+", 4],
+                                ["Economy", "-", 2],
+                                ["PublicSupport", "-", 3]
+                            ]
+                        }
+                    ],
+                    "Content": "工厂昼夜不停地运转，新的师团正在成形。\n民众开始感到疲惫。",
+                    "Time": 45
+                },
+                {
+                    "Type": "Phase",
+                    "Get": [
+                        {
+                            "Type": "Get",
+                            "Rewards": [
+                                ["Military", "+", 2],
+                                ["Economy", "+", 3],
+                                ["PublicSupport", "+", 1]
+                            ]
+                        }
+                    ],
+                    "Content": "产能开始反哺民生，宣传机器把牺牲包装成了荣耀。",
+                    "Time": 60
+                }
+            ],
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["ForceValue", "+", 3]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

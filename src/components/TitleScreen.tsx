@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { COUNTRIES, getCountry } from "../game/countries";
-import { newGame, loadGame, useStore, openSettings } from "../game/store";
+import { newGame, useStore, openSettings, openSaveDialog } from "../game/store";
 import { hasSave } from "../game/save";
 import { previewColorMap } from "../map/colors";
 import { DIFFICULTIES, DEFAULT_DIFFICULTY, type Difficulty } from "../game/difficulty";
@@ -118,12 +118,7 @@ const TitleScreen: React.FC = () => {
           <button
             className="btn"
             style={{ width: "100%", marginTop: 6 }}
-            onClick={async () => {
-              // Loading needs an in-memory state to deserialize into, so begin
-              // a campaign for the selected nation and immediately overwrite it.
-              await newGame(selected, difficulty);
-              await loadGame();
-            }}
+            onClick={openSaveDialog}
           >
             {t("ui.title.continue")}
           </button>

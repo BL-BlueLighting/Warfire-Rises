@@ -7,12 +7,20 @@ import {
   describeReward,
   meetsRequirements,
   phaseRewards,
+  resolveTo,
   resultRewards,
   startDecision,
   type DecisionDef,
+  type RewardTuple,
 } from "../game/decisions";
+import { countryName } from "../game/names";
 import { Section, ActionButton } from "../components/shared";
 import { t, useLanguage } from "../i18n";
+
+/** Reward names that act on the decision's picked counterpart. */
+const TARGET_REWARDS = new Set([
+  "nukedcountry", "getcasusbelli", "war", "sidecountry", "fulldestroy",
+]);
 
 const DecisionPanel: React.FC = () => {
   const { state, ui } = useStore();
@@ -24,13 +32,25 @@ const DecisionPanel: React.FC = () => {
   const playerId = state.playerCountryId;
   const decisions = availableDecisions(playerId);
 
-  // Decisions whose requirements reference `To: "target"` need a counterpart.
+  // A decision needs a counterpart when a requirement names `To: "target"`, or
+  // when a reward acts on the pair rather than on the actor alone — unless that
+  // tuple carries its own fourth-element `To`, in which case the pick is moot.
   const needsTarget = (d: DecisionDef) =>
-    (d.Require ?? []).some(
-      (r) => String(r.Type).toLowerCase() === "relation" && String(r.To ?? "").toLowerCase() === "target"
+    (d.Require ?? []).some((r) => String(r.To ?? "").toLowerCase() === "target") ||
+    [...resultRewards(d), ...(d.InfinityPhases ?? []).flatMap(phaseRewards)].some(
+      (tuple) =>
+        !tuple[3] && TARGET_REWARDS.has(String(tuple[0] ?? "").trim().toLowerCase())
     );
   const targetId = ui.selectedCountryId ?? undefined;
   const target = targetId ? getCountryById(state, targetId) : undefined;
+
+  /** Reward text, naming the country when the tuple carries its own `To`. */
+  const rewardText = (tuple: RewardTuple) => {
+    const label = describeReward(tuple);
+    if (!tuple[3]) return label;
+    const named = resolveTo(state, playerId, String(tuple[3]), targetId);
+    return `${label} → ${named ? countryName(named) : tuple[3]}`;
+  };
 
   return (
     <>
@@ -137,7 +157,7 @@ const DecisionPanel: React.FC = () => {
                     </div>
                     <div className="decision__rewards" style={{ marginTop: 6 }}>
                       {phaseRewards(phases[phaseIndex]).map((r, i) => (
-                        <span className="reward" key={i}>{describeReward(r)}</span>
+                        <span className="reward" key={i}>{rewardText(r)}</span>
                       ))}
                     </div>
                   </div>
@@ -146,7 +166,7 @@ const DecisionPanel: React.FC = () => {
                 {!isInf && resultRewards(d).length > 0 && (
                   <div className="decision__rewards">
                     {resultRewards(d).map((r, i) => (
-                      <span className="reward" key={i}>{describeReward(r)}</span>
+                      <span className="reward" key={i}>{rewardText(r)}</span>
                     ))}
                   </div>
                 )}
@@ -172,7 +192,7 @@ const DecisionPanel: React.FC = () => {
                         ? t("ui.decision.pick_target")
                         : undefined
                     }
-                    onClick={() => startDecision(state, d, playerId)}
+                    onClick={() => startDecision(state, d, playerId, targetId)}
                   />
                 </div>
               </div>

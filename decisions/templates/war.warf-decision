@@ -1,0 +1,100 @@
+{
+    "Country": "all",
+    "Decisions": [
+        {
+            "Type": "Decisions",
+            "Name": "示例·正当化并宣战",
+            "Description": "War 奖励模板（我方进攻）。\n运算符 + 表示「我方宣战」，- 表示「对方宣战」。\n\n这里用 GetCasusBelli 当门槛模拟正常流程：先有理由，再宣战。\n宣战会跳过民众支持、军队耐力等外交门槛，但仍然会消耗进攻方的战争理由。",
+            "Require": [
+                {
+                    "Type": "GetCasusBelli",
+                    "To": "target",
+                    "Condition": "==",
+                    "Num": 1
+                },
+                {
+                    "Type": "War",
+                    "To": "target",
+                    "Condition": "==",
+                    "Num": 0
+                }
+            ],
+            "Time": 3,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["War", "+", 1]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "示例·招致入侵",
+            "Description": "War 奖励模板（对方宣战，即 reverse）。\n运算符写成 \"-\"，To 指定的国家就会成为进攻方。\n适合做「强硬路线招来报复」这类剧本 —— 下面用 High 迫使值当作前提。",
+            "Require": [
+                {
+                    "Type": "ForceValue",
+                    "To": "self",
+                    "Condition": ">=",
+                    "Num": 55
+                },
+                {
+                    "Type": "War",
+                    "To": "target",
+                    "Condition": "==",
+                    "Num": 0
+                }
+            ],
+            "Time": 5,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["War", "-", 1]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "示例·战时总动员",
+            "Description": "War 作为条件：只有正在和 To 国交战时可执行。\nTo 写死成 JPN 的话，就是「对日战争期间才能点的国策」。",
+            "Require": [
+                {
+                    "Type": "War",
+                    "To": "JPN",
+                    "Condition": "==",
+                    "Num": 1
+                }
+            ],
+            "Time": 30,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["Military", "+", 5],
+                                ["PublicSupport", "-", 5],
+                                ["ArmyEndurance", "-", 5]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

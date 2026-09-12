@@ -23,7 +23,7 @@ const DiplomacyPanel: React.FC = () => {
   const isSelf = !target || target.id === state.playerCountryId;
 
   const others = state.countries
-    .filter((c) => c.id !== state.playerCountryId)
+    .filter((c) => c.id !== state.playerCountryId && !c.destroyed)
     .sort((a, b) => (b.relations[state.playerCountryId] ?? 0) - (a.relations[state.playerCountryId] ?? 0));
 
   const relation = target ? target.relations[state.playerCountryId] ?? 0 : 0;

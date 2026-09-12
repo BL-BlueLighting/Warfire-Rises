@@ -2,7 +2,31 @@ use std::fs;
 use std::path::PathBuf;
 use tauri::Manager;
 
-const SAVE_FILE: &str = "save.warfire";
+/// Saves predating the slot system lived in this one file; slot 1 still reads
+/// it so an existing campaign is not orphaned by the upgrade.
+const LEGACY_SAVE_FILE: &str = "save.warfire";
+
+/// Where a slot's save lives. Slot names come from the UI, so they are
+/// sanitised to keep a stray value from escaping the data directory.
+fn slot_path(app: &tauri::AppHandle, slot: &str) -> Result<PathBuf, String> {
+    let clean: String = slot
+        .chars()
+        .filter(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_')
+        .take(24)
+        .collect();
+    if clean.is_empty() {
+        return Err(String::from("invalid save slot"));
+    }
+    Ok(save_dir(app)?.join(format!("save-{clean}.warfire")))
+}
+
+/// The file a slot read should fall back to: only slot 1 has a predecessor.
+fn legacy_path(app: &tauri::AppHandle, slot: &str) -> Option<PathBuf> {
+    if slot != "1" {
+        return None;
+    }
+    save_dir(app).ok().map(|dir| dir.join(LEGACY_SAVE_FILE))
+}
 
 /// Resolve (and create) the per-user game data directory.
 fn save_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -16,19 +40,24 @@ fn save_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
 
 /// Persist a base64 save blob to disk. Returns the full path written.
 #[tauri::command]
-fn save_game(app: tauri::AppHandle, data: String) -> Result<String, String> {
-    let path = save_dir(&app)?.join(SAVE_FILE);
+fn save_game(app: tauri::AppHandle, slot: String, data: String) -> Result<String, String> {
+    let path = slot_path(&app, &slot)?;
     fs::write(&path, &data).map_err(|e| format!("cannot write {}: {e}", path.display()))?;
     Ok(path.to_string_lossy().into_owned())
 }
 
-/// Read the save blob, or `None` when no save exists yet.
+/// Read a slot's save blob, or `None` when that slot is empty.
 #[tauri::command]
-fn load_game(app: tauri::AppHandle) -> Result<Option<String>, String> {
-    let path = save_dir(&app)?.join(SAVE_FILE);
-    if !path.exists() {
-        return Ok(None);
-    }
+fn load_game(app: tauri::AppHandle, slot: String) -> Result<Option<String>, String> {
+    let path = slot_path(&app, &slot)?;
+    let path = if path.exists() {
+        path
+    } else {
+        match legacy_path(&app, &slot) {
+            Some(old) if old.exists() => old,
+            _ => return Ok(None),
+        }
+    };
     fs::read_to_string(&path)
         .map(Some)
         .map_err(|e| format!("cannot read {}: {e}", path.display()))
@@ -37,18 +66,29 @@ fn load_game(app: tauri::AppHandle) -> Result<Option<String>, String> {
 /// Report where saves live, for display in the UI.
 #[tauri::command]
 fn save_location(app: tauri::AppHandle) -> Result<String, String> {
-    Ok(save_dir(&app)?.join(SAVE_FILE).to_string_lossy().into_owned())
+    Ok(save_dir(&app)?.to_string_lossy().into_owned())
 }
 
-/// Delete the save file. Returns true when something was removed.
+/// Delete a slot's save. Returns true when something was removed.
+///
+/// Slot 1 also owns the pre-slot file: `load_game` reads it as a fallback, so
+/// leaving it behind would make a deleted slot come back on the next read.
 #[tauri::command]
-fn delete_save(app: tauri::AppHandle) -> Result<bool, String> {
-    let path = save_dir(&app)?.join(SAVE_FILE);
-    if !path.exists() {
-        return Ok(false);
+fn delete_save(app: tauri::AppHandle, slot: String) -> Result<bool, String> {
+    let path = slot_path(&app, &slot)?;
+    let mut removed = false;
+    if path.exists() {
+        fs::remove_file(&path).map_err(|e| format!("cannot delete {}: {e}", path.display()))?;
+        removed = true;
     }
-    fs::remove_file(&path).map_err(|e| format!("cannot delete {}: {e}", path.display()))?;
-    Ok(true)
+    if let Some(legacy) = legacy_path(&app, &slot) {
+        if legacy.exists() {
+            fs::remove_file(&legacy)
+                .map_err(|e| format!("cannot delete {}: {e}", legacy.display()))?;
+            removed = true;
+        }
+    }
+    Ok(removed)
 }
 
 /// Locate the `decisions/` directory.

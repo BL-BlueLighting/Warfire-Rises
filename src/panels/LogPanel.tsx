@@ -11,6 +11,7 @@ const SEVERITY_COLOR: Record<string, string> = {
 };
 
 const TYPE_ICON: Record<string, string> = {
+  news: "📰",
   political: "🏛",
   military: "⚔",
   economic: "💰",

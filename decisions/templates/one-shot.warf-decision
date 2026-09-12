@@ -1,0 +1,41 @@
+{
+    "Country": "CHN",
+    "Decisions": [
+        {
+            "Type": "Decisions",
+            "Name": "示例·西部大开发",
+            "Description": "一次性国策模板。\n把 Time 写成数字（1…180），走完这些天后结算 Result，然后结束。\n\n复制本文件到上一层目录（decisions/）即可生效。",
+            "Require": [
+                {
+                    "Type": "Economy",
+                    "To": "self",
+                    "Condition": ">=",
+                    "Num": 40
+                },
+                {
+                    "Type": "Treasury",
+                    "To": "self",
+                    "Condition": ">=",
+                    "Num": 500
+                }
+            ],
+            "Time": 120,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["Economy", "+", 8],
+                                ["Treasury", "-", 500],
+                                ["Stability", "+", 3],
+                                ["CountryEndurance", "+", 2]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

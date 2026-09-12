@@ -83,6 +83,7 @@ export function advanceTime(
       result.completed.push(task);
       if (outcome.message) result.messages.push(outcome.message);
       if (outcome.narrative) result.narratives.push(outcome.narrative);
+      if (outcome.events?.length) result.events.push(...outcome.events);
     }
   }
 
@@ -134,6 +135,8 @@ function runDailyTick(state: GameState, result: TickResult): void {
 export interface TaskOutcome {
   message: string;
   narrative?: string;
+  /** Bulletins a finished task published, for the bubble feed. */
+  events?: GameEvent[];
 }
 
 export function completeTask(
@@ -161,11 +164,20 @@ export function completeTask(
     case "decision": {
       const decision = ctx.decisions.get(payload.decisionId);
       if (!decision) return { message: "" };
-      const { content, rewards } = completeDecision(state, decision, payload.actorId);
+      // `EffectNews` appends to `state.events` while the rewards run; slice out
+      // whatever was added so the store turns it into a bubble.
+      const eventsBefore = state.events.length;
+      const { content, rewards } = completeDecision(
+        state,
+        decision,
+        payload.actorId,
+        payload.targetId
+      );
       const rewardText = rewards.length ? `\n${rewards.join(" · ")}` : "";
       return {
         message: t("ui.decision.completed", { name: decision.Name }) + rewardText,
         narrative: content ?? undefined,
+        events: state.events.slice(eventsBefore),
       };
     }
 

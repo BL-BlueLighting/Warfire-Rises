@@ -6,6 +6,7 @@ import { COUNTRIES } from "./countries";
 import { getSaveOutput } from "./save";
 import { countryShortName } from "./names";
 import { t } from "../i18n";
+import { applyRewards, type RewardTuple } from "./decisions";
 
 /**
  * The console command layer.
@@ -93,6 +94,27 @@ function actionCommand(
 
   const res = startAction(state, actionId, playerId, targetId);
   return { success: res.ok, message: res.message ?? "" };
+}
+
+/**
+ * Read reward tuples out of whatever the player pasted.
+ *
+ * Accepts the flat form a `Rewards` array uses — `[["Economy","+",5]]` — and
+ * the nested `Result` shape around it, so either half of a decision file can be
+ * copied verbatim.
+ */
+function parseRewardInput(input: unknown): RewardTuple[] {
+  if (!Array.isArray(input)) return [];
+  const out: RewardTuple[] = [];
+  for (const entry of input) {
+    if (Array.isArray(entry)) {
+      if (entry.length >= 3 && typeof entry[0] === "string") out.push(entry as RewardTuple);
+      continue;
+    }
+    const nested = (entry as { Rewards?: unknown } | null)?.Rewards;
+    if (Array.isArray(nested)) out.push(...parseRewardInput(nested));
+  }
+  return out;
 }
 
 export const COMMANDS: Command[] = [
@@ -386,12 +408,20 @@ export const COMMANDS: Command[] = [
   {
     name: "save", aliases: [], category: "system",
     description: "cmd.save.desc", usage: "cmd.save.usage",
-    execute: (state) => ({ success: true, message: getSaveOutput(state) }),
+    // No argument prints the blob (the CLI edition's only way to preserve a
+    // campaign); a slot number writes it to that file instead.
+    execute: (state, args) =>
+      args[0]
+        ? { success: true, message: `__SAVE__:${args[0]}` }
+        : { success: true, message: getSaveOutput(state) },
   },
   {
     name: "load", aliases: [], category: "system",
     description: "cmd.load.desc", usage: "cmd.load.usage",
-    execute: () => ({ success: true, message: "__LOAD__" }),
+    execute: (_state, args) => ({
+      success: true,
+      message: args[0] ? `__LOAD__:${args[0]}` : "__LOAD__",
+    }),
   },
   {
     name: "language", aliases: ["lang"], category: "system",
@@ -401,11 +431,36 @@ export const COMMANDS: Command[] = [
   {
     name: "debug", aliases: [], category: "system",
     description: "cmd.debug.desc", usage: "cmd.debug.usage",
-    execute: (_state, args) => {
+    execute: (state, args) => {
       const sub = (args[0] ?? "").toLowerCase();
       switch (sub) {
         case "":
           return { success: true, message: "__DEBUG__" };
+        case "execute": {
+          // `debug execute [["Economy","+",5],["Nuke","+",1]]` — the same tuple
+          // format a decision's Rewards use, so a file can be tested by pasting
+          // its payout straight into the console.
+          const raw = args.slice(1).join(" ").trim();
+          if (!raw) return { success: false, message: t("cmd.debug.execute_usage") };
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(raw);
+          } catch (err) {
+            return { success: false, message: t("cmd.debug.execute_bad", { raw }) };
+          }
+          const tuples = parseRewardInput(parsed);
+          if (tuples.length === 0) {
+            return { success: false, message: t("cmd.debug.execute_bad", { raw }) };
+          }
+          const lines = applyRewards(state, state.playerCountryId, tuples);
+          return {
+            success: true,
+            message:
+              t("cmd.debug.execute_done", { n: tuples.length }) +
+              "\n" +
+              (lines.length ? lines.join(" · ") : t("cmd.debug.execute_none")),
+          };
+        }
         case "disable_prepare_wait":
           return { success: true, message: "__DEBUG_NOWAIT__" };
         case "enable_prepare_wait":

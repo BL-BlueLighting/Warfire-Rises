@@ -157,6 +157,17 @@ export function divisionName(index: number): string {
   });
 }
 
+/** A fresh division, in exactly the state the recruit action produces them. */
+function makeDivision(state: GameState, index: number, manpower: number): Division {
+  return {
+    id: ++state.divisionIdCounter,
+    name: divisionName(index),
+    manpower,
+    strength: 70,
+    organisation: 100,
+  };
+}
+
 export function completeRecruit(
   state: GameState,
   countryId: string,
@@ -166,16 +177,34 @@ export function completeRecruit(
   const c = getCountryById(state, countryId);
   if (!c) return "";
   for (let i = 0; i < count; i++) {
-    const division: Division = {
-      id: ++state.divisionIdCounter,
-      name: divisionName(c.divisions.length),
-      manpower: manpowerEach,
-      strength: 70,
-      organisation: 100,
-    };
-    c.divisions.push(division);
+    c.divisions.push(makeDivision(state, c.divisions.length, manpowerEach));
   }
   return t("ui.army.recruited", { n: count });
+}
+
+/**
+ * Bring a nation's army to `target` divisions, raising or disbanding as needed.
+ *
+ * The `Divisions` decision attribute writes the count directly, so the units
+ * behind it have to be made real: a division that was never recruited still
+ * needs a name, a manpower commitment and a state to fight in. Disbanding also
+ * prunes the army groups that pointed at the departed units.
+ */
+export function setDivisionCount(state: GameState, countryId: string, target: number): void {
+  const c = getCountryById(state, countryId);
+  if (!c) return;
+  const want = Math.max(0, Math.floor(target));
+
+  while (c.divisions.length < want) {
+    c.divisions.push(makeDivision(state, c.divisions.length, DIVISION_MANPOWER));
+  }
+  if (c.divisions.length > want) {
+    c.divisions = c.divisions.slice(0, want);
+    const alive = new Set(c.divisions.map((d) => d.id));
+    for (const group of c.armyGroups) {
+      group.divisionIds = group.divisionIds.filter((id) => alive.has(id));
+    }
+  }
 }
 
 export function disbandDivision(

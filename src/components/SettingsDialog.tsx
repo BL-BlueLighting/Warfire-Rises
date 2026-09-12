@@ -1,6 +1,13 @@
 import React from "react";
-import { useStore, closeSettings } from "../game/store";
-import { SETTING_ROWS, DISCLAIMER_ROWS, useSettings, setSetting, resetSettings } from "../game/settings";
+import { useStore, closeSettings, toggleDecisionFile, refreshDecisionCatalog } from "../game/store";
+import {
+  BASE_DECISION_FILE_NAME,
+  SETTING_ROWS,
+  DISCLAIMER_ROWS,
+  useSettings,
+  setSetting,
+  resetSettings,
+} from "../game/settings";
 import { DIFFICULTIES, difficultyProfile } from "../game/difficulty";
 import { t, useLanguage } from "../i18n";
 
@@ -9,6 +16,13 @@ const SettingsDialog: React.FC = () => {
   const { state, ui } = useStore();
   const settings = useSettings();
   useLanguage();
+  const catalog = ui.decisionCatalog;
+
+  // Opening the dialog is the first chance the title screen has to know what
+  // files exist; a refresh from `openSettings` may still be in flight.
+  React.useEffect(() => {
+    if (ui.settingsOpen && !state && catalog.length === 0) void refreshDecisionCatalog();
+  }, [ui.settingsOpen, state, catalog.length]);
 
   if (!ui.settingsOpen) return null;
   const profile = state ? difficultyProfile(state.difficulty) : null;
@@ -63,6 +77,49 @@ const SettingsDialog: React.FC = () => {
               <span className="dim" style={{ fontSize: 11 }}>
                 {t("ui.settings.difficulty_note")}
               </span>
+            </div>
+          </>
+        )}
+
+        {/* Decision files can only be switched while no campaign is running:
+            they are read once at startup, and a campaign's history refers to
+            the decisions it was played with. */}
+        {!state && (
+          <>
+            <div className="section__title" style={{ marginTop: 16 }}>
+              {t("ui.settings.decision_files")}
+            </div>
+            <div className="settings-list">
+              {catalog.length === 0 && (
+                <div className="dim" style={{ fontSize: 11 }}>
+                  {t("ui.settings.decisions_loading")}
+                </div>
+              )}
+              {catalog.map((file) => {
+                const locked = file.name === BASE_DECISION_FILE_NAME;
+                const enabled = locked || !settings.disabledDecisionFiles.includes(file.name);
+                return (
+                  <label className="setting" key={file.name} title={file.name}>
+                    <input
+                      type="checkbox"
+                      checked={enabled}
+                      disabled={locked}
+                      onChange={(e) => toggleDecisionFile(file.name, e.target.checked)}
+                    />
+                    <span className="setting__box" aria-hidden="true" />
+                    <span className="setting__label">
+                      {file.name}
+                      <span className="setting__note">
+                        {t("ui.settings.decisions_count", { n: file.decisions, news: file.news })}
+                        {locked ? t("ui.settings.decisions_locked") : ""}
+                      </span>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+            <div className="dim" style={{ fontSize: 10.5, marginTop: 6, lineHeight: 1.6 }}>
+              {t("ui.settings.decisions_note")}
             </div>
           </>
         )}

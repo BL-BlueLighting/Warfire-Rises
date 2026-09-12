@@ -53,8 +53,11 @@ npm run tauri:build    # → src-tauri/target/release/bundle/
 | `1`–`5` | 设置游戏速度 |
 | **`` ` ``**（反引号） | 打开 / 关闭控制台——界面上没有按钮 |
 | 右键气泡 | 关闭该条通知 |
+| 顶栏 💾 | 打开存档面板（3 个存档位：保存 / 载入 / 删除） |
 
 选中国家会改变面板的操作对象。**未选中任何国家**时面板作用于本国；选中后按钮作用于选中的国家。
+
+**存档位。** 顶栏的 💾 打开存档面板，3 个存档位各自记录国家、天数、难度与保存时间。标题界面的「继续已保存的游戏」打开同一个面板，只是此时只能载入与删除（还没有战役可写）。控制台里 `save 2` 写入 2 号位、`load 2` 读取（不带参数时 `save` 仍像原版一样打印存档串）。升级前的单个存档会被当作 1 号位继续可用。
 
 ## 时间流动
 
@@ -85,9 +88,13 @@ npm run tauri:build    # → src-tauri/target/release/bundle/
 
 国策是纯 JSON，在代码之外编写。把文件丢进 `decisions/`，在国策面板点「从磁盘重新载入」即可——桌面版无需重新编译。构建时也会把文件打包进去，所以浏览器版没有文件系统也能用。
 
-```jsonc
+**开局前可以在「游戏设置」里启用/关闭决策文件**——清单会列出每个文件的国策与新闻条数，关掉的文件整局都不会加载（它的国策、新闻都不存在）。`all.warf-decision` 是基础文件，强制启用、不可关闭；**战役一旦开始，这份清单就不再可改**。
+
+完整的字段、属性与排错说明见 **[docs/decisions.md](./docs/decisions.md)**，可以直接抄的模板在 [`decisions/templates/`](./decisions/templates/)。
+
+```json
 {
-  "Country": "CHN",              // 国家 id，或 "all" 表示所有国家
+  "Country": "CHN",
   "Decisions": [
     {
       "Type": "Decisions",
@@ -96,8 +103,8 @@ npm run tauri:build    # → src-tauri/target/release/bundle/
       "Require": [
         { "Type": "CountryEndurance", "To": "self", "Condition": ">=", "Num": 50 }
       ],
-      "Time": "inf",             // 数字（上限 180），或 "inf"
-      "InfinityPhases": [        // Time 为 "inf" 时必填
+      "Time": "inf",
+      "InfinityPhases": [
         {
           "Type": "Phase",
           "Get": [ { "Type": "Get", "Rewards": [["CountryEndurance", "+", 10], ["Nuke", "+", 5]] } ],
@@ -105,7 +112,7 @@ npm run tauri:build    # → src-tauri/target/release/bundle/
           "Time": 60
         }
       ],
-      "Result": [                // inf 国策可选，每次完成阶段都会结算
+      "Result": [
         { "Type": "Result", "Rewards": [ { "Type": "Reward", "Rewards": [["Economy", "+", 2]] } ] }
       ]
     }
@@ -113,11 +120,34 @@ npm run tauri:build    # → src-tauri/target/release/bundle/
 }
 ```
 
+> 上面是**去掉注释后**的版本，因为解析器用的是严格 `JSON.parse`：`//` 注释、尾逗号、单引号都会让整个文件被丢弃。`Country` 是国家 id 或 `"all"`；`Time` 是数字（1–180）或 `"inf"`，为 `"inf"` 时必须提供 `InfinityPhases`；`Result` 每次结算都会应用。
+
 **条件**写作 `{ Type, To, Condition, Num }`，`Condition` 可取 `>= <= > < == !=`，`To` 可以是 `self`、`target`、`enemy` 或国家 id。
 
-**奖励**写作 `[属性, 运算符, 数值]`，运算符可取 `+ - * / =`。它出现在三个位置：`InfinityPhases[].Get[].Rewards`、`Result[].Rewards[].Rewards`，以及作为 `Require` 的 `Type`。
+**奖励**写作 `[属性, 运算符, 数值]`，运算符可取 `+ - * / =`；成对属性还能带第四项指定国家，例如 `["NukedCountry", "+", 1, "JPN"]`，省略时用面板上选中的目标国。奖励出现在 `InfinityPhases[].Get[].Rewards` 与 `Result[].Rewards[].Rewards`。
 
-可用属性：`CountryEndurance` `ArmyEndurance` `DiplomaticPoints` `WorldCollapse` `Day` `Economy` `Military` `Stability` `PublicSupport` `ForceValue` `Treasury` `Population` `Manpower` `Nuke` `Divisions` `DivisionStrength` `Nuclear` `AutoArmy`，以及 `Relation`（读取你对 `To` 所指定国家的好感度）。
+可用属性：`CountryEndurance` `ArmyEndurance` `DiplomaticPoints` `WorldCollapse` `Day` `Economy` `Military` `Stability` `PublicSupport` `ForceValue` `Treasury` `Population` `Manpower` `Nuke` `Divisions` `DivisionStrength` `Nuclear` `AutoArmy`，以及五个**成对属性**：
+
+- `Relation` —— 好感度。条件读取执行国对 `To` 国的好感；奖励双向写入（`+` `-` `=`）。
+- `NukedCountry` —— 条件读取「**我方**对 `To` 国投放核弹的次数」；作为奖励则向该国投放一枚核弹，效果与游戏内的「核打击」行动完全一致（不检查条件，也不消耗弹头，代价自己写）。
+- `GetCasusBelli` —— 条件读取「我方是否握有对 `To` 国的战争理由」（`1`/`0`）；作为奖励 `+` 获得、`-` 撤销。
+- `War` —— 条件读取「`To` 国是否正与我方交战」（`1`/`0`）；作为奖励宣战，`+` 是我方宣战、`-` 是对方宣战（reverse）。剧本化宣战会跳过外交门槛，但仍会消耗进攻方的战争理由。
+- `SideCountry` —— 条件读取「`To` 国是否从属于我方」（`1`/`0`）；作为奖励把 `To` 国变成我方附属国（`-` 清除标记）。**只要我方占着 `To` 国的任何一块行政区，条件就成立** —— 这条是算出来的，还地即解除。
+- `FullDestroy` —— 条件读取「`To` 国是否已被彻底毁灭」（`1`/`0`）；作为奖励把 `To` 国从地图上抹掉：**它的地块直接沉入海底**，地图上不再绘制国土、省界、城市与国名，军队与战争一并消失。不可逆，且不能对自己使用。
+
+文件顶层还可以写 `News` 数组声明新闻稿，用 `EffectNews` 属性发布与查询：
+
+```json
+"News": [
+  { "Type": "News", "Title": "日本陷落", "Countries": ["CHN", "JPN"],
+    "Content": "……", "Effects": [["WorldCollapse", "+", 30]], "NewsId": "chinatfr_japdie" }
+]
+```
+
+- 条件：`{ "Type": "EffectNews", "To": "chinatfr_japdie", "Condition": "==", "Num": 1 }` —— `To` 填 **NewsId**，读「这条新闻发布过没有」。
+- 奖励：`["EffectNews", "+", 1, "chinatfr_japdie"]` —— 第四项同样是 NewsId。发布会立刻结算 `Effects`、把新闻推成一张 📰 气泡，并记录进存档；重复发布不会重复结算。
+
+还有一个**只能用在奖励里**的重定向属性 `ToCountry`：`["ToCountry", "+", 1, "JPN", "Economy", "-", 20]` 表示「这 20 点经济从**日本**身上扣，不是从我省」，后面可以继续跟任意多条 `属性 运算符 数值` 指令。完整规则见 [docs/decisions.md](./docs/decisions.md#9-奖励重定向tocountry)。
 
 > `CountryEndurance`、`ArmyEndurance`、`DiplomaticPoints` 存在于玩家国家上。当国策把 `To` 解析到某个 AI 国家时，它们会退回到该国的稳定度 / 军力，这样为 AI 写的国策读起来仍然合理，而不是悄悄用了玩家的数值。
 
@@ -376,6 +406,8 @@ src/
   i18n/index.ts            `key: value` 语言文件，zh-cn 与 en-us
   langs/                   翻译数据
 decisions/                 *.warf-decision 国策文件
+  templates/               可直接复制到上一层的模板（不参与加载）
+docs/decisions.md          国策编写指南：字段、属性、模板与排错
 src-tauri/                 Rust 外壳：窗口配置与存档读写命令
 ```
 

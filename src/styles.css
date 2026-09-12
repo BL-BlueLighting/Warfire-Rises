@@ -2616,6 +2616,58 @@ body::after {
 
 .modal--settings { max-width: 420px; }
 
+/* ── Save slots ── */
+.modal--save { max-width: 560px; }
+
+.slots {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--brass);
+}
+
+.slot.is-empty {
+  border-left-color: var(--border);
+  background: color-mix(in srgb, var(--panel-2) 60%, transparent);
+}
+
+.slot__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.slot__name {
+  font-family: var(--font-display);
+  letter-spacing: 1.2px;
+  color: var(--gold-bright);
+}
+
+.slot__meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slot__actions {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
 .settings-list {
   display: flex;
   flex-direction: column;

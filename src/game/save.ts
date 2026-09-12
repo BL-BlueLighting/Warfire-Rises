@@ -57,6 +57,7 @@ export function serialize(state: GameState): string {
   lines.push(`conference:${state.conference ? JSON.stringify(state.conference) : "null"}`);
   lines.push(`conquered:${state.conquered ? JSON.stringify(state.conquered) : "null"}`);
   lines.push(`defeatedCountries:${JSON.stringify(state.defeatedCountries)}`);
+  lines.push(`publishedNews:${JSON.stringify(state.publishedNews)}`);
 
   lines.push(`exchangeRates:${JSON.stringify(state.exchangeRates)}`);
   lines.push(`worldKeywords:${JSON.stringify(state.worldKeywords)}`);
@@ -80,9 +81,12 @@ export function serialize(state: GameState): string {
     buildings: c.buildings,
     nukes: c.nukes,
     nukeProgress: c.nukeProgress,
+    nukedBy: c.nukedBy,
     manpower: c.manpower,
     divisions: c.divisions,
     warGoals: c.warGoals,
+    overlordId: c.overlordId,
+    destroyed: c.destroyed,
     generals: c.generals,
     armyGroups: c.armyGroups,
   }));
@@ -98,6 +102,10 @@ export function serialize(state: GameState): string {
   lines.push(`taskIdCounter:${state.taskIdCounter}`);
   lines.push(`divisionIdCounter:${state.divisionIdCounter}`);
   lines.push(`decisionStates:${JSON.stringify(state.decisionStates)}`);
+
+  // Wall-clock stamp for the save-slot list. Kept last so the header block the
+  // slot list reads stays contiguous; `deserialize` ignores unknown keys.
+  lines.push(`savedAt:${Date.now()}`);
 
   return toBase64(lines.join("\n"));
 }
@@ -131,6 +139,7 @@ export function deserialize(state: GameState, encoded: string): boolean {
       state.conquered = c && c !== "null" ? (JSON.parse(c) as GameState["conquered"]) : null;
     } catch { state.conquered = null; }
     try { state.defeatedCountries = JSON.parse(map.get("defeatedCountries") ?? "[]"); } catch { state.defeatedCountries = []; }
+    try { state.publishedNews = JSON.parse(map.get("publishedNews") ?? "[]"); } catch { state.publishedNews = []; }
 
     try { state.exchangeRates = JSON.parse(map.get("exchangeRates") ?? "{}"); } catch { /* keep */ }
     try { state.worldKeywords = JSON.parse(map.get("worldKeywords") ?? "[]"); } catch { /* keep */ }
@@ -158,9 +167,14 @@ export function deserialize(state: GameState, encoded: string): boolean {
           buildings: saved.buildings ?? country.buildings,
           nukes: saved.nukes ?? country.nukes,
           nukeProgress: saved.nukeProgress ?? 0,
+          // Absent in saves written before nuclear history was tracked.
+          nukedBy: saved.nukedBy ?? [],
           manpower: saved.manpower ?? country.manpower,
           divisions: saved.divisions ?? country.divisions,
           warGoals: saved.warGoals ?? country.warGoals,
+          // Absent in saves written before subject nations existed.
+          overlordId: saved.overlordId ?? null,
+          destroyed: saved.destroyed ?? false,
           // Command structures postdate the original save format; an older
           // save simply keeps the roster the country was created with.
           generals: saved.generals ?? country.generals,
@@ -205,45 +219,133 @@ export function deserialize(state: GameState, encoded: string): boolean {
 
 // ── Persistence ────────────────────────────────────────────────────
 
-/** Write the save. Returns a human-readable destination for the UI. */
-export async function saveToDisk(state: GameState): Promise<string> {
+/** The slots the UI offers. Ids are what the Rust side names the files after. */
+export const SAVE_SLOTS = ["1", "2", "3"] as const;
+export type SaveSlot = (typeof SAVE_SLOTS)[number];
+
+/** What a slot holds, read from the blob's header without rebuilding a game. */
+export interface SaveSlotMeta {
+  countryId: string;
+  day: number;
+  difficulty: string;
+  /** Wall-clock ms when it was written, or null for saves from before then. */
+  savedAt: number | null;
+}
+
+/** Narrowing helper for values coming from the console or storage. */
+export function isSaveSlot(value: string): value is SaveSlot {
+  return (SAVE_SLOTS as readonly string[]).includes(value);
+}
+
+/** Coerce an unknown slot id to a real one, defaulting to the first slot. */
+export function toSaveSlot(value: string | undefined): SaveSlot {
+  return value !== undefined && isSaveSlot(value) ? value : SAVE_SLOTS[0];
+}
+
+export interface SaveSlotInfo {
+  slot: string;
+  /** null when the slot is empty. */
+  meta: SaveSlotMeta | null;
+}
+
+/** Slot 1 inherits the pre-slot save, so an existing campaign survives. */
+const LEGACY_SLOT: SaveSlot = "1";
+
+/**
+ * Read a save's header without deserializing the whole campaign.
+ *
+ * The format is `key:value` lines, so the fields the slot list shows are a few
+ * lines away — no need to build a GameState just to label a button.
+ */
+export function peekSave(encoded: string): SaveSlotMeta | null {
+  try {
+    const raw = fromBase64(encoded);
+    const header = new Map<string, string>();
+    // Read every line: the header fields are a handful of keys scattered among
+    // the payload, and stopping at the first one found made the whole list
+    // report whichever nation happened to be the fallback.
+    for (const line of raw.split("\n")) {
+      const idx = line.indexOf(":");
+      if (idx === -1) continue;
+      const key = line.slice(0, idx);
+      if (key === "day" || key === "playerCountryId" || key === "difficulty" || key === "savedAt") {
+        header.set(key, line.slice(idx + 1));
+      }
+    }
+    const savedAt = Number(header.get("savedAt"));
+    return {
+      countryId: header.get("playerCountryId") ?? "USA",
+      day: parseInt(header.get("day") ?? "1"),
+      difficulty: header.get("difficulty") ?? "regular",
+      savedAt: Number.isFinite(savedAt) ? savedAt : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function localKey(slot: string): string {
+  return `${LOCAL_KEY}.${slot}`;
+}
+
+/** Write a slot. Returns a human-readable destination for the UI. */
+export async function saveToDisk(state: GameState, slot: SaveSlot = "1"): Promise<string> {
   const encoded = serialize(state);
   const core = tauriCore();
   if (core) {
+    let path: string;
     try {
-      return (await core.invoke("save_game", { data: encoded })) as string;
+      path = (await core.invoke("save_game", { slot, data: encoded })) as string;
     } catch (err) {
       throw new Error(`Tauri save failed: ${String(err)}`);
     }
+    // A backend from before slots writes one legacy file no matter what slot it
+    // is handed, which would make every slot alias the same campaign — and
+    // deleting any of them would take the rest with it. Say so instead.
+    if (!path.includes(`save-${slot}.`)) {
+      throw new Error(`the desktop backend predates save slots (wrote ${path}) — rebuild the app`);
+    }
+    return path;
   }
-  localStorage.setItem(LOCAL_KEY, encoded);
-  return "browser localStorage";
+  localStorage.setItem(localKey(slot), encoded);
+  return `browser localStorage (${slot})`;
 }
 
-/** Read the save blob, or null when none exists. */
-export async function loadFromDisk(): Promise<string | null> {
+/** Read a slot's blob, or null when the slot is empty. */
+export async function loadFromDisk(slot: SaveSlot = "1"): Promise<string | null> {
   const core = tauriCore();
   if (core) {
     try {
-      return ((await core.invoke("load_game")) as string | null) ?? null;
+      return ((await core.invoke("load_game", { slot })) as string | null) ?? null;
     } catch {
       return null;
     }
   }
-  return localStorage.getItem(LOCAL_KEY);
+  return localStorage.getItem(localKey(slot)) ?? (slot === LEGACY_SLOT ? localStorage.getItem(LOCAL_KEY) : null);
 }
 
 export async function hasSave(): Promise<boolean> {
-  return (await loadFromDisk()) !== null;
+  return (await listSaves()).some((s) => s.meta !== null);
 }
 
-export async function deleteSave(): Promise<void> {
+export async function deleteSave(slot: SaveSlot = "1"): Promise<void> {
   const core = tauriCore();
   if (core) {
-    try { await core.invoke("delete_save"); } catch { /* ignore */ }
+    try { await core.invoke("delete_save", { slot }); } catch { /* ignore */ }
     return;
   }
-  localStorage.removeItem(LOCAL_KEY);
+  localStorage.removeItem(localKey(slot));
+  if (slot === LEGACY_SLOT) localStorage.removeItem(LOCAL_KEY);
+}
+
+/** Which slots are occupied, and what is in them. */
+export async function listSaves(): Promise<SaveSlotInfo[]> {
+  const out: SaveSlotInfo[] = [];
+  for (const slot of SAVE_SLOTS) {
+    const encoded = await loadFromDisk(slot);
+    out.push({ slot, meta: encoded ? peekSave(encoded) : null });
+  }
+  return out;
 }
 
 export async function getSaveLocation(): Promise<string> {

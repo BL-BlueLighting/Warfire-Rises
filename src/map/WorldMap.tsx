@@ -3,6 +3,7 @@ import { useStore, selectCountry, setHovered } from "../game/store";
 import { getAttitude, type Country } from "../game/types";
 import { t } from "../i18n";
 import { countryName } from "../game/names";
+import { isSubjectOf } from "../game/subjects";
 import {
   FEATURE_AREAS,
   FEATURE_CENTROIDS,
@@ -124,12 +125,16 @@ const InertLayer = React.memo(function InertLayer() {
 const ConqueredLayer = React.memo(function ConqueredLayer({
   regionOwner,
   colors,
+  destroyed,
 }: {
   regionOwner: Record<string, string>;
   colors: Record<string, string>;
+  destroyed: ReadonlySet<string>;
 }) {
   const painted: { d: string; fill: string }[] = [];
   for (const [baseOwner, regions] of REGIONS) {
+    // Land that sank is not repainted for whoever had occupied it.
+    if (destroyed.has(baseOwner)) continue;
     for (const region of regions) {
       const owner = regionOwner[region.id];
       if (!owner || owner === baseOwner) continue;
@@ -149,10 +154,14 @@ const ConqueredLayer = React.memo(function ConqueredLayer({
   );
 });
 
-const ProvinceLayer = React.memo(function ProvinceLayer() {
+const ProvinceLayer = React.memo(function ProvinceLayer({
+  destroyed,
+}: {
+  destroyed: ReadonlySet<string>;
+}) {
   return (
     <>
-      {[...PLAYABLE_FEATURES.keys()].map((countryId) => {
+      {[...PLAYABLE_FEATURES.keys()].filter((id) => !destroyed.has(id)).map((countryId) => {
         const rings = PROVINCE_PATHS.get(countryId);
         if (!rings || rings.length === 0) return null;
         return (
@@ -195,6 +204,13 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     preview ? [] : state?.countries.find((c) => c.id === state.playerCountryId)?.atWarWith ?? []
   );
   const playerId = preview ? null : state?.playerCountryId ?? null;
+  /**
+   * Nations that have been erased. Their features are simply not drawn, so the
+   * ocean path underneath shows through — the land reads as having sunk.
+   */
+  const destroyedIds = new Set(
+    (preview ? [] : state?.countries ?? []).filter((c) => c.destroyed).map((c) => c.id)
+  );
   const selectedId = preview ? preview.selectedId : ui.selectedCountryId;
   const hoveredId = preview ? localHover : ui.hoveredCountryId;
   const setHoveredId = preview ? setLocalHover : setHovered;
@@ -301,6 +317,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
   // the zoom changes by a quarter step or the map pans a couple of grid cells,
   // not on every store notification.
   const labelKey = `${lang}|${Math.round(view.k * 4)}|${Math.round(view.x / 128)}|${Math.round(view.y / 128)}`;
+  /** Changing this string is what makes the memoised label layers recompute. */
+  const destroyedKey = [...destroyedIds].sort().join(",");
   const regionLabels = useMemo(() => {
     if (!warming && view.k < REGION_LABEL_MIN_ZOOM) {
       return [] as { region: Region; x: number; y: number }[];
@@ -316,7 +334,9 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     const minGap = MIN_REGION_LABEL_GAP / view.k;
 
     const candidates: { region: Region; x: number; y: number }[] = [];
-    for (const regions of REGIONS.values()) {
+    for (const [baseOwner, regions] of REGIONS) {
+      // A sunken province has no name to show.
+      if (destroyedIds.has(baseOwner)) continue;
       for (const region of regions) {
         if (region.area < minArea) continue;
         const [x, y] = region.anchor;
@@ -335,7 +355,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [labelKey, ui.showDebugCodes, warming]);
+  }, [labelKey, ui.showDebugCodes, warming, destroyedKey]);
 
   const cityLabels = useMemo(() => {
     const margin = 256;
@@ -343,7 +363,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     const minY = view.y - margin, maxY = view.y + MAP_HEIGHT * view.k + margin;
 
     const candidates: { city: City; x: number; y: number }[] = [];
-    for (const cities of CITIES.values()) {
+    for (const [countryId, cities] of CITIES) {
+      if (destroyedIds.has(countryId)) continue;
       for (const city of cities) {
         // Each tier appears at its own zoom, so a world view shows capitals
         // only and the detail fills in as you close in.
@@ -401,7 +422,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     `city|${lang}|${warming}|${settings.showProvinceCapitals}|${settings.showMajorCities}` +
-      `|${Math.round(view.k * 4)}|${Math.round(view.x / 128)}|${Math.round(view.y / 128)}`,
+      `|${Math.round(view.k * 4)}|${Math.round(view.x / 128)}|${Math.round(view.y / 128)}` +
+      `|${destroyedKey}`,
   ]);
 
   // Choose which labels to draw. Candidates must clear the area gate, then are
@@ -413,6 +435,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
       id === playerId || selectedId === id || hoveredId === id;
 
     const candidates = [...PLAYABLE_FEATURES.keys()]
+      .filter((id) => !destroyedIds.has(id))
       .map((id) => ({
         id,
         country: countryById(id),
@@ -508,6 +531,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
 
           {/* Playable nations */}
           {[...PLAYABLE_FEATURES.entries()].map(([countryId, f]) => {
+            if (destroyedIds.has(countryId)) return null;
             const isSelected = selectedId === countryId;
             const isHovered = hoveredId === countryId;
             const atWar = atWarSet.has(countryId);
@@ -529,10 +553,16 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
           })}
 
           {/* Territory that changed hands, painted over the original owner */}
-          {!preview && <ConqueredLayer regionOwner={state?.regionOwner ?? {}} colors={colors} />}
+          {!preview && (
+            <ConqueredLayer
+              regionOwner={state?.regionOwner ?? {}}
+              colors={colors}
+              destroyed={destroyedIds}
+            />
+          )}
 
           {/* Interior administrative boundaries */}
-          {showInterior && <ProvinceLayer />}
+          {showInterior && <ProvinceLayer destroyed={destroyedIds} />}
 
           {/* Cities — dot plus name, revealed tier by tier as you zoom */}
           {showCities && cityLabels.map(({ city, x, y }) => {
@@ -631,6 +661,18 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
             {t("ui.nation.stability")} {hovered.stability}
           </div>
           {atWarSet.has(hovered.id) && <div className="worldmap-tooltip__war">⚔ {t("ui.legend.war")}</div>}
+          {/* Subject status is otherwise invisible: it lives on the lesser
+              nation, or is implied by occupied land, and no panel shows it. */}
+          {state && playerId && hovered.id !== playerId && (
+            <>
+              {isSubjectOf(state, hovered.id, playerId) && (
+                <div className="worldmap-tooltip__row">{t("ui.subject.of_you")}</div>
+              )}
+              {isSubjectOf(state, playerId, hovered.id) && (
+                <div className="worldmap-tooltip__row">{t("ui.subject.overlord")}</div>
+              )}
+            </>
+          )}
         </div>
       )}
 

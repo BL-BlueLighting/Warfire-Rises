@@ -21,7 +21,7 @@ const MilitaryPanel: React.FC = () => {
   const target = getCountryById(state, selectedId);
   const isSelf = !target || target.id === state.playerCountryId;
 
-  const others = state.countries.filter((c) => c.id !== state.playerCountryId);
+  const others = state.countries.filter((c) => c.id !== state.playerCountryId && !c.destroyed);
 
   // Nuclear strike preconditions, mirroring the `nuclear` command exactly.
   const nukeCheck = checkAction(state, getAction("mil.nuclear")!, state.playerCountryId, target?.id);

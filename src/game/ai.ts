@@ -26,7 +26,10 @@ export function runAI(state: GameState): AiAction[] {
   const note = (text: string, notable = false): void => {
     actions.push({ text, notable });
   };
-  const aiCountries = state.countries.filter((c) => c.id !== state.playerCountryId);
+  // Erased nations have no government left to act.
+  const aiCountries = state.countries.filter(
+    (c) => c.id !== state.playerCountryId && !c.destroyed
+  );
 
   for (const ai of aiCountries) {
     // Each AI country has a chance to take 1-2 actions
@@ -138,7 +141,7 @@ function pickAITarget(state: GameState, countryId: string): string | null {
   const country = getCountryById(state, countryId);
   if (!country) return null;
 
-  const others = state.countries.filter((c) => c.id !== countryId);
+  const others = state.countries.filter((c) => c.id !== countryId && !c.destroyed);
   if (others.length === 0) return null;
 
   // Prefer enemies, then tense relations, then random

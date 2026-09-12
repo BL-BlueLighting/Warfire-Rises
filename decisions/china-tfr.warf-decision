@@ -1,0 +1,147 @@
+{
+  "Country": "CHN",
+  "Decisions": [
+    {
+      "Type": "Decisions",
+      "Name": "复仇 · 弃日贱民 · 准备",
+      "Description": "我们已经忍受日本不承认往昔对我国侵犯之事，还引以为傲之事已久。\n为了复仇，我们必须在世界上抛弃这贱国之民。\n在这之前，我们需要进行准备。",
+      "Require": [
+        { "Type": "Day", "Condition": ">=", "Num": 25 }
+      ],
+      "Time": 10,
+      "Result": [
+        {
+            "Type": "Result",
+            "Rewards": [
+                {
+                    "Type": "Reward",
+                    "Rewards": [
+                        ["GetCasusBelli", "+", 1, "JPN"],
+                        ["Stability", "+", 50],
+                        ["PublicSupport", "+", 100]
+                    ]
+                }
+            ]
+        }
+      ]
+    },
+    {
+        "Type": "Decisions",
+        "Name": "复仇 · 弃日贱民 · 战争",
+        "Description": "我们已经准备完毕，同时对日本发起了战争。\n全面侵略，摧毁它们的文明。",
+        "Require": [
+          { "Type": "Divisions", "Condition": ">=", "Num": 100 },
+          { "Type": "War", "To": "JPN" }
+        ],
+        "Time": 30,
+        "Result": [
+          {
+            "Type": "Result",
+            "Rewards": [
+              [
+                "NukedCountry", 
+                "+", 
+                1, 
+                "JPN"
+              ],              
+              [
+                "NukedCountry", 
+                "+", 
+                1, 
+                "JPN"
+              ],              
+              [
+                "NukedCountry", 
+                "+", 
+                1, 
+                "JPN"
+              ],              
+              [
+                "NukedCountry", 
+                "+", 
+                1, 
+                "JPN"
+              ],              
+              [
+                "NukedCountry", 
+                "+", 
+                1, 
+                "JPN"
+              ],
+              [
+                "ToCountry",
+                "+",
+                1,
+                "JPN",
+                "Economy",
+                "-",
+                100
+              ],
+              [
+                "ToCountry",
+                "+",
+                1,
+                "JPN",
+                "Stability",
+                "-",
+                100
+              ],
+              [
+                "ToCountry",
+                "+",
+                1,
+                "JPN",
+                "Nuclear",
+                "-",
+                1
+              ],
+              [
+                "ToCountry",
+                "+",
+                1,
+                "PublicSupport",
+                "-",
+                100
+              ],
+              [
+                "EffectNews",
+                "+",
+                1,
+                "chinatfr_japdie"
+              ],
+              [
+                "SideCountry",
+                "+",
+                1,
+                "JPN"
+              ]
+            ]
+          }
+        ]
+    },
+    {
+      "Type": "Decisions",
+      "Name": "复仇 · 弃日贱民 · 沉底",
+      "Description": "这片土地已无药可救。唯有沉底为最终方案。",
+      "Require": [
+        { "Type": "SideCountry", "To": "JPN", "Condition": "==", "Num": 1 }
+      ],
+      "Time": 25,
+      "Result": [
+        ["FullDestroy", "+", 1, "JPN"]
+      ]
+    }
+  ],
+  "News": [
+    {
+      "Type": "News",
+      "Title": "日本陷落",
+      "Countries": ["CHN", "JPN"],
+      "Content": "中华人民共和国 对 日本国 宣战过后，日本国 被其重创，今已成为其附属国。",
+      "Effects": [
+        ["WorldCollapse", "+", 30]
+      ],
+      "NewsId": "chinatfr_japdie"
+    }
+  ]
+}

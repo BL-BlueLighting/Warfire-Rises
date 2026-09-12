@@ -1,5 +1,6 @@
 import { Country, GameState } from "./types";
 import { getCountryById, getPlayerCountry } from "./state";
+import { setDivisionCount } from "./army";
 
 /**
  * The attribute namespace usable by `*.warf-decision` files.
@@ -94,12 +95,17 @@ export const ATTRIBUTES: AttributeDef[] = [
     },
   },
   {
+    // Read as the day counter, written as a clock jump: `day` is derived from
+    // `clock.time` every tick, so moving one without the other would be undone
+    // on the next frame.
     name: "Day",
     global: true,
     min: 1,
     get: (s) => s.day,
-    set: () => {
-      /* time is not writable */
+    set: (s, _c, v) => {
+      const day = Math.max(1, Math.round(v));
+      s.clock.time = day;
+      s.day = day;
     },
   },
 
@@ -113,8 +119,18 @@ export const ATTRIBUTES: AttributeDef[] = [
   { name: "Population", min: 0, unit: "M", get: (_s, c) => c.population, set: (_s, c, v) => { c.population = v; } },
   { name: "Manpower", min: 0, unit: "K", get: (_s, c) => c.manpower, set: (_s, c, v) => { c.manpower = v; } },
   { name: "Nuke", min: 0, get: (_s, c) => c.nukes, set: (_s, c, v) => { c.nukes = Math.floor(v); } },
-  { name: "Divisions", min: 0, get: (_s, c) => c.divisions.length, set: () => { /* use the army panel */ } },
   {
+    // Derived from the roster, but writable: writing materialises the units it
+    // implies, because a division is a record with a name, manpower and a state
+    // to fight in — not a number. See `setDivisionCount`.
+    name: "Divisions",
+    min: 0,
+    get: (_s, c) => c.divisions.length,
+    set: (s, c, v) => setDivisionCount(s, c.id, v),
+  },
+  {
+    // Averaged on read; on write the value lands on every division, so
+    // `["DivisionStrength", "=", 100]` is "heal the army".
     name: "DivisionStrength",
     min: 0,
     max: 100,
@@ -123,7 +139,10 @@ export const ATTRIBUTES: AttributeDef[] = [
       c.divisions.length === 0
         ? 0
         : Math.round(c.divisions.reduce((sum, d) => sum + d.strength, 0) / c.divisions.length),
-    set: () => { /* derived */ },
+    set: (_s, c, v) => {
+      const strength = Math.round(clamp(v, 0, 100));
+      for (const d of c.divisions) d.strength = strength;
+    },
   },
   {
     // Set by a decision to hand the army to the general staff. Exposed as an

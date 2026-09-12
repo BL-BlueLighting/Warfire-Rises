@@ -3,6 +3,7 @@ import { COUNTRIES, STARTING_NUKES, DIVISIONS_BY_POWER } from "./countries";
 import { makeGenerals, makeInitialGroups } from "./command";
 import { t } from "../i18n";
 import { DEFAULT_DIFFICULTY, profileFor } from "./difficulty";
+import { regionsOf } from "./peace";
 
 export function createInitialState(keywords: string[], rates: ExchangeRates): GameState {
   let divisionId = 0;
@@ -28,6 +29,7 @@ export function createInitialState(keywords: string[], rates: ExchangeRates): Ga
       researched: [...c.researched],
       buildings: [...c.buildings],
       warGoals: [...c.warGoals],
+      nukedBy: [] as string[],
       divisions,
       generals,
       armyGroups: [] as GameState["countries"][number]["armyGroups"],
@@ -61,6 +63,7 @@ export function createInitialState(keywords: string[], rates: ExchangeRates): Ga
     briefing: [],
     log: [],
     conquered: null,
+    publishedNews: [],
     defeatedCountries: [],
     eventIdCounter: 0,
     activeWar: null,
@@ -172,6 +175,128 @@ export function adjustRelation(
   if (a.relations[countryB] > -75 && a.enemies.includes(countryB)) {
     a.enemies = a.enemies.filter((x) => x !== countryB);
   }
+}
+
+/**
+ * Detonate one warhead on `targetId`, fired by `attackerId`.
+ *
+ * The single implementation of "a nuclear strike happened": the `mil.nuclear`
+ * action and the `NukedCountry` decision reward both go through here, so a
+ * scripted nuke and a clicked one leave the world in exactly the same state.
+ * Callers own the messaging; this only moves the numbers.
+ *
+ * Availability is deliberately *not* checked here. The action gates itself on
+ * warheads, public support and attitude; a decision author gates on whatever
+ * the scenario calls for (usually a `Nuke` requirement).
+ */
+export function detonateNuke(state: GameState, attackerId: string, targetId: string): void {
+  const attacker = getCountryById(state, attackerId);
+  const target = getCountryById(state, targetId);
+  if (!attacker || !target) return;
+
+  // One entry per strike, so `nukedBy` doubles as a strike count.
+  target.nukedBy.push(attackerId);
+
+  target.military = 0;
+  target.economy = 0;
+  target.stability = 0;
+  target.population = Math.floor(target.population * 0.3);
+
+  // The army is what actually fights, and it is not derived from `military` —
+  // combat runs on divisions and their organisation. Zeroing the country's
+  // stats alone left the divisions untouched, so the enemy fought on as though
+  // nothing had happened. Most of the army ceases to exist; the survivors are
+  // wrecked and leaderless.
+  const survivors = Math.floor(target.divisions.length * 0.3);
+  target.divisions = target.divisions.slice(0, survivors).map((d) => ({
+    ...d,
+    strength: Math.max(1, Math.round(d.strength * 0.4)),
+    organisation: 0,
+  }));
+  const alive = new Set(target.divisions.map((d) => d.id));
+  for (const group of target.armyGroups) {
+    group.divisionIds = group.divisionIds.filter((id) => alive.has(id));
+  }
+
+  adjustRelation(state, attackerId, targetId, -100);
+
+  // The blowback lands on the player's own meters — army and national
+  // endurance are global, not per-country. Only charge them when the player
+  // pressed the button.
+  if (attackerId === state.playerCountryId) {
+    state.armyEndurance = Math.max(0, state.armyEndurance - 40);
+    state.nationalEndurance = Math.max(0, state.nationalEndurance - 30);
+    attacker.publicSupport = Math.max(0, attacker.publicSupport - 25);
+  }
+  applyCollapse(state, 25, t("collapse.nuclear_strike", { name: target.name }));
+}
+
+/**
+ * Erase a nation from the world: its land sinks and its state goes with it.
+ *
+ * Nothing reverses this. The nation stays in `state.countries` — relations, war
+ * records and decision runtimes all reference its id — but it is skipped by the
+ * map, the AI and every country list, which is what makes the territory read as
+ * open ocean.
+ *
+ * Refuses to erase the player's own nation: that is the `declareConquest`
+ * ending, and it needs a conqueror to hand the spoils to.
+ */
+export function destroyCountry(state: GameState, countryId: string): boolean {
+  const country = getCountryById(state, countryId);
+  if (!country || country.destroyed) return false;
+  if (countryId === state.playerCountryId) return false;
+
+  country.destroyed = true;
+  country.economy = 0;
+  country.military = 0;
+  country.stability = 0;
+  country.publicSupport = 0;
+  country.forceValue = 0;
+  country.population = 0;
+  country.manpower = 0;
+  country.nukes = 0;
+  country.nukeProgress = 0;
+  country.divisions = [];
+  country.armyGroups = [];
+  country.overlordId = null;
+  country.autoArmy = false;
+
+  // Borders involving it are void: the land it had taken goes down with it, and
+  // so do occupations of its own land — the whole landmass is sinking, whoever
+  // was standing on it. What is left reverts to the nation it was authored
+  // under, which the map then draws as ocean because that nation is gone.
+  const itsRegions = new Set(regionsOf(countryId));
+  for (const [regionId, owner] of Object.entries(state.regionOwner)) {
+    if (owner === countryId || itsRegions.has(regionId)) delete state.regionOwner[regionId];
+  }
+
+  // Wars end, alliances lapse, claims die with the claimant.
+  for (const other of state.countries) {
+    other.atWarWith = other.atWarWith.filter((id) => id !== countryId);
+    other.allies = other.allies.filter((id) => id !== countryId);
+    other.enemies = other.enemies.filter((id) => id !== countryId);
+    other.warGoals = other.warGoals.filter((id) => id !== countryId);
+    if (other.overlordId === countryId) other.overlordId = null;
+  }
+  country.atWarWith = [];
+  country.allies = [];
+  country.enemies = [];
+  country.warGoals = [];
+
+  const war = state.activeWar;
+  if (war?.active && (war.attacker === countryId || war.defender === countryId)) {
+    state.warHistory.push({
+      ...war,
+      active: false,
+      phase: "ended",
+      winner: war.attacker === countryId ? war.defender : war.attacker,
+    });
+    state.activeWar = null;
+  }
+
+  state.log.push(`[ERASED] ${country.name} — land sunk, nation gone`);
+  return true;
 }
 
 export function addForce(state: GameState, countryId: string, amount: number): void {

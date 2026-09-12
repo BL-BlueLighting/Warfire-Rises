@@ -1,0 +1,86 @@
+{
+    "Country": "all",
+    "Decisions": [
+        {
+            "Type": "Decisions",
+            "Name": "示例·援助盟友",
+            "Description": "ToCountry 模板：把奖励交给别的国家。\n元组头的 \"+\", 1 是占位符；第 4 项是受益国，之后是「属性 运算符 数值」指令。\n\ntarget 指面板选中的国家，所以这条国策会显示目标选择器。",
+            "Require": [
+                {
+                    "Type": "Relation",
+                    "To": "target",
+                    "Condition": ">=",
+                    "Num": 30
+                }
+            ],
+            "Time": 30,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["ToCountry", "+", 1, "target", "Treasury", "+", 500, "Stability", "+", 5]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "示例·制裁两个邻国",
+            "Description": "一条元组里换两次目标国：DEU 与 RUS 各扣 6 点经济。\nToCountry 后再写一次 ToCountry 就能切换目标，后续指令跟着走。",
+            "Require": [
+                {
+                    "Type": "WorldCollapse",
+                    "To": "self",
+                    "Condition": ">=",
+                    "Num": 20
+                }
+            ],
+            "Time": 45,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["ToCountry", "+", 1, "DEU", "Economy", "-", 6, "ToCountry", "+", 1, "RUS", "Economy", "-", 6]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "示例·挑动两国开战",
+            "Description": "挑动日本对华开战。\n（War 写在 ToCountry 里时，执行方是当前目标国；第四项 \"CHN\" 是它的对手。）\n\n注意：双方都不是玩家的战争只记录交战名单，不会顶掉玩家自己的战争。",
+            "Require": [
+                {
+                    "Type": "ForceValue",
+                    "To": "self",
+                    "Condition": ">=",
+                    "Num": 40
+                }
+            ],
+            "Time": 60,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["ToCountry", "+", 1, "JPN", "War", "+", 1, "CHN"]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
