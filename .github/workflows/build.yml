@@ -1,0 +1,94 @@
+name: Build
+
+# Produces installable packages for all three desktop platforms:
+#   Windows  .exe  (NSIS installer)
+#   macOS    .dmg
+#   Linux    .deb
+#
+# Every push builds and uploads them as artefacts; pushing a tag also attaches
+# them to a GitHub Release.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.platform }}
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-22.04
+            label: Linux (.deb)
+            bundles: deb
+          - platform: windows-latest
+            label: Windows (.exe)
+            bundles: nsis
+          - platform: macos-latest
+            label: macOS (.dmg)
+            bundles: dmg
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Tauri on Linux needs WebKitGTK and the AppIndicator stack.
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Build the app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Only a tag push creates a Release; ordinary pushes just build.
+          tagName: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
+          releaseName: ${{ startsWith(github.ref, 'refs/tags/v') && format('WARFIRE RISES {0}', github.ref_name) || '' }}
+          releaseDraft: true
+          args: --bundles ${{ matrix.bundles }}
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: warfire-rises-${{ matrix.platform }}
+          path: |
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/dmg/*.dmg
+            src-tauri/target/release/bundle/appimage/*.AppImage
+          if-no-files-found: error

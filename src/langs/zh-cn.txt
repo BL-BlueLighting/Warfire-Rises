@@ -1,0 +1,956 @@
+title.fetching: 正在获取世界数据...
+title.gathering: 正在收集汇率、新闻头条和全球情报。
+title.intro: 世界正处于崩溃边缘。选择你将引导的国家——或将其推向混乱。控制台就是你的武器。
+title.select_prompt: 按下 Enter 键确认开始:
+title.selected_label: 已选择：
+title.press_enter: 按回车开始 ▸
+title.confirming: 正在确认...
+title.subtitle: 终端型世界模拟游戏
+eventlog.title: WARFIRE RISES — 战火升腾
+eventlog.day_briefing: 第 {day} 天 — 全球情报简报
+eventlog.separator: ──────────────────────────────────────────────
+eventlog.daily_briefing: ▼ 每日简报
+eventlog.event_log: ▼ 事件记录
+eventlog.no_events: 暂无事件。世界屏息以待。
+eventlog.affected: 受影响方：
+eventlog.type_pol: 政治
+eventlog.type_mil: 军事
+eventlog.type_eco: 经济
+eventlog.type_dip: 外交
+eventlog.type_dis: 灾害
+eventlog.type_cri: 危机
+sidebar.day: 第 {day} 天
+sidebar.stats: ─── 状态 ───
+sidebar.global: ─── 全球 ───
+sidebar.nation: ─── 国家 ───
+sidebar.rates: ─── 汇率 ───
+sidebar.keywords: ─── 关键词 ───
+sidebar.recent: ─── 最近 ───
+sidebar.diplomatic_pts: 外交点数：
+sidebar.army_endurance: 军队耐力：
+sidebar.national_endure: 国家耐力：
+sidebar.treasury: 国库：
+sidebar.world_collapse: 世界崩坏度：
+sidebar.allies: 盟友：
+sidebar.enemies: 敌人：
+sidebar.economy: 经济：
+sidebar.military: 军事：
+sidebar.stability: 稳定：
+sidebar.nuclear: 核武器：
+sidebar.yes: 有
+sidebar.no: 无
+statusbar.commands: 命令
+statusbar.advance_day: 推进一天
+statusbar.overview: 全局
+statusbar.quit: 退出
+gameover.tfr_title: ☢  烈焰升腾  ☢
+gameover.tfr_subtitle: 🔥  烈焰升腾  🔥
+gameover.tno_title: 新秩序
+gameover.tno_subtitle: THE NEW ORDER
+gameover.tfr_message: {flag} {name} 已成为全球毁灭的催化剂。你的激进行动粉碎了脆弱的世界秩序。战火吞噬了一切。历史将记住你——混乱的建筑师。
+gameover.tno_message: {flag} {name} 从灰烬中崛起，成为世界的仲裁者。通过精心计算的外交和克制的武力，一个新的全球秩序在你的引导下成形。世界屈膝臣服——不是向毁灭，而是向新的现实。
+gameover.final_stats: 最终统计：
+gameover.nation: 国家：
+gameover.days_survived: 存活天数：
+gameover.final_wc: 最终世界崩坏度：
+gameover.final_ne: 国家耐力：
+gameover.final_ae: 军队耐力：
+gameover.final_treasury: 国库：
+gameover.final_allies: 盟友：
+gameover.final_enemies: 敌人：
+gameover.ending_label: 结局：
+gameover.tfr_epilogue: 世界在燃烧。你的名字刻在灰烬与火焰之中。历史诅咒你——但恐惧让他们顺从。
+gameover.tno_epilogue: 一个新的世界从混乱中崛起。你的愿景重塑了各国。秩序浮现，随之而来的是——你的遗产。
+gameover.exit_hint: 按 Ctrl+C 退出。世界将铭记。
+gameover.tfr_ending_label: 战火升腾 (TFR)
+gameover.tno_ending_label: 新秩序 (TNO)
+app.welcome: 欢迎来到 WARFIRE RISES。输入 'help' 查看可用命令。
+app.loading_title: ═══ WARFIRE RISES — 战火升腾 ═══
+app.fetching_intel: 正在获取全球情报...
+app.fetching_rates: ▸ 汇率（美元/人民币、美元/港币、美元/欧元、美元/英镑、美元/日元、美元/卢布）
+app.fetching_news: ▸ 世界新闻头条与关键词提取
+app.fetching_sim: ▸ 初始化地缘政治模拟矩阵
+app.fetching_wait: 请稍候——数据仅在每场战役开始时收集一次。
+app.game_header: === 战火升腾 ===
+app.date_label: 日期：
+app.you_control: 你掌控：
+app.type_help: 输入 'help' 查看可用命令。
+app.day_header: ═══ 第 {day} 天 ═══
+app.wc_status: 世界崩坏度：{wc}% | 外交点：{dp} | 军队耐力：{ae}% | 国家耐力：{ne}%
+app.gameover_already: 游戏已结束。按 Ctrl+C 退出。
+cmd.help.desc: 显示所有可用命令
+cmd.help.usage: help [command]
+cmd.help.unknown: 未知命令：{cmd}
+cmd.help.title: === WARFIRE RISES 控制台命令 ===
+cmd.help.detail_hint: 使用 'help <command>' 查看详细用法。
+cmd.help.aliases: 别名：{aliases}
+cmd.status.desc: 显示你国家的详细状态
+cmd.status.usage: status
+cmd.status.government: 政府：{gov} | 实力：{power}
+cmd.status.economy: 经济：{eco}/100 | 军事：{mil}/100 | 稳定：{stb}/100
+cmd.status.treasury: 国库：${treasury}B | 人口：{pop}M | 核武器：{nuke}
+cmd.status.allies: 盟友：{allies}
+cmd.status.enemies: 敌人：{enemies}
+cmd.status.points: 外交点数：{dp}
+cmd.status.endurance: 军队耐力：{ae}%
+cmd.status.national: 国家耐力：{ne}%
+cmd.status.collapse: 世界崩坏度：{wc}%
+cmd.status.rates_header: 汇率：
+cmd.status.keywords_header: 世界关键词：{kw}
+cmd.next.desc: 推进至下一天并处理世界事件
+cmd.next.usage: next
+cmd.diplomacy.desc: 对另一个国家执行外交行动
+cmd.diplomacy.usage: diplomacy <improve|treaty|sanction|condemn> <country_id>
+cmd.diplomacy.no_args: 用法：diplomacy <action> <country_id>
+cmd.diplomacy.unknown_country: 未知国家：{id}
+cmd.diplomacy.self: 你不能对自己进行外交活动。
+cmd.diplomacy.no_points: 外交点数不足（需要 {cost}，拥有 {have}）
+cmd.diplomacy.improve: 与 {flag} {name} 的关系改善 (+15)。消耗：{cost} 外交点。
+cmd.diplomacy.treaty: 与 {flag} {name} 签署防务条约（+25 关系）。消耗：{cost} 外交点。
+cmd.diplomacy.sanction: 对 {flag} {name} 实施制裁。其经济遭受打击。消耗：{cost} 外交点。
+cmd.diplomacy.condemn: 在世界舞台上公开谴责 {flag} {name}。消耗：{cost} 外交点。
+cmd.diplomacy.unknown_action: 未知外交行动：{action}。请尝试：improve, treaty, sanction, condemn
+cmd.military.desc: 执行军事行动
+cmd.military.usage: military <drill|deploy|strike|aid> <country_id>
+cmd.military.no_args: 用法：military <action> <country_id>
+cmd.military.unknown_country: 未知国家：{id}
+cmd.military.self: 你不能对自己执行军事行动。
+cmd.military.no_endurance: 军队耐力不足（需要 {cost}%，拥有 {have}%）
+cmd.military.drill: 在 {flag} {name} 附近进行了军事演习。战备状态提升。消耗：{cost}% 军队耐力。
+cmd.military.deploy: 部队部署到 {flag} {name} 地区。区域紧张局势升级。消耗：{cost}% 军队耐力。
+cmd.military.strike: ⚡ 精确打击命中 {flag} {name}！军事能力下降。世界紧张不安。消耗：{cost}% 军队耐力。
+cmd.military.aid: 向 {flag} {name} 提供了军事援助。其军事实力增强。消耗：{cost}% 军队耐力。
+cmd.military.unknown_action: 未知军事行动：{action}。请尝试：drill, deploy, strike, aid
+cmd.economy.desc: 管理经济政策
+cmd.economy.usage: economy <invest|stimulus|manipulate|sanction>
+cmd.economy.no_args: 用法：economy <action>
+cmd.economy.no_funds: 资金不足（需要 ${need}B，拥有 ${have}B）
+cmd.economy.invest: ${amount}B 投资于国内产业。经济增长 (+{boost})。国家耐力 +{ne}%。
+cmd.economy.stimulus: ${amount}T 刺激计划已部署。经济 +{boost}，稳定 +{stb}。市场平静。
+cmd.economy.manipulate: 货币市场被操纵。美元兑人民币走强，兑欧元走弱。世界崩坏度 +3%。
+cmd.economy.sanction: 对 {flag} {name} 实施了全面经济制裁。其经济萎缩。
+cmd.economy.no_targets: 没有可制裁的敌对国家。
+cmd.economy.unknown_action: 未知经济行动：{action}。请尝试：invest, stimulus, manipulate, sanction
+cmd.espionage.desc: 对另一个国家执行情报行动
+cmd.espionage.usage: espionage <infiltrate|sabotage|intel> <country_id>
+cmd.espionage.no_args: 用法：espionage <action> <country_id>
+cmd.espionage.unknown_country: 未知国家：{id}
+cmd.espionage.self: 你不能对自己进行间谍活动。
+cmd.espionage.no_points: 外交点数不足以执行秘密行动（需要 {cost}，拥有 {have}）
+cmd.espionage.infiltrate_success: 特工已渗透 {flag} {name} 政府。获得了其能力情报。
+cmd.espionage.infiltrate_fail: ⚠ 特工暴露！{flag} {name} 驱逐了我们的外交官。重大外交事件。
+cmd.espionage.sabotage: 秘密破坏行动损害了 {flag} {name} 的军事基础设施。
+cmd.espionage.intel_header: === 情报：{flag} {name} ===
+cmd.espionage.intel_gov: 政府：{gov} | 实力：{power}
+cmd.espionage.intel_stats: 经济：{eco}/100 | 军事：{mil}/100 | 稳定：{stb}/100
+cmd.espionage.intel_treasury: 国库：${treasury}B | 核武器：{nuke}
+cmd.espionage.intel_allies: 盟友：{allies}
+cmd.espionage.intel_enemies: 敌人：{enemies}
+cmd.espionage.unknown_action: 未知间谍行动：{action}。请尝试：infiltrate, sabotage, intel
+cmd.nuclear.desc: 发射核武器——不可逆转的灾难性行动
+cmd.nuclear.usage: nuclear <country_id> — 警告：此行动不可逆转！
+cmd.nuclear.no_args: 用法：nuclear <country_id> — 警告：此行动不可逆转！
+cmd.nuclear.unknown_country: 未知国家：{id}
+cmd.nuclear.self: 你不能核打击自己。
+cmd.nuclear.no_nukes: 你的国家没有核武器。
+cmd.nuclear.detected: ☢ ☢ ☢  检测到核发射  ☢ ☢ ☢
+cmd.nuclear.result: {flag} {name} 已被核武器摧毁。
+cmd.nuclear.survivors: {pop}M 幸存者。世界震惊。
+cmd.nuclear.wc_warning: 世界崩坏度 +30%。没有回头路了。
+cmd.propaganda.desc: 发起宣传运动以提升国家稳定
+cmd.propaganda.usage: propaganda <domestic|foreign>
+cmd.propaganda.no_args: 用法：propaganda <domestic|foreign>
+cmd.propaganda.no_points: 只有 {have} 点数，需要 {need} 点数。
+cmd.propaganda.domestic: 国内宣传运动已启动。公民团结在政府周围。稳定 +5，国家耐力 +3%。
+cmd.propaganda.foreign: 对外宣传攻势已启动。全球认知改善（全球关系 +5）。
+cmd.propaganda.unknown_target: 未知目标。请使用：domestic | foreign
+cmd.world.desc: 查看当前全球局势概览
+cmd.world.usage: world
+cmd.world.header: === 全球局势 — 第 {day} 天 ===
+cmd.world.collapse_line: 世界崩坏度：{wc}%
+cmd.world.alliances_header: 联盟与对抗：
+cmd.relations.desc: 查看与特定国家的外交关系
+cmd.relations.usage: relations <country_id>
+cmd.relations.no_args: 用法：relations <country_id>
+cmd.relations.unknown_country: 未知国家：{id}
+cmd.relations.header: === 外交关系：{flag} {name} ===
+cmd.relations.status: 状态：{status}（{rel}/100）
+cmd.relations.shared_allies: 共同盟友：{allies}
+cmd.relations.their_relations: 其他关系：
+cmd.relations.allied: 盟友
+cmd.relations.friendly: 友好
+cmd.relations.neutral: 中立
+cmd.relations.tense: 紧张
+cmd.relations.hostile: 敌对
+cmd.relations.at_war: 交战中
+cmd.clear.desc: 清除屏幕
+cmd.clear.usage: clear
+cmd.quit.desc: 退出游戏
+cmd.quit.usage: quit
+cmd.language.desc: 切换游戏语言
+cmd.language.usage: language <en-us|zh-cn>\n    - en-us: English (US)\n    - zh-cn: 中文 (简体)
+cmd.language.switched: 语言已切换为 {lang}。
+cmd.language.invalid: 无效语言。可用：en-us, zh-cn
+event.military_drills.title: 军事演习加剧紧张局势
+event.military_drills.desc: {A} 在 {B} 边境附近进行大规模军事演习，引发强烈谴责。
+event.missile_test.title: 导弹试验引发危机
+event.missile_test.desc: {A} 试射了新型远程导弹。{B} 要求召开联合国安理会紧急会议。
+event.naval_standoff.title: 争议水域海军对峙
+event.naval_standoff.desc: {A} 与 {B} 的军舰在争议水域危险接近。双方互相指责。
+event.cyber_attack.title: 网络攻击瘫痪基础设施
+event.cyber_attack.desc: 一场源自 {A} 的大规模网络攻击打击了 {B} 的电网和通信网络。
+event.arms_deal.title: 军火交易重塑地区平衡
+event.arms_deal.desc: {A} 向盟友出售先进武器，改变了军事平衡，令 {B} 感到不安。
+event.border_skirmish.title: 边境冲突爆发
+event.border_skirmish.desc: {A}-{B} 边境爆发战斗。双方均有伤亡，紧张局势急剧升级。
+event.government_crisis.title: 政府危机
+event.government_crisis.desc: {A} 政局动荡，执政政府面临不信任投票。
+event.contested_election.title: 选举结果争议
+event.contested_election.desc: {A} 选举舞弊指控引发大规模抗议和国际关注。
+event.leader_speech.title: 领导人争议性演讲
+event.leader_speech.desc: {A} 领导人在世界舞台上发表了煽动性言论，令全球外交官震惊。
+event.coup_attempt.title: 政变未遂
+event.coup_attempt.desc: {A} 的军事派系试图夺取政权。国家的命运悬于一线。
+event.market_crash.title: 市场崩溃
+event.market_crash.desc: {A} 股市突然崩盘，冲击波席卷全球经济。
+event.trade_war.title: 贸易战加剧
+event.trade_war.desc: {A} 对 {B} 的商品征收高额关税。{B} 誓言报复。市场暴跌。
+event.sanctions_crushing.title: 制裁压垮经济
+event.sanctions_crushing.desc: 全面的国际制裁摧毁了 {A} 的经济。平民苦难加剧。
+event.energy_crisis.title: 能源危机迫近
+event.energy_crisis.desc: 随着 {A} 限制出口，全球能源价格飙升。冬天临近，各国争相应对。
+event.tech_breakthrough.title: 技术突破宣布
+event.tech_breakthrough.desc: {A} 公布了一项革命性技术突破，重塑全球经济竞争格局。
+event.peace_deal.title: 历史性和平协议
+event.peace_deal.desc: {A} 与 {B} 签署了具有里程碑意义的和平协议，缓解了数十年来的紧张局势。
+event.alliance_treaty.title: 联盟条约签署
+event.alliance_treaty.desc: {A} 与 {B} 正式确立了防务协定，重塑地缘政治格局。
+event.summit_breakthrough.title: 峰会取得突破
+event.summit_breakthrough.desc: {A} 与 {B} 的领导人举行历史性峰会，同意减少紧张局势。
+event.diplomatic_expulsion.title: 外交驱逐
+event.diplomatic_expulsion.desc: {A} 以涉嫌间谍活动为由驱逐 {B} 的外交官。两国关系急剧恶化。
+event.un_resolution.title: 联合国决议引发辩论
+event.un_resolution.desc: 一项针对 {A} 的有争议的联合国决议使安理会沿着熟悉的裂痕分裂。
+event.earthquake.title: 毁灭性地震
+event.earthquake.desc: 一场大地震袭击了 {A}。数千人遇难，基础设施沦为废墟。国际援助纷纷涌入。
+event.pandemic.title: 疫情爆发
+event.pandemic.desc: {A} 出现新的病毒疫情并迅速蔓延。各国关闭边境，恐慌蔓延。
+event.climate_catastrophe.title: 气候灾难
+event.climate_catastrophe.desc: 极端天气摧毁了 {A}。农作物歉收，城市被淹。气候难民涌过边境。
+event.nuclear_emergency.title: 核电站紧急事故
+event.nuclear_emergency.desc: {A} 的一座核设施报告了严重故障。随着对熔毁的恐惧蔓延，撤离行动开始。
+event.intro.title: 新世界秩序开启
+event.intro.desc: 你掌控了 {flag} {name}。世界屏息以待。全球头条：{headlines}。舞台已搭好。历史等待着你的命令。
+country.USA.name: 美国
+country.USA.desc: 拥有无与伦比的军事覆盖范围和世界储备货币的全球超级大国。面临内部分裂，但在全球投射力量。
+country.CHN.name: 中国
+country.CHN.desc: 拥有世界最多人口和快速现代化军队的崛起超级大国。一带一路在全球扩展影响力。
+country.RUS.name: 俄罗斯
+country.RUS.desc: 拥有核武器和丰富自然资源的强国，愿意投射力量。经济受制裁削弱，但军事依然强大。
+country.GBR.name: 英国
+country.GBR.desc: 拥有核武器的岛国，拥有强大的金融部门和全球情报网络。美国的紧密盟友，具有独立战略思维。
+country.FRA.name: 法国
+country.FRA.desc: 拥有强大独立外交政策传统的核大国。欧盟关键领导者，在非洲有重要影响力和地中海海军存在。
+country.DEU.name: 德国
+country.DEU.desc: 欧洲的经济引擎，军事投资不断增长。不情愿的全球领导者，应对能源转型和大陆安全挑战。
+country.JPN.name: 日本
+country.JPN.desc: 技术强国，和平宪法面临越来越大的压力。面对日益增长的区域威胁，争论军事正常化。
+country.IND.name: 印度
+country.IND.desc: 世界上最大的民主国家和增长最快的主要经济体。拥有核武器，在大国之间进行战略平衡。
+country.PRK.name: 朝鲜
+country.PRK.desc: 孤立的拥核国家，拥有庞大的常规军事力量。终极变数——反复无常、不可预测、装备洲际弹道导弹。
+country.IRN.name: 伊朗
+country.IRN.desc: 神权核门槛国家，在中东拥有广泛的代理网络。受制裁打击但战略韧性十足。
+country.ISR.name: 以色列
+country.ISR.desc: 拥有核武器的中东强国，拥有先进的科技部门和世界最强大的军队之一。永远处于高度戒备状态。
+country.BRA.name: 巴西
+country.BRA.desc: 南美洲最大的国家，拥有丰富的自然资源和未开发的潜力。金砖国家成员，在全球权力集团之间周旋。
+gov.democracy: 民主制度
+gov.authoritarian: 威权制度
+gov.theocracy: 神权制度
+gov.monarchy: 君主制度
+gov.communist: 共产主义
+power.superpower: 超级大国
+power.major: 普通大国
+power.regional: 地区强国
+power.minor: 普通小国
+rel.allied: 盟友
+rel.friendly: 友好
+rel.neutral: 中立
+rel.tense: 紧张
+rel.hostile: 敌对
+rel.at_war: 交战
+severity.low: 低
+severity.medium: 中
+severity.high: 高
+severity.critical: 严重
+event_type.political: 政治
+event_type.military: 军事
+event_type.economic: 经济
+event_type.diplomatic: 外交
+event_type.disaster: 灾害
+event_type.crisis: 危机
+collapse.sanctions: 对 {name} 实施制裁
+collapse.condemnation: 公开谴责 {name}
+collapse.forces_deployed: 部队部署至 {name} 地区
+collapse.military_strike: 对 {name} 的军事打击
+collapse.espionage_scandal: 涉及 {name} 的间谍丑闻
+collapse.covert_sabotage: 对 {name} 的秘密破坏
+collapse.currency_manipulation: 检测到货币操纵
+collapse.economic_sanctions: 对 {name} 的经济制裁
+collapse.markets_calm: 经济刺激计划稳定市场
+collapse.nuclear_strike: 对 {name} 发动核打击
+collapse.global_tensions: 全球紧张局势持续酝酿
+common.none: 无
+common.you: 你
+common.unknown: 未知
+# ── Attitudes ──
+att.peaceful: 和平共进
+att.neutral: 中规中矩
+att.strained: 难以协调
+att.irreconcilable: 不死不休
+att.peaceful_short: 和平共进
+att.neutral_short: 中规中矩
+att.strained_short: 难以协调
+att.irreconcilable_short: 不死不休
+
+# ── Force / Coercion ──
+force.label: 迫使值
+force.low: 低 — 民众不支持极端行动
+force.medium: 中等 — 民众对果断措施持开放态度
+force.high: 高 — 民众要求采取行动
+force.extreme: 极高 — 民众呼吁全面战争
+
+# ── War System ──
+war.category: WAR - 战斗命令
+war.start.desc: 对另一个国家宣战
+war.start.usage: war start <country_id>
+war.start.no_args: 用法：war start <country_id>
+war.start.unknown_country: 未知国家：{id}
+war.start.self: 你不能对自己宣战。
+war.start.already_at_war: 已与 {name} 交战。使用 war status 查看战况。
+war.start.no_attitude: 相互态度必须在"难以协调"以下才能宣战。当前：{att}
+war.start.no_support: 民众支持度太低（{sup}%，需要 >65%）。先凝聚国内民意。
+war.start.no_endurance: 军队耐力不足（{ae}%，需要 >79%）。先休整部队。
+war.start.success: ⚔ 对 {flag} {name} 宣战！世界屏息以待。
+war.status.desc: 查看当前战争状态
+war.status.usage: war status
+war.status.no_war: 没有活跃的战争。世界暂时和平...
+war.attack.desc: 发起进攻
+war.attack.usage: war attack
+war.attack.no_war: 没有活跃的战争可以进攻。
+war.attack.success: ⚔ 进攻发起！我军与敌军交战。
+war.defend.desc: 加固防御阵地
+war.defend.usage: war defend
+war.defend.no_war: 没有活跃的战争可以防御。
+war.defend.success: 🛡 防御阵地已加固。敌军推进受阻。
+war.retreat.desc: 撤退投降
+war.retreat.usage: war retreat
+war.retreat.no_war: 没有活跃的战争可以撤退。
+war.retreat.success: 🏳 {name} 投降。战争结束。国民士气崩溃。
+war.battle_header: ═══ 战斗报告 ═══
+war.attacker: 进攻方
+war.defender: 防守方
+war.phase: 阶段
+war.morale: 士气
+war.losses: 损失
+war.winner: 胜者
+war.decisive_victory: 决定性胜利
+war.stalemate: 僵局
+war.war_ended: 战争结束
+war.preparing: 准备阶段
+war.active: 活跃战斗
+war.decisive: 决战阶段
+war.ended: 已结束
+
+# ── AI Actions ──
+ai.action.diplomacy: {flag} {name} 进行外交接触。
+ai.action.military_drill: {flag} {name} 进行军事演习。
+ai.action.economic: {flag} {name} 调整经济政策。
+ai.action.propaganda: {flag} {name} 发起宣传运动。
+ai.action.espionage: 有关 {flag} {name} 秘密行动的传闻浮现。
+ai.sanction_imposed: {flag} {name} 对 {target} 实施制裁。
+ai.war_declared: ⚔ {flag} {name} 对 {target} 宣战！
+ai.peace_signed: 🕊 {flag} {name} 与 {target} 签署和平协议。
+
+# ── Categorized Help ──
+help.category.game: GAME - 游戏流程
+help.category.diplomacy: DIPLOMACY - 外交行动
+help.category.military: MILITARY - 军事行动
+help.category.economy: ECONOMY - 经济行动
+help.category.war: WAR - 战斗命令
+help.category.intelligence: INTELLIGENCE - 情报行动
+help.category.system: SYSTEM - 系统工具
+# ── Sub-command Descriptions ──
+help.subcmd.diplomacy.improve: improve <id> — 改善外交关系（+15，消耗10外交点）
+help.subcmd.diplomacy.treaty: treaty <id> — 签署防务条约（+25关系，消耗10外交点）
+help.subcmd.diplomacy.sanction: sanction <id> — 实施外交制裁（-15关系，目标经济-3，消耗10外交点）
+help.subcmd.diplomacy.condemn: condemn <id> — 在世界舞台公开谴责（-10关系，消耗10外交点）
+help.subcmd.military.drill: drill <id> — 举行军事演习（+2军事，+3迫使值，消耗15%军队耐力）
+help.subcmd.military.deploy: deploy <id> — 向边境部署部队（-8关系，WC +2，+3民意支持，消耗15%军队耐力）
+help.subcmd.military.strike: strike <id> — 发动精确打击（-25关系，目标军/稳-10，WC +5，消耗15%军队耐力）
+help.subcmd.military.aid: aid <id> — 提供军事援助（+10关系，目标军事+5，消耗15%军队耐力）
+help.subcmd.economy.invest: invest — 投资$500B于国内产业（+3经济，+2%国家耐力）
+help.subcmd.economy.stimulus: stimulus — 部署$1T经济刺激计划（+5经济，+5稳定，WC -1）
+help.subcmd.economy.manipulate: manipulate — 操纵货币市场（美元兑人民币走强、兑欧元走弱，WC +3）
+help.subcmd.economy.sanction: sanction — 对随机敌对国家实施全面经济制裁
+help.subcmd.war.start: start <id> — 宣战（需要：相互态度≤难以协调，民意支持>65%，军队耐力>79%）
+help.subcmd.war.status: status — 查看当前战争状态、士气、损失和战斗历史
+help.subcmd.war.attack: attack — 发起进攻（掷骰判定，军事+士气加成）
+help.subcmd.war.defend: defend — 加固防御阵地（+10士气，+3稳定）
+help.subcmd.war.retreat: retreat — 投降结束战争（-20稳定，-15民意，-15%国家耐力）
+help.subcmd.espionage.infiltrate: infiltrate <id> — 渗透政府（70%成功率，消耗12外交点）
+help.subcmd.espionage.sabotage: sabotage <id> — 破坏军事设施（目标军-8，经-3，消耗12外交点）
+help.subcmd.espionage.intel: intel <id> — 查看目标国家详细情报报告（消耗12外交点）
+help.subcmd.propaganda.domestic: domestic — 发起国内宣传（+5稳定，+3%国家耐力，+8民意支持，消耗8外交点）
+help.subcmd.propaganda.foreign: foreign — 发起对外宣传（与所有国家关系+5，消耗8外交点）
+help.subcmd.nuclear.launch: <id> — 发射核武器（需要：民意支持>70%，态度=不死不休，迫使值>55%，WC +30）
+cmd.save.desc: 保存当前游戏到磁盘（base64 编码）
+cmd.save.usage: save
+cmd.load.desc: 从磁盘加载已保存的游戏
+cmd.load.usage: load
+help.subcmd.save.default: (无参数) — 保存游戏状态到当前目录的 save.warfire
+help.subcmd.load.default: (无参数) — 从当前目录的 save.warfire 加载游戏状态
+# ── Layer 1 Detailed Help ──
+help.detail.help.args: command — 要获取详细帮助的命令名称。不填则列出所有命令。
+help.detail.help.examples: ▶ help\n  ▶ help diplomacy\n  ▶ help war
+help.detail.help.notes: • 使用无参数的 'help'（第0层）查看所有可用命令。
+help.detail.next.examples: ▶ next\n  ▶ n
+help.detail.next.notes: • 推进游戏一天。AI 国家执行行动，处理世界事件，你的属性会恢复。\n  • 这是你的主要"回合"操作。
+help.detail.status.examples: ▶ status\n  ▶ s
+help.detail.status.notes: • 显示全面状态：政府、经济、军事、稳定、国库、盟友、敌人、外交点、耐力、汇率等。
+help.detail.diplomacy.args: action      — 可选：improve, treaty, sanction, condemn\n  country_id  — 两位国家代码（如 CN、US、RU、GB）
+help.detail.diplomacy.examples: ▶ diplomacy improve CN\n  ▶ diplomacy treaty GB\n  ▶ diplomacy sanction RU
+help.detail.diplomacy.notes: • 所有外交行动消耗 10 外交点。\n  • 目标必须是有效国家（使用 'world' 查看代码）。\n  • 不能对本国使用。
+help.detail.relations.args: country_id — 两位国家代码（如 CN、US、RU）
+help.detail.relations.examples: ▶ relations CN\n  ▶ relations RU\n  ▶ r US
+help.detail.relations.notes: • 显示关系分数（-100 到 +100）、态度、共同盟友及其前5个其他关系。
+help.detail.military.args: action      — 可选：drill, deploy, strike, aid\n  country_id  — 两位国家代码（如 CN、US、RU）
+help.detail.military.examples: ▶ military drill CN\n  ▶ military deploy RU\n  ▶ military aid GB
+help.detail.military.notes: • 所有军事行动消耗 15% 军队耐力。\n  • 不能对本国使用。\n  • 打击行动会显著提高世界崩坏度。
+help.detail.propaganda.args: target — 'domestic'（增强本国）或 'foreign'（改善国际形象）
+help.detail.propaganda.examples: ▶ propaganda domestic\n  ▶ propaganda foreign\n  ▶ prop domestic
+help.detail.propaganda.notes: • 每次使用消耗 8 外交点。
+help.detail.economy.args: action — 可选：invest, stimulus, manipulate, sanction
+help.detail.economy.examples: ▶ economy invest\n  ▶ economy stimulus\n  ▶ economy manipulate
+help.detail.economy.notes: • 投资需要 $500B 国库。刺激计划需要 $1T 国库。\n  • 货币操纵会提高世界崩坏度。\n  • 经济制裁会自动选择关系 < -20 的随机国家。
+help.detail.nuclear.args: country_id — 目标国家的两位代码
+help.detail.nuclear.examples: ▶ nuclear RU
+help.detail.nuclear.notes: • ⚠ 警告：此操作不可逆！\n  • 要求：你的国家必须拥有核武器，民意支持 > 70%，目标态度为"不死不休"，迫使值 > 55%。\n  • 效果：目标军事/经济/稳定 = 0，人口 -70%，世界崩坏度 +30%，你的军队耐力 -40%，国家耐力 -30%，民意支持 -25%。\n  • 仅作为最后手段使用。
+help.detail.war.args: subcommand  — 可选：start, status, attack, defend, retreat\n  country_id  — 目标国家（仅 'start' 需要）
+help.detail.war.examples: ▶ war start CN\n  ▶ war status\n  ▶ war attack\n  ▶ war defend\n  ▶ war retreat
+help.detail.war.notes: • 战争使用掷骰判定系统，受士气和军事强度影响。\n  • 战争阶段：准备 → 活跃 → 决战 → 结束。\n  • 战争期间，战争视图会替换正常输出区域。\n  • 输入 'war' 或 'war status' 切换战争视图。
+help.detail.espionage.args: action      — 可选：infiltrate, sabotage, intel\n  country_id  — 目标国家的两位代码
+help.detail.espionage.examples: ▶ espionage infiltrate CN\n  ▶ espionage sabotage RU\n  ▶ espionage intel US
+help.detail.espionage.notes: • 所有情报行动消耗 12 外交点。\n  • 渗透失败会引发外交事件（-15 关系，WC +2）。\n  • 不能对本国使用。
+help.detail.world.examples: ▶ world\n  ▶ map
+help.detail.world.notes: • 显示全球概览：所有国家的经济/军事/稳定数据、关系、态度、联盟、敌对和活跃战争。
+help.detail.save.examples: ▶ save
+help.detail.save.notes: • 保存游戏到当前目录的 'save.warfire'。\n  • 格式：base64 编码的 key:value 键值对。
+help.detail.load.examples: ▶ load
+help.detail.load.notes: • 从当前目录的 'save.warfire' 加载保存的游戏。\n  • 会覆盖当前游戏状态。
+help.detail.language.args: lang — 语言代码：en-us（英语）或 zh-cn（简体中文）
+help.detail.language.examples: ▶ language zh-cn\n  ▶ language en-us\n  ▶ lang zh-cn
+help.detail.language.notes: • 将所有游戏文本切换为所选语言。\n  • 目前支持：en-us, zh-cn。
+help.detail.clear.examples: ▶ clear\n  ▶ cls
+help.detail.clear.notes: • 清除屏幕上的所有输出。游戏状态不受影响。
+help.detail.quit.examples: ▶ quit\n  ▶ q\n  ▶ exit
+help.detail.quit.notes: • 立即退出游戏。退出前记得 'save'！
+
+# ── Tauri / Panel Edition UI ──
+ui.title.tagline: 钢铁雄心4风格的世界模拟
+ui.title.select: 选择你的国家
+ui.title.play: 开始战役
+ui.title.continue: 继续已保存的游戏
+ui.title.hint: 拖动平移 · 滚轮缩放 · 点击国家
+ui.title.controls: 操作说明
+ui.top.day: 日期
+ui.top.dp: 外交点
+ui.top.ae: 军队耐力
+ui.top.ne: 国家耐力
+ui.top.treasury: 国库
+ui.top.wc: 世界崩坏度
+ui.top.campaign_start: 战役开始于
+ui.btn.next_day: 下一天
+ui.btn.save: 保存
+ui.btn.load: 读取
+ui.btn.new: 新游戏
+ui.btn.close: 关闭
+ui.btn.confirm: 确认
+ui.btn.cancel: 取消
+ui.btn.launch: 发射 — 不可逆转
+ui.btn.reset_view: 重置视角
+ui.tab.nation: 国家
+ui.tab.diplomacy: 外交
+ui.tab.military: 军事
+ui.tab.economy: 经济
+ui.tab.intelligence: 情报
+ui.tab.war: 战争
+ui.tab.log: 日志
+ui.map.mode: 地图模式
+ui.map.political: 政治
+ui.map.faction: 阵营
+ui.map.military: 军事
+ui.map.economy: 经济
+ui.map.stability: 稳定
+ui.map.war: 战争
+ui.map.unclaimed: 其他地区
+ui.map.hint: 点击选择国家 · 拖动平移 · 滚轮缩放
+ui.legend.title: 图例
+ui.legend.you: 你的国家
+ui.legend.ally: 盟友
+ui.legend.friendly: 友好
+ui.legend.neutral: 中立
+ui.legend.tense: 紧张
+ui.legend.hostile: 敌对
+ui.legend.war: 交战中
+ui.nation.header: 国家概览
+ui.nation.you_control: 你控制
+ui.nation.government: 政体
+ui.nation.power: 国力
+ui.nation.population: 人口
+ui.nation.nuclear: 核武
+ui.nation.public_support: 民众支持
+ui.nation.force: 迫使值
+ui.nation.allies: 盟友
+ui.nation.enemies: 敌人
+ui.nation.at_war: 交战中
+ui.nation.rates: 汇率
+ui.nation.keywords: 世界关键词
+ui.nation.briefing: 简介
+ui.nation.pop: {n} 百万
+ui.diplo.title: 外交
+ui.diplo.select: 在地图或下方列表中选择一个国家。
+ui.diplo.relation: 关系
+ui.diplo.attitude: 态度
+ui.diplo.shared_allies: 共同盟友
+ui.diplo.their_relations: 其对外关系
+ui.diplo.cost_note: 每个外交行动消耗 {cost} 外交点。
+ui.diplo.nations: 国家列表
+ui.mil.title: 军事行动
+ui.mil.readiness: 战备状态
+ui.mil.cost_note: 每次行动消耗 {cost}% 军队耐力。
+ui.mil.drill_note: 演习虽选择目标国家，但只增强本国军力。
+ui.eco.title: 经济政策
+ui.eco.treasury: 国库
+ui.eco.cost_note: 投资需 5000 亿 · 刺激计划需 1 万亿。
+ui.eco.sanction_note: 自动选择关系低于 -20 的随机国家。
+ui.intel.title: 秘密行动
+ui.intel.cost_note: 每次行动消耗 {cost} 外交点。
+ui.intel.report: 情报报告
+ui.intel.unknown: 尚未收集到该国的情报。
+ui.intel.infiltrate_note: 渗透成功率为 70%。失败将引发外交事件。
+ui.act.improve: 改善关系
+ui.act.treaty: 防御条约
+ui.act.sanction: 实施制裁
+ui.act.condemn: 公开谴责
+ui.act.drill: 军事演习
+ui.act.deploy: 部署兵力
+ui.act.strike: 精确打击
+ui.act.aid: 军事援助
+ui.act.invest: 投资 5000 亿
+ui.act.stimulus: 刺激计划 1 万亿
+ui.act.manipulate: 操纵汇率
+ui.act.ecosanction: 经济制裁
+ui.act.infiltrate: 渗透政府
+ui.act.sabotage: 破坏基础设施
+ui.act.gather_intel: 收集情报
+ui.act.declare_war: 宣战
+ui.act.attack: 进攻
+ui.act.defend: 防守
+ui.act.retreat: 撤退
+ui.act.nuclear: 核打击
+ui.act.prop_domestic: 国内宣传
+ui.act.prop_foreign: 对外宣传
+ui.cost.dp: {n} 外交点
+ui.cost.ae: {n}% 耐力
+ui.cost.treasury: {n} 亿
+ui.cost.free: 免费
+ui.req.locked: 未满足
+ui.req.title: 要求
+ui.war.title: 作战室
+ui.war.none: 当前没有战争。
+ui.war.declare_hint: 选择一个敌对国家以宣战。
+ui.war.attacker: 进攻方
+ui.war.defender: 防守方
+ui.war.morale: 士气
+ui.war.losses: 损失
+ui.war.phase: 阶段
+ui.war.battles: 战斗日志
+ui.war.no_battles: 尚未发生战斗。
+ui.war.history: 历史战争
+ui.war.vs: 对
+ui.war.ready: 就绪
+ui.war.day_started: 开始于第 {day} 天
+ui.war.estimate: 预估胜算
+ui.brief.title: 每日简报
+ui.brief.empty: 今日无简报。
+ui.log.title: 事件日志
+ui.log.empty: 还没有发生任何事。
+ui.log.world: 世界动态
+ui.log.events: 事件
+ui.log.system: 系统
+ui.loading.title: 正在收集全球情报
+ui.loading.rates: 汇率
+ui.loading.news: 世界新闻头条
+ui.loading.sim: 地缘政治模拟矩阵
+ui.loading.wait: 每个战役仅收集一次数据。
+ui.over.restart: 开始新战役
+ui.over.stats: 最终统计
+ui.toast.saved: 游戏已保存至 {path}
+ui.toast.loaded: 游戏已读取 — 第 {day} 天
+ui.toast.save_failed: 保存失败：{err}
+ui.toast.no_save: 未找到存档。
+ui.toast.day: 第 {day} 天 — 世界继续运转。
+ui.toast.war_over: 战争已结束。
+ui.toast.language: 语言已切换。
+ui.toast.select_country: 请先选择一个国家。
+ui.side.you: 你
+ui.side.unknown: 未知
+ui.confirm.nuclear.title: 确认核打击
+ui.confirm.nuclear.body: 此操作不可逆转。{name} 将被摧毁，世界将永远不会原谅你。
+ui.confirm.retreat.title: 确认撤退
+ui.confirm.retreat.body: 投降将结束战争，并损失 20 稳定度、15 民众支持和 15% 国家耐力。
+ui.console.title: 控制台
+ui.console.hint: 输入命令并按回车 — 试试 'help'
+war.battle.name: 第 {day} 天战役
+war.battle.breakthrough: {A} 突破了 {B} 的防线。
+war.battle.repelled: {B} 击退了 {A} 的进攻。
+war.battle.stalemate: 激战之下未分胜负。
+
+# ── UI keys added after the i18n audit ──
+ui.diplo.status: 状态
+ui.nation.economy: 经济
+ui.nation.military: 军事
+ui.nation.stability: 稳定
+ui.nation.overview: 概览
+ui.nation.stats: 统计
+ui.nation.propaganda: 宣传
+ui.nation.treasury: 国库
+ui.req.attitude: 态度必须为不死不休
+ui.req.force: 迫使值 {n}%，需要 >55%
+ui.req.public_support: 民众支持 {n}%，需要 >70%
+ui.toast.gameover: 世界已经崩坏。
+ui.map.low: 低
+ui.map.mid: 中
+ui.map.high: 高
+
+# ── Label fixes ──
+ui.rail.overview: 总览
+ui.rail.actions: 行动
+ui.log.event_day: 第 {day} 天
+
+# ── v3: decisions / research / army / clock ──
+ui.tab.decisions: 国策
+ui.tab.research: 科研
+ui.tab.army: 军队
+ui.speed.pause_hint: 暂停 / 继续（空格）
+ui.speed.days_per_sec: 天/秒
+ui.speed.paused: 已暂停
+ui.task.queue: 进行中
+ui.task.idle: 当前没有进行中的事务。
+ui.task.days: {n} 天
+ui.task.days_left: 剩余 {n} 天
+ui.task.cancel: 取消
+ui.task.busy: 已在进行中。
+ui.task.unknown_action: 未知行动：{id}
+ui.task.started: {name} 已开始 — 需 {days} 天。
+ui.task.not_found: 该任务已不存在。
+ui.task.not_cancellable: 此任务无法取消。
+ui.task.cancelled: 已取消 — 返还一半成本。
+task.decision: 国策：{name}
+task.research: 科研：{name}
+task.build: 建造：{name}
+task.recruit: 征兵 ×{n}
+ui.cost.need_dp: 需要 {n} 外交点。
+ui.cost.need_ae: 需要 {n}% 军队耐力。
+ui.cost.need_treasury: 需要 {n} 亿。
+ui.req.current: 当前 {n}
+ui.req.unmet: 条件未满足
+ui.decision.title: 国家国策
+ui.decision.intro: 本国可用国策 {n} 项。
+ui.decision.reload: 从磁盘重新载入
+ui.decision.reloaded: 已重新载入 {n} 项国策。
+ui.decision.errors: {n} 个文件载入失败
+ui.decision.none: 没有可用的国策。
+ui.decision.infinite: 持续性
+ui.decision.target: 目标国
+ui.decision.clear_target: 清除
+ui.decision.pick_target: 请先在地图上选择一个国家
+ui.decision.phase: 阶段
+ui.decision.completed_n: 已完成 {n} 次
+ui.decision.running: 进行中
+ui.decision.start_phase: 开始下一阶段
+ui.decision.start: 执行
+ui.decision.started: {name} 已启动 — 需 {days} 天。
+ui.decision.completed: 国策完成：{name}
+ui.decision.phase_title: 国策
+ui.decision.about: 关于国策文件
+ui.decision.about_body: 国策是 {dir} 下的纯 JSON 文件。放入 *.warf-decision 后点击重新载入即可，无需重新编译。
+ui.decision.source: 来源
+dec.err.json: JSON 格式错误 —
+dec.err.shape: 顶层必须是一个对象。
+dec.err.missing_country: 缺少 "Country" 字符串或 "Decisions" 数组。
+dec.err.decision: 第 {n} 项国策格式错误（缺少 Name）。
+dec.err.inf_no_phase: "{name}" 的 Time 为 "inf"，但没有提供 InfinityPhases。
+dec.err.bad_time: "{name}" 的 Time 无效。
+dec.req.relation: 与
+dec.req.unknown: 未知条件：{type}
+ui.act.justify: 正当化宣战理由
+ui.justify.title: 宣战理由
+ui.justify.have: 已拥有针对该国的宣战理由。
+ui.justify.at_war: 已处于交战状态。
+ui.justify.done: 已正当化对 {flag} {name} 的宣战理由。
+ui.justify.note: 需要 {days} 天 — 关系越差用时越短。
+ui.research.title: 科研
+ui.research.tree: 科技树
+ui.research.done_count: 已完成
+ui.research.done: 已完成
+ui.research.busy: 进行中
+ui.research.begin: 开始研究
+ui.research.unknown: 未知科技。
+ui.research.needs: 需要前置：{name}。
+ui.research.started: 正在研究 {name} — 需 {days} 天。
+ui.research.done_msg: 研究完成：{name}
+ui.research.nuclear_tech: 核武器技术
+ui.research.unlocked: 已解锁
+ui.research.locked: 未解锁
+ui.research.grandfathered: 拥核国家默认持有
+ui.research.cat.weapons: 武器
+ui.research.cat.industry: 工业
+ui.research.cat.intelligence: 情报
+tech.conventional.name: 现代步兵装备
+tech.conventional.desc: 为步兵换装制式轻武器与支援火力。
+tech.armor.name: 先进装甲
+tech.armor.desc: 下一代主战坦克与机械化输送载具。
+tech.missiles.name: 弹道导弹
+tech.missiles.desc: 可覆盖任意战区的远程投送系统。
+tech.nuclear.name: 核武器
+tech.nuclear.desc: 裂变弹头设计。拥核国家默认持有；其他国家需先研究，再建造核设施。
+tech.thermo.name: 热核武器
+tech.thermo.desc: 聚变增强弹头，威力大幅提升。
+tech.industry.name: 工业现代化
+tech.industry.desc: 改造民用经济以提升产出。
+tech.infra.name: 国家基础设施
+tech.infra.desc: 公路、铁路与电网将国家连为一体。
+tech.labs.name: 科研实验室
+tech.labs.desc: 国立研究所持续推动科学基础进步。
+tech.sigint.name: 信号情报
+tech.sigint.desc: 对外国通信实施截获与密码分析。
+tech.cyber.name: 网络战
+tech.cyber.desc: 可瘫痪敌方网络的进攻性网络部队。
+ui.build.title: 建造
+ui.build.exists: 已建造。
+ui.build.started: 正在建造 {name} — 需 {days} 天。
+ui.build.done_msg: 建造完成：{name}
+build.nuclear.name: 核设施
+build.nuclear.desc: 浓缩与组装工厂。将核技术转化为弹头的必要设施。
+build.factory.name: 兵工厂
+build.factory.desc: 军用装备的量产线。
+ui.nuke.chain: 核计划
+ui.nuke.label: 核弹头
+ui.nuke.facilities: 核设施
+ui.nuke.progress: 下一枚弹头
+ui.nuke.no_warhead: 核弹头库存为空。
+ui.nuke.produced: 已产出核弹头 — 库存 {n} 枚。
+ui.nuke.chain_note: 每次核打击消耗一枚弹头。拥核国家默认掌握技术，但仍需核设施才能继续生产。
+ui.army.title: 武装力量
+ui.army.divisions: 师
+ui.army.committed: 已投入兵力
+ui.army.pool: 人力储备
+ui.army.cap: 储备上限
+ui.army.strength: 兵力
+ui.army.organisation: 组织度
+ui.army.war_ready: 军队已具备开战条件。
+ui.army.war_not_ready: 开战需投入 {need}K 兵力（当前 {have}K）。
+ui.army.recruit: 征兵
+ui.army.recruit_n: 征募 ×{n}
+ui.army.each: 每师：{mp}K 人力、{cost} 亿、{days} 天。
+ui.army.batch: 本次订单：{mp}K 人力、{cost} 亿、{days} 天。
+ui.army.min_note: 人力在下单时即被占用，直到该师解散才会归还。
+ui.army.order_of_battle: 战斗序列
+ui.army.no_divisions: 尚未组建任何师。
+ui.army.disband: 解散
+ui.army.disbanded: {name} 已解散。
+ui.army.not_found: 未找到该师。
+ui.army.bad_count: 数量无效。
+ui.army.no_manpower: 人力不足（需要 {n}K）。
+ui.army.recruiting: 正在组建 {n} 个师 — 需 {days} 天。
+ui.army.recruited: {n} 个师已就绪。
+ui.army.division_suffix: 师
+ui.army.manpower: 人力
+ui.nation.manpower: 人力
+war.start.no_casus_belli: 尚未正当化对 {name} 的宣战理由。请先正当化。
+war.start.no_manpower: 军队规模不足：已投入 {have}K，需要 {need}K。
+cmd.speed.desc: 设置游戏速度
+cmd.speed.usage: speed <0-5>
+cmd.speed.current: 当前速度 {n}（0 = 暂停）。
+cmd.speed.bad: 速度必须在 0 到 {max} 之间。
+cmd.speed.paused: 时间已暂停。
+cmd.speed.set: 速度已设为 {n}×。
+ui.intel.gathered: 情报已收集。
+ui.army.division_name: 第 {n} 师
+ui.bubble.dismiss_hint: 右键关闭
+
+# ── Conquest / succession ──
+ui.conquest.title: 国家沦陷
+ui.conquest.body: {flag} {name} 已经沦陷。{victorFlag} {victor} 占领了首都，政府已不复存在。但战争并未就此结束。
+ui.conquest.pick: 选择下一个国家
+ui.conquest.none_left: 已经没有可以继续战斗的国家了。
+ui.conquest.quit: 放弃战役
+ui.conquest.unavailable: 该国家已不可选。
+ui.conquest.succeeded: 你现在领导 {name}。
+war.retreat.conquered: {flag} {name} 接受无条件投降。国家已经灭亡。
+ui.war.us: 我方
+ui.war.them: 敌方
+ui.war.defensive: 防御战争 —— 你正被侵略
+ui.war.conquest_warning: 输掉这场战争意味着亡国。
+ui.toast.invaded: 你正遭受进攻。
+
+# ── Wartime nuclear release ──
+ui.nuke.wartime: 战时 —— 核弹头可直接使用，无需额外条件
+ui.nuke.wartime_note: 与某国交战时，对其发动核打击只需库存中有一枚弹头。
+# ── Difficulty and display settings ──
+diff.civilian.name: 平民
+diff.civilian.desc: 太平世界。事件稀少，战争鲜有爆发，崩坏度几乎不动。
+diff.novice.name: 新手
+diff.novice.desc: 温和的压力。世界给你留出熟悉系统的时间。
+diff.regular.name: 正规军
+diff.regular.desc: 游戏的标准基准。
+diff.veteran.name: 老兵
+diff.veteran.desc: 更喧嚣的世界：事件更多、战争更频、崩坏更快、恢复更慢。
+diff.hardened.name: 身经百战
+diff.hardened.desc: 世界已在燃烧。所有概率都对你不利。
+ui.settings.title: 游戏设置
+ui.settings.map_labels: 地图标注
+ui.settings.country_names: 国家名
+ui.settings.region_names: 省 / 地区名
+ui.settings.province_capitals: 省会
+ui.settings.major_cities: 主要城市
+ui.settings.difficulty: 难度
+ui.settings.difficulty_note: 在开始战役时选择。
+ui.settings.persist_note: 显示设置保存在本机，对所有战役生效。
+ui.settings.reset: 恢复默认
+ui.settings.stat_events: 事件频率
+ui.settings.stat_wars: 开战频率
+ui.settings.stat_collapse: 崩坏速度
+ui.settings.stat_regen: 我方恢复
+ui.title.difficulty: 难度
+ui.title.relations: 初始关系
+ui.title.inspect: 点击地图或列表中的任意国家查看详情。
+ui.title.map_hint: 点击地图选择国家 · 拖动平移 · 滚轮缩放
+
+# ── Debug ──
+cmd.debug.desc: 切换地图上的内部国家代码显示
+cmd.debug.usage: debug
+
+# ── Official full names ──
+country.USA.full: 美利坚合众国
+country.CHN.full: 中华人民共和国
+country.RUS.full: 俄罗斯联邦
+country.GBR.full: 大不列颠及北爱尔兰联合王国
+country.FRA.full: 法兰西共和国
+country.DEU.full: 德意志联邦共和国
+country.JPN.full: 日本国
+country.IND.full: 印度共和国
+country.PRK.full: 朝鲜民主主义人民共和国
+country.IRN.full: 伊朗伊斯兰共和国
+country.ISR.full: 以色列国
+country.BRA.full: 巴西联邦共和国
+
+# ── Preparation screen ──
+ui.startup.title: 正在加载游戏
+ui.startup.intel: 获取汇率与全球情报…
+ui.startup.news: 分析世界新闻头条…
+ui.startup.decisions: 载入国策文件…
+ui.startup.borders: 预渲染国界与省界…
+ui.startup.regions: 预渲染行政区划标注…
+ui.startup.cities: 预渲染省会与主要城市…
+ui.startup.sim: 初始化地缘政治模拟…
+
+# ── Combat ──
+war.stance.assault: 全军进攻
+war.stance.hold: 坚守阵地
+war.stance.assault_hint: 全力进攻 — 输出更高，但也更快被打散。
+war.stance.hold_hint: 就地固守 — 防御逐日提升，火力减弱。
+war.round: 第 {day} 天 {icon} 组织度损失 — 我方 {aOrg}，敌方 {dOrg}
+war.round.broken: {name} 有 {n} 个师被打散后撤
+war.conquered: 军队已经崩溃。国家沦陷。
+war.victory: {flag} {name} 赢得了战争。
+ui.war.field: 战场态势
+ui.war.front: 战线宽度
+ui.war.entrench: 工事
+ui.war.stance: 作战姿态
+ui.war.front_value: {front} 宽 / 每师 {width}
+
+# ── Debug options ──
+cmd.debug.no_wait_on: 已关闭准备等待 — 战役将立即开始。
+cmd.debug.no_wait_off: 已开启准备等待。
+cmd.debug.unknown: 未知调试选项：{sub}
+
+# ── Streaming mode ──
+ui.disclaimer.text: 本游戏所有内容均属虚构，与现实无关。游戏走向由玩家决定，不属于任何现实。
+ui.settings.streaming: 直播模式
+ui.settings.streaming_note: 开始前显示虚构声明，并在游戏内持续显示。
+
+# ── Army command ──
+ui.tab.command: 指挥
+ui.command.title: 统帅部
+ui.command.generals: 将领
+ui.command.attack_bonus: 进攻加成
+ui.command.defense_bonus: 防御加成
+ui.command.planning: 工事速度
+ui.command.note: 将领的技能会乘算其麾下部队的战斗池。设为预备队的军团不参战。
+ui.command.commander: 指挥官
+ui.command.no_commander: — 无 —
+ui.command.atk: 攻
+ui.command.def: 防
+ui.command.plan: 谋
+ui.command.assigned: 已任命指挥官。
+ui.command.ordered: 命令：{name}
+ui.command.assault: 进攻
+ui.command.hold: 固守
+ui.command.reserve: 预备
+ui.command.assault_hint: 投入战斗并主动进攻。
+ui.command.hold_hint: 投入战斗并构筑工事。
+ui.command.reserve_hint: 完全不上阵 —— 用来让打残的部队休整。
+ui.command.group_n: 第 {n} 集团军
+ui.command.created: 第 {n} 集团军已组建。
+ui.command.new_group: 组建新集团军
+ui.command.unassigned: 未分配部队
+ui.command.send_to: 调往…
+ui.command.empty_group: 尚未分配部队。
+ui.command.ready: 战备状态
+ui.command.in_the_line: 可投入战斗的师
+
+# ── Peace conference ──
+ui.peace.title: 和平会议
+ui.peace.subject: {flag} {name} 已经战败。其领土现已摆在谈判桌上。
+ui.peace.prompt: 你还可认领 {mine} 个地区 —— 已被认领 {claimed}/{total}。
+ui.peace.no_seat: 你不在谈判桌上。战胜国将自行瓜分。
+ui.peace.claim_all: 认领剩余
+ui.peace.finish: 缔结和约
+ui.peace.note: 每个地区消耗 1 点。无人认领的地区仍归战败国所有。与会的盟国会自动认领其份额。
+ui.peace.taken_by: 已被 {name} 认领
+ui.peace.click_claim: 点击认领
+ui.peace.closed: 和约已缔结 —— 转移 {n} 个地区，{left} 个无人认领。
+
+# ── General staff ──
+ui.command.staff_on: 参谋部正在指挥全军。亲自下令会遭到质疑。
+ui.objection.title: 参谋长有异议
+ui.objection.speaker: 参谋长
+ui.objection.1: 首领，这样的指派不正确。您这样做会消耗我们的耐力的！
+ui.objection.2: 首领，参谋部不建议这么做。部队尚未就绪 —— 这样做只会白白消耗耐力。
+ui.objection.3: 恕我直言，首领，这些部队不该这样使用。我们的耐力会因此受损。
+ui.objection.4: 首领，我必须提出异议。参谋部全体一致认为：这道命令会消耗我们本就不足的耐力。
+ui.objection.5: 这样的部署会让前线空虚、预备队浪费。耐力上的代价会相当可观。
+ui.objection.comply: 听从参谋部
+ui.objection.insist: 坚持执行 —— 命令由我下达
+ui.objection.cost_note: 否决参谋部将不可预测地损耗军队 1–23% 的耐力。
+ui.objection.penalty: 已否决参谋部的异议 —— 耐力 −{n}%。
+ui.staff.rested: 参谋部将第 {name} 集团军撤出前线休整。
+ui.staff.committed: 参谋部将第 {name} 集团军重新投入前线。
+ui.staff.appointed: 参谋部任命 {name} 指挥第 {group} 集团军。
+ui.staff.assigned: 参谋部将 {div} 编入第 {group} 集团军。
+ui.staff.formed: 参谋部组建了第 {n} 集团军。
+ui.staff.recruited: 参谋部征募了一个新师。

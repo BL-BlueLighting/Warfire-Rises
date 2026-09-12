@@ -1,0 +1,201 @@
+{
+    "Country": "all",
+    "Decisions": [
+        {
+            "Type": "Decisions",
+            "Name": "战时经济动员",
+            "Description": "(持续性国策)\n将民用工业转向军工生产，为长期冲突做准备。",
+            "Require": [
+                {
+                    "Type": "WorldCollapse",
+                    "To": "self",
+                    "Condition": ">=",
+                    "Num": 30
+                }
+            ],
+            "Time": "inf",
+            "InfinityPhases": [
+                {
+                    "Type": "Phase",
+                    "Get": [
+                        {
+                            "Type": "Get",
+                            "Rewards": [
+                                [
+                                    "Military",
+                                    "+",
+                                    4
+                                ],
+                                [
+                                    "Economy",
+                                    "-",
+                                    2
+                                ],
+                                [
+                                    "PublicSupport",
+                                    "-",
+                                    3
+                                ]
+                            ]
+                        }
+                    ],
+                    "Content": "工厂昼夜不停地运转，新的师团正在成形。\n民众开始感到疲惫。",
+                    "Time": 45
+                }
+            ],
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                [
+                                    "ForceValue",
+                                    "+",
+                                    3
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "全国团结号召",
+            "Description": "(一次性国策)\n号召全国上下团结一致，共渡难关。",
+            "Require": [
+                {
+                    "Type": "Stability",
+                    "To": "self",
+                    "Condition": "<=",
+                    "Num": 60
+                },
+                {
+                    "Type": "CountryEndurance",
+                    "To": "self",
+                    "Condition": ">=",
+                    "Num": 25
+                }
+            ],
+            "Time": 30,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                [
+                                    "Stability",
+                                    "+",
+                                    10
+                                ],
+                                [
+                                    "PublicSupport",
+                                    "+",
+                                    12
+                                ],
+                                [
+                                    "CountryEndurance",
+                                    "+",
+                                    4
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "对敌宣传攻势",
+            "Description": "(持续性国策)\n针对关系恶劣的国家发动宣传战，动摇其民心。",
+            "Require": [
+                {
+                    "Type": "Relation",
+                    "To": "target",
+                    "Condition": "<=",
+                    "Num": -30
+                }
+            ],
+            "Time": "inf",
+            "InfinityPhases": [
+                {
+                    "Type": "Phase",
+                    "Get": [
+                        {
+                            "Type": "Get",
+                            "Rewards": [
+                                [
+                                    "Relation",
+                                    "-",
+                                    6
+                                ],
+                                [
+                                    "PublicSupport",
+                                    "+",
+                                    4
+                                ],
+                                [
+                                    "ForceValue",
+                                    "+",
+                                    5
+                                ]
+                            ]
+                        }
+                    ],
+                    "Content": "广播与传单越过边境。\n对方的宣传机器开始反击。",
+                    "Time": 40
+                }
+            ],
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                [
+                                    "Stability",
+                                    "+",
+                                    1
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "邀请军事指挥家",
+            "Description": "(一次性国策)\n现有的军队将领不足以带领我们打赢胜仗，让更有经验的领导者上任。\n\n完成后，军队的训练、分配与调遣将交由参谋部自动处理。你仍可亲自下令，但参谋部会提出异议——若一意孤行，将白白折损我军的耐力。",
+            "Require": [],
+            "Time": 25,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                [
+                                    "AutoArmy",
+                                    "=",
+                                    1
+                                ],
+                                [
+                                    "ArmyEndurance",
+                                    "+",
+                                    10
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

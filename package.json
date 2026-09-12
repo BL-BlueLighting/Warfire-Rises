@@ -1,0 +1,34 @@
+{
+  "name": "warfire-rises",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "WARFIRE RISES — A HOI4-style world simulation game, built with Tauri",
+  "scripts": {
+    "dev": "./node_modules/.bin/vite",
+    "build": "./node_modules/.bin/tsc --noEmit && ./node_modules/.bin/vite build",
+    "preview": "./node_modules/.bin/vite preview",
+    "typecheck": "./node_modules/.bin/tsc --noEmit",
+    "tauri": "./node_modules/.bin/tauri",
+    "tauri:dev": "./node_modules/.bin/tauri dev",
+    "tauri:build": "./node_modules/.bin/tauri build"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.9.0",
+    "d3-geo": "^3.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "^2.0.2"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
+    "@types/d3-geo": "^3.1.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/topojson-client": "^3.1.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.11"
+  }
+}

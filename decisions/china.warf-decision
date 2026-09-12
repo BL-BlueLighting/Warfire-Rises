@@ -1,0 +1,92 @@
+{
+    "Country": "CHN",
+    "Decisions": [
+        {
+            "Type": "Decisions",
+            "Name": "持续创新",
+            "Description": "(持续性国策)\n为了未来科技与国家的进步，我们必须加强科技研发与创新。",
+            "Require": [
+                {
+                    "Type": "CountryEndurance",
+                    "To": "self",
+                    "Condition": ">=",
+                    "Num": 50
+                }
+            ],
+            "Time": "inf",
+            "InfinityPhases": [
+                {
+                    "Type": "Phase",
+                    "Get": [
+                        {
+                            "Type": "Get",
+                            "Rewards": [
+                                ["CountryEndurance", "+", 10],
+                                ["Nuke", "+", 5]
+                            ]
+                        }
+                    ],
+                    "Content": "我们成功研发出了新一代秘密核导弹。\n科研之路仍在继续。",
+                    "Time": 60
+                },
+                {
+                    "Type": "Phase",
+                    "Get": [
+                        {
+                            "Type": "Get",
+                            "Rewards": [
+                                ["Military", "+", 6],
+                                ["ForceValue", "+", 8]
+                            ]
+                        }
+                    ],
+                    "Content": "新一批常规装备列装部队，士气高涨。\n科研之路仍在继续。",
+                    "Time": 60
+                }
+            ],
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["Economy", "+", 2]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Type": "Decisions",
+            "Name": "西部大开发",
+            "Description": "(一次性国策)\n投入巨资建设内陆基础设施，缩小东西部差距。",
+            "Require": [
+                {
+                    "Type": "Treasury",
+                    "To": "self",
+                    "Condition": ">=",
+                    "Num": 800
+                }
+            ],
+            "Time": 120,
+            "Result": [
+                {
+                    "Type": "Result",
+                    "Rewards": [
+                        {
+                            "Type": "Reward",
+                            "Rewards": [
+                                ["Treasury", "-", 800],
+                                ["Economy", "+", 6],
+                                ["Stability", "+", 8],
+                                ["CountryEndurance", "+", 5]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

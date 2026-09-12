@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Frontend build output
+dist/
+
+# Rust build output. Normally this lives at src-tauri/target, but this working
+# copy redirects it — see src-tauri/.cargo/config.toml below.
+src-tauri/target/
+src-tauri/gen/
+
+# The local build redirect. It contains an absolute path that only makes sense
+# on one machine, and it exists only because this working copy happens to sit in
+# a directory whose name contains a colon (which cargo cannot build in). It must
+# not be published.
+src-tauri/.cargo/
+
+# Editor / OS noise
+.DS_Store
+*.local
+.claude/
