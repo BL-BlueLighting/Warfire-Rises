@@ -5,13 +5,13 @@
   "type": "module",
   "description": "WARFIRE RISES — A HOI4-style world simulation game, built with Tauri",
   "scripts": {
-    "dev": "./node_modules/.bin/vite",
-    "build": "./node_modules/.bin/tsc --noEmit && ./node_modules/.bin/vite build",
-    "preview": "./node_modules/.bin/vite preview",
-    "typecheck": "./node_modules/.bin/tsc --noEmit",
-    "tauri": "./node_modules/.bin/tauri",
-    "tauri:dev": "./node_modules/.bin/tauri dev",
-    "tauri:build": "./node_modules/.bin/tauri build"
+    "dev": "node ./node_modules/vite/bin/vite.js",
+    "build": "node ./node_modules/typescript/bin/tsc --noEmit && node ./node_modules/vite/bin/vite.js build",
+    "preview": "node ./node_modules/vite/bin/vite.js preview",
+    "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit",
+    "tauri": "node ./node_modules/@tauri-apps/cli/tauri.js",
+    "tauri:dev": "node ./node_modules/@tauri-apps/cli/tauri.js dev",
+    "tauri:build": "node ./node_modules/@tauri-apps/cli/tauri.js build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.9.0",

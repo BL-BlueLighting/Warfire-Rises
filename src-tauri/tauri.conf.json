@@ -4,9 +4,9 @@
   "version": "2.0.0",
   "identifier": "com.warfire.rises",
   "build": {
-    "beforeDevCommand": "./node_modules/.bin/vite",
+    "beforeDevCommand": "node ./node_modules/vite/bin/vite.js",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "./node_modules/.bin/tsc --noEmit && ./node_modules/.bin/vite build",
+    "beforeBuildCommand": "node ./node_modules/typescript/bin/tsc --noEmit && node ./node_modules/vite/bin/vite.js build",
     "frontendDist": "../dist"
   },
   "app": {

@@ -29,7 +29,7 @@ npm run tauri:build    # → src-tauri/target/release/bundle/
 
 > **⚠ 关于安装路径。** 下面这点**只影响当前这份工作副本**。它所在目录名里带冒号（`RE: Warfire Rises`），而在 Linux 上冒号是 `PATH` 的分隔符，会破坏两件事：
 >
-> 1. **`npm run` 找不到 `node_modules/.bin`。** 所以 `package.json` 里的脚本直接写 `./node_modules/.bin/<工具>`。
+> 1. **`npm run` 找不到 `node_modules/.bin`。** 所以脚本统一写成 `node ./node_modules/<包>/<入口>`——走显式文件路径，不依赖 PATH 查找。这个写法在 Windows 上也成立（`./` 开头的可执行文件在 cmd.exe 里不认），因此**同一套脚本三平台通用**，CI 跑的就是它。
 > 2. **cargo 完全无法构建** —— 它会用目标目录拼 `LD_LIBRARY_PATH` 并直接报错：
 >    `error: failed to join paths from $LD_LIBRARY_PATH together … path segment contains separator ':'`。
 >    `src-tauri/.cargo/config.toml` 把产物重定向到 `~/.cache/warfire-rises-target` 绕开它。
