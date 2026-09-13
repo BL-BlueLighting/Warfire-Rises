@@ -4,6 +4,7 @@
   overflow: hidden;
 }
 
+/* The OpenLayers viewport. Named for the SVG element it used to hold. */
 .worldmap-svg {
   width: 100%;
   height: 100%;
@@ -14,39 +15,6 @@
 
 .worldmap-svg:active {
   cursor: grabbing;
-}
-
-.worldmap-country {
-  transition: filter 0.12s;
-  cursor: pointer;
-}
-
-.worldmap-country--inert {
-  pointer-events: none;
-}
-
-.worldmap-country.is-hovered {
-  filter: brightness(1.45);
-}
-
-.worldmap-country.is-selected {
-  filter: brightness(1.25) drop-shadow(0 0 5px rgb(255 255 255 / 65%));
-}
-
-.worldmap-label {
-  fill: #14100a;
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  paint-order: stroke;
-  stroke: rgb(255 255 255 / 45%);
-  pointer-events: none;
-  user-select: none;
-}
-
-.worldmap-label.is-player {
-  fill: #241a06;
-  stroke: rgb(255 246 221 / 80%);
 }
 
 .worldmap-tooltip {
@@ -259,62 +227,12 @@
 }
 
 /* First-order administrative boundaries inside the playable nations. */
-.worldmap-provinces path {
-  stroke: rgb(0 0 0 / 45%);
-  stroke-width: 0.7;
-  vector-effect: non-scaling-stroke;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
 
 /* Administrative region names — quieter than the nation labels. */
-.worldmap-region-label {
-  fill: #2a2313;
-  font-family: var(--font-ui);
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  paint-order: stroke;
-  stroke: rgb(255 250 235 / 55%);
-  pointer-events: none;
-  user-select: none;
-}
 
 /* Cities: a dot with its name set alongside. */
-.worldmap-city circle {
-  fill: #1b160d;
-  stroke: rgb(255 246 221 / 85%);
-  stroke-width: 0.6;
-  vector-effect: non-scaling-stroke;
-}
-
-.worldmap-city--t3 circle {
-  fill: #f2e7c6;
-  stroke: #1b160d;
-  stroke-width: 0.8;
-}
-
-.worldmap-city text {
-  fill: #f0e6cc;
-  font-family: var(--font-ui);
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  paint-order: stroke;
-  stroke: rgb(12 10 6 / 80%);
-  stroke-linejoin: round;
-  dominant-baseline: middle;
-  user-select: none;
-}
-
-.worldmap-city--t3 text {
-  fill: #fff8e2;
-  font-weight: 700;
-}
 
 /* Flags are colour glyphs: leave them unstroked so the colour layers survive.
    Stroking a COLR glyph makes some engines discard the colour and draw the
    bare regional-indicator letters instead — "CN" rather than 🇨🇳. */
 .worldmap-label__flag,
-.worldmap-city__flag {
-  stroke: none;
-  paint-order: normal;
-}

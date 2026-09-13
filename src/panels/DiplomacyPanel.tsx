@@ -1,6 +1,6 @@
 import React from "react";
 import { useStore, selectCountry } from "../game/store";
-import { getCountryById, getPlayerCountry, relationStatus } from "../game/state";
+import { getCountryById, getPlayerCountry, relationStatus, isOutOfPlay } from "../game/state";
 import { getAttitude } from "../game/types";
 import { Section, Stat, Bar, NationRow } from "../components/shared";
 import TimedAction from "../components/TimedAction";
@@ -23,7 +23,7 @@ const DiplomacyPanel: React.FC = () => {
   const isSelf = !target || target.id === state.playerCountryId;
 
   const others = state.countries
-    .filter((c) => c.id !== state.playerCountryId && !c.destroyed)
+    .filter((c) => c.id !== state.playerCountryId && !isOutOfPlay(state, c.id))
     .sort((a, b) => (b.relations[state.playerCountryId] ?? 0) - (a.relations[state.playerCountryId] ?? 0));
 
   const relation = target ? target.relations[state.playerCountryId] ?? 0 : 0;

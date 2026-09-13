@@ -1,6 +1,6 @@
 import { geoPath } from "d3-geo";
 import admin1 from "./data/admin1.json";
-import { projection } from "./geo";
+import { cutRingAtAntimeridian, projection } from "./geo";
 
 /**
  * First-order administrative regions (provinces, states, oblasts, Länder) for
@@ -26,6 +26,9 @@ interface RawRegion {
 }
 
 export interface Region {
+  /** Exterior rings as raw lon/lat, already cut at the antimeridian. */
+  rings: number[][][];
+
   id: string;
   en: string;
   zh: string;
@@ -103,6 +106,7 @@ function buildRegions(): Map<string, Region[]> {
         anchor,
         paths,
         area,
+        rings: raw.r.flatMap(cutRingAtAntimeridian),
       });
     }
     out.set(countryId, regions);

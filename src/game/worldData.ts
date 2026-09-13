@@ -40,13 +40,36 @@ export async function fetchExchangeRates(): Promise<ExchangeRates> {
   }
 }
 
+/** The news feed the game reads; the Rust side allowlists this prefix. */
+const NEWS_FEED = "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en";
+
+/**
+ * Fetch the feed.
+ *
+ * Inside the desktop app this goes through Rust: the feed sends no CORS
+ * headers, so a plain `fetch` from the webview is blocked before it leaves and
+ * the game falls back to its bundled keywords for every campaign. The browser
+ * build (`npm run dev`) has no Rust to ask, and keeps taking the same fallback.
+ */
+async function fetchNewsFeed(): Promise<string> {
+  const invoke = (
+    window as unknown as { __TAURI_INTERNALS__?: { invoke?: (cmd: string, args?: unknown) => Promise<unknown> } }
+  ).__TAURI_INTERNALS__?.invoke;
+
+  if (invoke) {
+    const xml = (await invoke("fetch_feed", { url: NEWS_FEED })) as string;
+    if (!xml) throw new Error("empty feed");
+    return xml;
+  }
+
+  const res = await fetch(NEWS_FEED, { signal: AbortSignal.timeout(5000) });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.text();
+}
+
 export async function fetchWorldKeywords(): Promise<string[]> {
   try {
-    const res = await fetch("https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en", {
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const xml = await res.text();
+    const xml = await fetchNewsFeed();
 
     const headlines: string[] = [];
     const titleRegex = /<title>(.*?)<\/title>/g;

@@ -31,7 +31,12 @@ export function openConference(
   conqueredId: string,
   victorId: string
 ): PeaceConference {
-  const pool = regionsOf(conqueredId);
+  // Only what the loser still holds. Offering its whole authored territory let
+  // a rump state be carved up twice, with regions already handed to somebody
+  // else coming back to the table.
+  const pool = regionsOf(conqueredId).filter(
+    (regionId) => ownerOf(state, regionId, conqueredId) === conqueredId
+  );
   const victor = state.countries.find((c) => c.id === victorId);
 
   // Everyone who was fighting the loser alongside the victor gets a seat.
@@ -105,8 +110,18 @@ export function claimAll(conference: PeaceConference, countryId: string): void {
 export interface ConferenceOutcome {
   /** Regions that changed hands, by their new owner. */
   transferred: { regionId: string; to: string }[];
-  /** Regions nobody claimed — they stay with the defeated nation. */
+  /** Regions nobody claimed — the chair takes these, see `chairOf`. */
   unclaimed: string[];
+}
+
+/**
+ * Whoever sits at the head of the table: the victor whose war it was.
+ *
+ * The rump state has no future, so the regions nobody bothered to claim go to
+ * the chair rather than leaving a country on the map that cannot act.
+ */
+export function chairOf(conference: PeaceConference): string | undefined {
+  return conference.participants[0]?.countryId;
 }
 
 /**

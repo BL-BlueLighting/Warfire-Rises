@@ -62,6 +62,14 @@ export interface Country {
   allies: string[];
   enemies: string[];
   relations: Record<string, number>;
+  /**
+   * How readily this nation starts a war, 1 being the baseline.
+   *
+   * Static posture, not a game fact: it sits next to the real-world alliances
+   * and relations the roster already carries, and gives the AI each nation's
+   * own appetite for a fight (see `warCandidates` in ai.ts).
+   */
+  aggression: number;
   publicSupport: number; // 0-100, domestic support for government actions
   forceValue: number; // 0-100, 迫使值 — coercion readiness
   atWarWith: string[]; // countries currently at war with

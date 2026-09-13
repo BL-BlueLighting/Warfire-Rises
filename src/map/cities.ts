@@ -27,7 +27,12 @@ export interface City {
   id: string;
   en: string;
   zh: string;
+  /** Projected position, for SVG.
+   *
+   * @deprecated A map engine that projects for itself wants `lonLat`. */
   anchor: [number, number];
+  /** Raw longitude/latitude from Natural Earth. */
+  lonLat: [number, number];
   population: number;
   /** 3 = national capital, 2 = major, 1 = notable. */
   tier: 1 | 2 | 3;
@@ -49,6 +54,7 @@ function build(): Map<string, City[]> {
         en: raw.n,
         zh: raw.z,
         anchor: anchor as [number, number],
+        lonLat: raw.l,
         population: raw.p,
         tier: raw.t,
         isProvinceCapital: raw.c === 1,

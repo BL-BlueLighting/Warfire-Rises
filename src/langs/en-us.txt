@@ -328,6 +328,7 @@ war.start.desc: Declare war on another country
 war.start.usage: war start <country_id>
 war.start.no_args: Usage: war start <country_id>
 war.start.unknown_country: Unknown country: {id}
+war.start.gone: {name} is no longer a nation you can fight.
 war.start.self: You cannot declare war on yourself.
 war.start.already_at_war: Already at war with {name}. Use war status to view.
 war.start.no_attitude: Mutual attitude must be "Difficult to Coordinate" or worse to declare war. Current: {att}
@@ -888,6 +889,12 @@ ui.settings.decisions_locked: (required — cannot be turned off)
 ui.settings.decisions_loading: Reading decision files…
 ui.settings.decisions_note: Editable before a campaign starts only. A file that is off is not loaded at all — its decisions and news never appear in the run.
 ui.settings.persist_note: Display settings are saved for this browser and apply to every campaign.
+ui.about.title: About
+ui.about.by: By BL.BlueLighting
+ui.about.engine: Based on Tauri
+ui.about.libraries: Libraries used
+ui.about.assets: Fonts and map data (Twemoji flags, Noto Sans CJK, Barlow Condensed, JetBrains Mono, Natural Earth) are credited in NOTICE.md.
+ui.about.thanks: Thanks for your play
 ui.settings.reset: Reset to defaults
 ui.settings.stat_events: Event rate
 ui.settings.stat_wars: War rate

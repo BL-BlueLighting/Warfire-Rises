@@ -11,6 +11,25 @@ import {
 import { DIFFICULTIES, difficultyProfile } from "../game/difficulty";
 import { t, useLanguage } from "../i18n";
 
+/**
+ * Everything the game is built out of, with the people and licences behind it.
+ *
+ * Mirrors `package.json`, `src-tauri/Cargo.toml` and `NOTICE.md`; those files
+ * stay the source of truth, this is the copy the player can actually read.
+ */
+const LIBRARIES: { name: string; author: string; url: string; licence: string }[] = [
+  { name: "React", author: "Meta · React contributors", url: "github.com/facebook/react", licence: "MIT" },
+  { name: "OpenLayers", author: "OpenLayers contributors · OSGeo", url: "github.com/openlayers/openlayers", licence: "BSD-2-Clause" },
+  { name: "d3-geo", author: "Mike Bostock", url: "github.com/d3/d3-geo", licence: "ISC" },
+  { name: "topojson-client", author: "Mike Bostock", url: "github.com/topojson/topojson-client", licence: "ISC" },
+  { name: "world-atlas", author: "Mike Bostock", url: "github.com/topojson/world-atlas", licence: "ISC" },
+  { name: "Tauri", author: "Tauri Programme · Commons Conservancy", url: "github.com/tauri-apps/tauri", licence: "MIT / Apache-2.0" },
+  { name: "reqwest", author: "Sean McArthur", url: "github.com/seanmonstar/reqwest", licence: "MIT / Apache-2.0" },
+  { name: "serde · serde_json", author: "David Tolnay · Erick Tryzelaar", url: "github.com/serde-rs/serde", licence: "MIT / Apache-2.0" },
+  { name: "Vite", author: "Evan You · Vite contributors", url: "github.com/vitejs/vite", licence: "MIT" },
+  { name: "TypeScript", author: "Microsoft", url: "github.com/microsoft/TypeScript", licence: "Apache-2.0" },
+];
+
 /** Display preferences. Difficulty is chosen per campaign, so it is shown read-only here. */
 const SettingsDialog: React.FC = () => {
   const { state, ui } = useStore();
@@ -126,6 +145,35 @@ const SettingsDialog: React.FC = () => {
 
         <div className="dim" style={{ fontSize: 10.5, marginTop: 12, lineHeight: 1.6 }}>
           {t("ui.settings.persist_note")}
+        </div>
+
+        {/* ── About ── */}
+        <div className="section__title" style={{ marginTop: 16 }}>
+          {t("ui.about.title")}
+        </div>
+        <div className="about">
+          <img className="about__logo" src="/logo.png" alt="WARFIRE RISES" />
+          <div className="about__name">WARFIRE RISES</div>
+          <div className="about__name-cn">战火升腾</div>
+          <div className="about__line">{t("ui.about.by")}</div>
+          <div className="about__line">{t("ui.about.engine")}</div>
+
+          <div className="about__sub">{t("ui.about.libraries")}</div>
+          <ul className="about__libs">
+            {LIBRARIES.map((lib) => (
+              <li key={lib.name}>
+                <span className="about__lib-name">{lib.name}</span>
+                <span className="about__lib-author">{lib.author}</span>
+                {/* Plain text, not a link: the webview has no opener wired up,
+                    so an anchor would look clickable and do nothing. */}
+                <span className="about__lib-url">{lib.url}</span>
+                <span className="about__lib-licence">{lib.licence}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="about__note">{t("ui.about.assets")}</div>
+
+          <div className="about__thanks">{t("ui.about.thanks")}</div>
         </div>
 
         <div className="modal__actions" style={{ marginTop: 18 }}>

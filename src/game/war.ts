@@ -4,8 +4,11 @@ import {
   getCountryById,
   applyCollapse,
   adjustRelation,
+  annexRegions,
   createWarState,
   declareConquest,
+  isOutOfPlay,
+  markDefeated,
 } from "./state";
 import { t } from "../i18n";
 import { countryShortName } from "./names";
@@ -54,6 +57,9 @@ export function canDeclareWar(state: GameState, target: Country): { ok: boolean;
   if (player.atWarWith.includes(target.id)) {
     return { ok: false, reason: t("war.start.already_at_war", { name: countryShortName(target) }) };
   }
+  if (isOutOfPlay(state, target.id)) {
+    return { ok: false, reason: t("war.start.gone", { name: countryShortName(target) }) };
+  }
   // A casus belli must be justified first — see the dip.justify action.
   if (!player.warGoals.includes(target.id)) {
     return { ok: false, reason: t("war.start.no_casus_belli", { name: countryShortName(target) }) };
@@ -99,6 +105,7 @@ export function declareWarBetween(
   const defender = getCountryById(state, defenderId);
   if (!attacker || !defender || attacker.id === defender.id) return false;
   if (attacker.atWarWith.includes(defender.id)) return false;
+  if (isOutOfPlay(state, defender.id)) return false;
 
   // There is exactly one `activeWar` and it belongs to the player, so a war
   // between two other nations is recorded in the `atWarWith` lists alone —
@@ -232,13 +239,19 @@ export function tickWar(state: GameState): string | null {
     }
     const winner = getCountryById(state, winnerId);
 
+    // The loser is done: out of the war, out of play.
+    markDefeated(state, loserId);
+
     // Carve up the loser. The conference is the player's to run whenever their
-    // own side won — either they led the war or fought in it.
+    // own side won — either they led the war or fought in it. With nobody at
+    // the table the victor simply keeps what it took.
     const playerWon =
       winnerId === state.playerCountryId ||
       Boolean(winner?.allies.includes(state.playerCountryId));
     if (playerWon) {
       state.conference = openConference(state, loserId, winnerId);
+    } else {
+      annexRegions(state, loserId, winnerId);
     }
 
     return t("war.victory", { flag: winner?.flag ?? "", name: countryShortName(winner) });

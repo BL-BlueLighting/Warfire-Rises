@@ -232,6 +232,101 @@ export function detonateNuke(state: GameState, attackerId: string, targetId: str
 }
 
 /**
+ * A nation that is out of play: erased from the map, or beaten and partitioned.
+ *
+ * Either way it stops being a country anyone can deal with — no AI, no
+ * diplomacy, no second war — and its land belongs to somebody else.
+ */
+export function isOutOfPlay(state: GameState, countryId: string): boolean {
+  const country = getCountryById(state, countryId);
+  if (!country) return true;
+  return country.destroyed || state.defeatedCountries.includes(countryId);
+}
+
+/**
+ * A nation has lost a war for good: it leaves the board.
+ *
+ * Its army is gone, its wars are over, its claims and treaties lapse. The land
+ * is *not* touched here — a player-run peace conference gets to divide it
+ * first, and `annexRegions` sweeps up whatever is left afterwards.
+ */
+export function markDefeated(state: GameState, countryId: string): void {
+  const country = getCountryById(state, countryId);
+  if (!country || isOutOfPlay(state, countryId)) return;
+
+  if (!state.defeatedCountries.includes(countryId)) state.defeatedCountries.push(countryId);
+
+  country.divisions = [];
+  country.armyGroups = [];
+  country.military = Math.max(0, Math.round(country.military * 0.2));
+  country.manpower = 0;
+  country.nukes = 0;
+  country.nukeProgress = 0;
+  country.autoArmy = false;
+  country.overlordId = null;
+  country.warGoals = [];
+  country.atWarWith = [];
+  country.allies = [];
+  country.enemies = [];
+
+  // Nobody is at war with a nation that no longer fields an army, and no one
+  // holds a claim on it either.
+  for (const other of state.countries) {
+    other.atWarWith = other.atWarWith.filter((id) => id !== countryId);
+    other.warGoals = other.warGoals.filter((id) => id !== countryId);
+    other.allies = other.allies.filter((id) => id !== countryId);
+    other.enemies = other.enemies.filter((id) => id !== countryId);
+    if (other.overlordId === countryId) other.overlordId = null;
+  }
+
+  const war = state.activeWar;
+  if (war?.active && (war.attacker === countryId || war.defender === countryId)) {
+    state.warHistory.push({
+      ...war,
+      active: false,
+      phase: "ended",
+      winner: war.attacker === countryId ? war.defender : war.attacker,
+    });
+    state.activeWar = null;
+  }
+
+  state.log.push(`[DEFEAT] ${country.name} is out of the war — partitioned by the victors`);
+}
+
+/**
+ * Hand every region the loser still holds to `winnerId`.
+ *
+ * Runs after a peace conference has taken its pick, so what is left — the rump
+ * state nobody claimed — joins the victor rather than lingering as a country
+ * that is not allowed to do anything.
+ */
+export function annexRegions(state: GameState, loserId: string, winnerId: string): number {
+  const loser = getCountryById(state, loserId);
+  const winner = getCountryById(state, winnerId);
+  if (!loser || !winner || !isOutOfPlay(state, loserId)) return 0;
+
+  let moved = 0;
+  for (const [regionId, owner] of Object.entries(state.regionOwner)) {
+    if (owner === loserId) {
+      state.regionOwner[regionId] = winnerId;
+      moved += 1;
+    }
+  }
+  // Regions it still answers for but that were never transferred are authored
+  // under it, so they read as its own until an explicit owner says otherwise.
+  for (const regionId of regionsOf(loserId)) {
+    if (!(regionId in state.regionOwner)) {
+      state.regionOwner[regionId] = winnerId;
+      moved += 1;
+    }
+  }
+  if (moved > 0) {
+    state.log.push(`[ANNEX] ${winner.name} absorbed the remainder of ${loser.name} (${moved} regions)`);
+  }
+  return moved;
+}
+
+/**
  * Erase a nation from the world: its land sinks and its state goes with it.
  *
  * Nothing reverses this. The nation stays in `state.countries` — relations, war

@@ -1,6 +1,6 @@
 import React from "react";
 import { useStore, selectCountry } from "../game/store";
-import { getCountryById } from "../game/state";
+import { getCountryById, isOutOfPlay } from "../game/state";
 import { getAttitude } from "../game/types";
 import { Section, Stat, Bar, NationRow } from "../components/shared";
 import TimedAction from "../components/TimedAction";
@@ -20,7 +20,7 @@ const IntelligencePanel: React.FC = () => {
   const target = getCountryById(state, selectedId);
   const isSelf = !target || target.id === state.playerCountryId;
 
-  const others = state.countries.filter((c) => c.id !== state.playerCountryId && !c.destroyed);
+  const others = state.countries.filter((c) => c.id !== state.playerCountryId && !isOutOfPlay(state, c.id));
 
   return (
     <>

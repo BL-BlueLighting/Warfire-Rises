@@ -18,12 +18,13 @@ import {
 } from "./state";
 import { DEFAULT_DIFFICULTY, isDifficulty, type Difficulty } from "./difficulty";
 import { getSettings } from "./settings";
-import { closeConference, runAIClaims } from "./peace";
+import { chairOf, closeConference, runAIClaims } from "./peace";
 import { pickObjection, overruleCost } from "./autoArmy";
 import { countryName } from "./names";
 import { processDayEvents } from "./events";
 import { executeCommand } from "./commands";
 import { fetchExchangeRates, fetchWorldKeywords, getTodayDate } from "./worldData";
+import { annexRegions } from "./state";
 import {
   deserialize,
   listSaves,
@@ -295,9 +296,21 @@ export function getDecisions(): Map<string, DecisionDef> {
   return decisionMap;
 }
 
-/** Decisions available to the currently selected/player nation. */
+/**
+ * Decisions the nation can still enact.
+ *
+ * A one-shot decision is spent once it has run: it disappears from the list
+ * rather than sitting there offering a second helping. Its runtime record
+ * stays — conditions elsewhere read it, and running the same work twice would
+ * double its effect on the world.
+ */
 export function availableDecisions(countryId: string): DecisionDef[] {
-  return decisionsForCountry(store.ui.decisionFiles, countryId);
+  const state = store.state;
+  return decisionsForCountry(store.ui.decisionFiles, countryId).filter((d) => {
+    if (d.Time === "inf" || !state) return true;
+    const runtime = state.decisionStates[d.__id ?? d.Name];
+    return !runtime || runtime.completed === 0;
+  });
 }
 
 // ── Toasts ─────────────────────────────────────────────────────────
@@ -366,7 +379,12 @@ export function closeConferenceNow(): void {
   const state = store.state;
   if (!state?.conference) return;
   runAIClaims(state.conference, state.playerCountryId);
-  const outcome = closeConference(state, state.conference);
+  const conference = state.conference;
+  const outcome = closeConference(state, conference);
+  // Whatever nobody claimed goes to the chair: the defeated nation is out of
+  // play, so a rump state nobody wanted must not linger on the map.
+  const chair = chairOf(conference);
+  if (chair) annexRegions(state, conference.conquered, chair);
   state.conference = null;
   pushToast(
     "success",

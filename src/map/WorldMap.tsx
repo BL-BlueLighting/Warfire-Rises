@@ -1,35 +1,53 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import Map from "ol/Map";
+import View from "ol/View";
+import Feature, { type FeatureLike } from "ol/Feature";
+import VectorLayer from "ol/layer/Vector";
+import VectorSource from "ol/source/Vector";
+import Graticule from "ol/layer/Graticule";
+import MultiPolygon from "ol/geom/MultiPolygon";
+import Point from "ol/geom/Point";
+import Polygon from "ol/geom/Polygon";
+import { Style, Fill, Stroke, Circle as CircleStyle, Icon, Text as TextStyle } from "ol/style";
 import { useStore, selectCountry, setHovered } from "../game/store";
+import { isOutOfPlay } from "../game/state";
 import { getAttitude, type Country } from "../game/types";
-import { t } from "../i18n";
+import { t, useLanguage } from "../i18n";
 import { countryName } from "../game/names";
 import { isSubjectOf } from "../game/subjects";
 import {
-  FEATURE_AREAS,
-  FEATURE_CENTROIDS,
-  FEATURE_PATHS,
-  GRATICULE_PATH,
   MAP_HEIGHT,
+  MAP_PROJECTION_CODE,
   MAP_WIDTH,
   PLAYABLE_FEATURES,
   REST_FEATURES,
-  SPHERE_PATH,
+  WORLD_FEATURES,
+  cutRingAtAntimeridian,
+  registerMapProjection,
 } from "./geo";
 import { PALETTE, buildColorMap } from "./colors";
-import { PROVINCE_PATHS, REGIONS, REGION_LABEL_MIN_ZOOM, type Region } from "./provinces";
 import { CITIES, CITY_MIN_ZOOM, type City } from "./cities";
-import { useLanguage } from "../i18n";
+import { REGIONS, REGION_LABEL_MIN_ZOOM, type Region } from "./provinces";
 import { COUNTRIES } from "../game/countries";
 import { useSettings } from "../game/settings";
 import "./worldmap.css";
 
 /**
- * Title-screen mode.
+ * The world map, drawn by OpenLayers.
  *
- * The map doubles as the nation picker, so it has to render before a campaign
- * exists — with no game state to read, no regions, no cities, and its colours
- * supplied by the caller.
+ * This used to be hand-rolled SVG: every store notification re-rendered a
+ * thousand province paths through React and the browser re-rasterised them.
+ * OpenLayers keeps the geometry in a canvas and moves a camera over it, so a
+ * pan or a zoom is a transform rather than a reconciliation — and projection,
+ * hit-testing, layer order and label styling come from the engine instead of
+ * being maintained here.
+ *
+ * The look is unchanged: the same Natural Earth projection (registered as a
+ * coordinate reference system in geo.ts), the same palette, the same layers in
+ * the same order.
  */
+
+/** Title-screen mode: the map doubles as the nation picker. */
 export interface MapPreview {
   /** Fill per country id. */
   colors: Record<string, string>;
@@ -37,13 +55,7 @@ export interface MapPreview {
   onSelect: (countryId: string) => void;
   /** Nation labels; the preview shows names but never interior detail. */
   showLabels?: boolean;
-  /**
-   * Force every layer on so the browser rasterises it all.
-   *
-   * The preparation screen uses this: drawing the province borders, region
-   * names and the full city roster once means the campaign's first frames are
-   * already painted instead of assembling themselves in front of the player.
-   */
+  /** Kept for callers that pre-warm the map; OpenLayers draws on demand. */
   warm?: boolean;
 }
 
@@ -51,616 +63,550 @@ interface WorldMapProps {
   preview?: MapPreview;
 }
 
-const MIN_ZOOM = 1;
-const MAX_ZOOM = 14;
+/** How far past the fitted world view the camera may zoom in, in zoom levels. */
+const ZOOM_SPAN = 4.6;
 
-/** Below this projected area (viewBox units²) a nation's label is suppressed. */
+/** How far past the world box the camera may still be panned. */
+const PAD = 120;
+
+/** Below this on-screen area a nation's label is suppressed. */
 const MIN_LABEL_AREA = 250;
 
-/**
- * Text halo width as a fraction of the font size.
- *
- * The labels scale their font by 1/zoom so they stay a constant size on screen.
- * A fixed `stroke-width` in CSS does not scale with them, so at high zoom the
- * outline ends up wider than the glyphs themselves and the text smears into
- * spikes. Every text element sets its stroke from this ratio instead.
- */
-const HALO_RATIO = 0.26;
-
-/** Region labels: same idea, tighter, and only once zoomed past REGION_LABEL_MIN_ZOOM. */
+/** Below this on-screen area a province name is suppressed. */
 const MIN_REGION_LABEL_AREA = 26;
-const MIN_REGION_LABEL_GAP = 46;
-
-interface Transform {
-  k: number;
-  x: number;
-  y: number;
-}
-
-/** A nation label with its two text anchors already worked out. */
-interface LabelNode {
-  id: string;
-  country: Country | undefined;
-  centroid: [number, number] | undefined;
-  area: number;
-  flagX: number;
-  nameX: number;
-  name: string;
-}
-
-const IDENTITY: Transform = { k: 1, x: 0, y: 0 };
 
 /**
- * The inert backdrop and the province borders are pure geometry — their paths
- * never change, and they ride along with the parent <g> transform when the map
- * pans or zooms. Memoising them keeps React from re-diffing ~1000 elements on
- * every store notification, which is what the render loop emits.
- */
-const InertLayer = React.memo(function InertLayer() {
-  return (
-    <>
-      {REST_FEATURES.map((f, i) => (
-        <path
-          key={`rest-${i}`}
-          d={FEATURE_PATHS.get(f) ?? ""}
-          fill={PALETTE.unclaimed}
-          stroke={PALETTE.border}
-          strokeWidth={0.4}
-          vectorEffect="non-scaling-stroke"
-          className="worldmap-country worldmap-country--inert"
-        />
-      ))}
-    </>
-  );
-});
-
-/**
- * Territory that has changed hands.
+ * Everything a style function needs, in a ref.
  *
- * Regions are drawn as stroked line geometry, so filling one closes the ring
- * implicitly — which is exactly the shape wanted. Only regions whose owner
- * differs from the nation they were authored under are painted, so an
- * untouched world costs nothing.
+ * OpenLayers calls style functions from its own render loop, not from React's,
+ * so they must not close over one render's variables — they read the current
+ * snapshot instead.
  */
-const ConqueredLayer = React.memo(function ConqueredLayer({
-  regionOwner,
-  colors,
-  destroyed,
-}: {
-  regionOwner: Record<string, string>;
+interface MapContext {
+  preview?: MapPreview;
+  state: ReturnType<typeof useStore>["state"];
+  ui: ReturnType<typeof useStore>["ui"];
+  settings: ReturnType<typeof useSettings>;
+  lang: string;
   colors: Record<string, string>;
-  destroyed: ReadonlySet<string>;
-}) {
-  const painted: { d: string; fill: string }[] = [];
-  for (const [baseOwner, regions] of REGIONS) {
-    // Land that sank is not repainted for whoever had occupied it.
-    if (destroyed.has(baseOwner)) continue;
-    for (const region of regions) {
-      const owner = regionOwner[region.id];
-      if (!owner || owner === baseOwner) continue;
-      const fill = colors[owner];
-      if (!fill) continue;
-      for (const d of region.paths) painted.push({ d, fill });
-    }
-  }
-  if (painted.length === 0) return null;
+  atWar: Set<string>;
+  destroyed: Set<string>;
+  outOfPlay: Set<string>;
+  playerId: string | null;
+  hoveredId: string | null;
+  selectedId: string | null;
+}
 
-  return (
-    <>
-      {painted.map((p, i) => (
-        <path key={`occ-${i}`} d={p.d} fill={p.fill} stroke="none" opacity={0.9} />
-      ))}
-    </>
-  );
-});
-
-const ProvinceLayer = React.memo(function ProvinceLayer({
-  destroyed,
-}: {
-  destroyed: ReadonlySet<string>;
-}) {
-  return (
-    <>
-      {[...PLAYABLE_FEATURES.keys()].filter((id) => !destroyed.has(id)).map((countryId) => {
-        const rings = PROVINCE_PATHS.get(countryId);
-        if (!rings || rings.length === 0) return null;
-        return (
-          <g
-            key={`prov-${countryId}`}
-            clipPath={`url(#clip-${countryId})`}
-            pointerEvents="none"
-            className="worldmap-provinces"
-          >
-            {rings.map((d, i) => (
-              <path key={i} d={d} fill="none" />
-            ))}
-          </g>
-        );
-      })}
-    </>
-  );
-});
+interface MapLayers {
+  countries: VectorLayer<VectorSource>;
+  conquest: VectorLayer<VectorSource>;
+  provinces: VectorLayer<VectorSource>;
+  cities: VectorLayer<VectorSource>;
+  labels: VectorLayer<VectorSource>;
+  regionLabels: VectorLayer<VectorSource>;
+}
 
 const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
   const { state, ui } = useStore();
   const lang = useLanguage();
   const settings = useSettings();
-  // Local hover for preview mode, which has no store to write into.
-  const [localHover, setLocalHover] = useState<string | null>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const [view, setView] = useState<Transform>(IDENTITY);
-  const [tooltip, setTooltip] = useState<{ x: number; y: number } | null>(null);
-  const drag = useRef<{ startX: number; startY: number; origin: Transform; moved: boolean } | null>(null);
-  // pointerup always fires before click, so the drag record is gone by the time
-  // the click handler runs. Latch "this gesture was a pan" here instead.
-  const suppressClick = useRef(false);
 
-  // Recompute every render: the store mutates `state` in place, so a
-  // dependency-array memo would go stale after any action that does not
-  // change a scalar (e.g. a diplomacy action nudging relations). Both of
-  // these are O(nations), which is 12.
-  const colors = preview ? preview.colors : state ? buildColorMap(state, ui.mapMode) : {};
-  const atWarSet = new Set(
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<Map | null>(null);
+  const layersRef = useRef<MapLayers | null>(null);
+  const [baseZoom, setBaseZoom] = useState(0);
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; id: string } | null>(null);
+  const [localHover, setLocalHover] = useState<string | null>(null);
+
+  const hoveredId = preview ? localHover : ui.hoveredCountryId;
+  const selectedId = preview ? preview.selectedId : ui.selectedCountryId;
+  const playerId = preview ? null : state?.playerCountryId ?? null;
+  const setHoveredId = preview ? setLocalHover : setHovered;
+
+  // Recomputed every render: the store mutates in place, so a memo would be
+  // stale the moment a relation moved. It is twelve entries.
+  const colors = preview?.colors ?? (state ? buildColorMap(state, ui.mapMode) : {});
+  const atWar = new Set(
     preview ? [] : state?.countries.find((c) => c.id === state.playerCountryId)?.atWarWith ?? []
   );
-  const playerId = preview ? null : state?.playerCountryId ?? null;
-  /**
-   * Nations that have been erased. Their features are simply not drawn, so the
-   * ocean path underneath shows through — the land reads as having sunk.
-   */
-  const destroyedIds = new Set(
+  const destroyed = new Set(
     (preview ? [] : state?.countries ?? []).filter((c) => c.destroyed).map((c) => c.id)
   );
-  const selectedId = preview ? preview.selectedId : ui.selectedCountryId;
-  const hoveredId = preview ? localHover : ui.hoveredCountryId;
-  const setHoveredId = preview ? setLocalHover : setHovered;
-  /** Country lookup: live state in a campaign, the static roster in a preview. */
-  const countryById = (id: string) =>
-    (preview ? COUNTRIES : state?.countries)?.find((c) => c.id === id);
-
-  /** Convert a pointer event to viewBox coordinates. */
-  const toSvgPoint = useCallback((clientX: number, clientY: number): [number, number] => {
-    const svg = svgRef.current;
-    if (!svg) return [0, 0];
-    const pt = svg.createSVGPoint();
-    pt.x = clientX;
-    pt.y = clientY;
-    const ctm = svg.getScreenCTM();
-    if (!ctm) return [0, 0];
-    const p = pt.matrixTransform(ctm.inverse());
-    return [p.x, p.y];
-  }, []);
-
-  const onWheel = useCallback(
-    (e: React.WheelEvent<SVGSVGElement>) => {
-      e.preventDefault();
-      const [mx, my] = toSvgPoint(e.clientX, e.clientY);
-      setView((v) => {
-        const factor = e.deltaY < 0 ? 1.18 : 1 / 1.18;
-        const k = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, v.k * factor));
-        const scale = k / v.k;
-        return { k, x: mx - (mx - v.x) * scale, y: my - (my - v.y) * scale };
-      });
-    },
-    [toSvgPoint]
+  const outOfPlay = new Set(
+    (preview ? [] : state?.countries ?? [])
+      .filter((c) => isOutOfPlay(state!, c.id))
+      .map((c) => c.id)
   );
 
-  const onPointerDown = useCallback(
-    (e: React.PointerEvent<SVGSVGElement>) => {
-      if (e.button !== 0) return;
-      (e.target as Element).setPointerCapture?.(e.pointerId);
-      suppressClick.current = false;
-      drag.current = { startX: e.clientX, startY: e.clientY, origin: view, moved: false };
-    },
-    [view]
-  );
-
-  const onPointerMove = useCallback(
-    (e: React.PointerEvent<SVGSVGElement>) => {
-      const d = drag.current;
-      if (d) {
-        const dx = e.clientX - d.startX;
-        const dy = e.clientY - d.startY;
-        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) d.moved = true;
-        // Scale screen-space movement into viewBox units.
-        const svg = svgRef.current;
-        const rect = svg?.getBoundingClientRect();
-        const sx = rect ? MAP_WIDTH / rect.width : 1;
-        const sy = rect ? MAP_HEIGHT / rect.height : 1;
-        setView({ k: d.origin.k, x: d.origin.x + dx * sx, y: d.origin.y + dy * sy });
-        return;
-      }
-      // Only track the pointer while the tooltip is actually visible.
-      if (hoveredId) setTooltip({ x: e.clientX, y: e.clientY });
-    },
-    [hoveredId]
-  );
-
-  const endDrag = useCallback(() => {
-    if (drag.current?.moved) suppressClick.current = true;
-    drag.current = null;
-  }, []);
-
-  const handleSelect = useCallback(
-    (countryId: string | undefined) => {
-      if (suppressClick.current) {
-        suppressClick.current = false;
-        return;
-      }
-      if (preview) {
-        if (countryId) preview.onSelect(countryId);
-        return;
-      }
-      selectCountry(countryId ?? null);
-    },
-    [preview]
-  );
-
-  const hovered = hoveredId ? countryById(hoveredId) : undefined;
-
-  const relFor = (id: string) => {
-    if (!state || !playerId) return 0;
-    return state.countries.find((x) => x.id === id)?.relations[playerId] ?? 0;
+  const ctxRef = useRef<MapContext>({
+    preview,
+    state,
+    ui,
+    settings,
+    lang,
+    colors,
+    atWar,
+    destroyed,
+    outOfPlay,
+    playerId,
+    hoveredId,
+    selectedId,
+  });
+  // OpenLayers reads this from its own callbacks, which run outside React.
+  ctxRef.current = {
+    preview,
+    state,
+    ui,
+    settings,
+    lang,
+    colors,
+    atWar,
+    destroyed,
+    outOfPlay,
+    playerId,
+    hoveredId,
+    selectedId,
   };
 
-  if (!state && !preview) return null;
-  const showCountryLabels = preview ? preview.showLabels !== false : settings.showCountryNames;
-  // Interior detail exists only inside a campaign; the preview is deliberately
-  // a clean political map — except while warming, when everything is drawn on
-  // purpose so it all gets rasterised before play starts.
-  const warming = preview?.warm === true;
-  const showInterior = warming || (!preview && settings.showRegionNames);
-  const showCities = warming || !preview;
+  /**
+   * On-screen magnification relative to the fitted world view.
+   *
+   * The layer gates (city tiers, province names) are all written against this
+   * factor — the same number the SVG map used to compute from its transform —
+   * so they carry over unchanged.
+   */
+  const baseResRef = useRef(1);
+  const factor = () => {
+    const resolution = mapRef.current?.getView().getResolution() ?? baseResRef.current;
+    return baseResRef.current / resolution;
+  };
+  const factorRef = useRef(factor);
+  factorRef.current = factor;
 
-  // Region labels are only worth drawing once you are zoomed in, and there can
-  // be hundreds of them, so the candidate set is bucketed: it recomputes when
-  // the zoom changes by a quarter step or the map pans a couple of grid cells,
-  // not on every store notification.
-  const labelKey = `${lang}|${Math.round(view.k * 4)}|${Math.round(view.x / 128)}|${Math.round(view.y / 128)}`;
-  /** Changing this string is what makes the memoised label layers recompute. */
-  const destroyedKey = [...destroyedIds].sort().join(",");
-  const regionLabels = useMemo(() => {
-    if (!warming && view.k < REGION_LABEL_MIN_ZOOM) {
-      return [] as { region: Region; x: number; y: number }[];
-    }
+  // ── Sources, built once ──────────────────────────────────────────
+  const sources = useMemo(() => {
+    registerMapProjection();
 
-    // Cull to roughly the visible window, with slack so panning between buckets
-    // never clips a label that should be on screen.
-    const margin = 256;
-    const minX = view.x - margin, maxX = view.x + MAP_WIDTH * view.k + margin;
-    const minY = view.y - margin, maxY = view.y + MAP_HEIGHT * view.k + margin;
+    /**
+     * Build a feature from a GeoJSON geometry.
+     *
+     * Not `readFeatures`: that copies the GeoJSON `properties` and nothing else,
+     * and the country id lives on the feature object itself — every country
+     * came back anonymous and drew as nothing.
+     */
+    const featureFrom = (
+      geometry: { type: string; coordinates: unknown },
+      props: Record<string, unknown>
+    ): Feature => {
+      const polygons: [number, number][][][] =
+        geometry.type === "Polygon"
+          ? [geometry.coordinates as [number, number][][]]
+          : (geometry.coordinates as [number, number][][][]);
 
-    const minArea = warming ? 0 : MIN_REGION_LABEL_AREA / (view.k * view.k);
-    const minGap = MIN_REGION_LABEL_GAP / view.k;
-
-    const candidates: { region: Region; x: number; y: number }[] = [];
-    for (const [baseOwner, regions] of REGIONS) {
-      // A sunken province has no name to show.
-      if (destroyedIds.has(baseOwner)) continue;
-      for (const region of regions) {
-        if (region.area < minArea) continue;
-        const [x, y] = region.anchor;
-        if (x < minX || x > maxX || y < minY || y > maxY) continue;
-        candidates.push({ region, x, y });
-      }
-    }
-    candidates.sort((a, b) => b.region.area - a.region.area);
-
-    const placed: [number, number][] = [];
-    const out: { region: Region; x: number; y: number }[] = [];
-    for (const c of candidates) {
-      if (placed.some(([px, py]) => Math.hypot(px - c.x, py - c.y) < minGap)) continue;
-      placed.push([c.x, c.y]);
-      out.push(c);
-    }
-    return out;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [labelKey, ui.showDebugCodes, warming, destroyedKey]);
-
-  const cityLabels = useMemo(() => {
-    const margin = 256;
-    const minX = view.x - margin, maxX = view.x + MAP_WIDTH * view.k + margin;
-    const minY = view.y - margin, maxY = view.y + MAP_HEIGHT * view.k + margin;
-
-    const candidates: { city: City; x: number; y: number }[] = [];
-    for (const [countryId, cities] of CITIES) {
-      if (destroyedIds.has(countryId)) continue;
-      for (const city of cities) {
-        // Each tier appears at its own zoom, so a world view shows capitals
-        // only and the detail fills in as you close in.
-        if (!warming && view.k < CITY_MIN_ZOOM[city.tier]) continue;
-        // Province capitals (省会) and other cities are toggled separately.
-        // National capitals always show — they are the map's fixed points.
-        if (city.tier !== 3) {
-          if (city.isProvinceCapital ? !settings.showProvinceCapitals : !settings.showMajorCities) {
-            continue;
-          }
+      // Every ring is cut at the antimeridian before it is projected: Russia's
+      // outline, Antarctica and Fiji all wrap the date line, and a wrapped ring
+      // drawn point by point becomes a band right across the map.
+      const cut: number[][][][] = [];
+      for (const polygon of polygons) {
+        for (const ring of polygon) {
+          // Each cut piece is a ring of its own, so it becomes its own polygon.
+          for (const piece of cutRingAtAntimeridian(ring)) cut.push([piece]);
         }
-        const [x, y] = city.anchor;
-        if (x < minX || x > maxX || y < minY || y > maxY) continue;
-        candidates.push({ city, x, y });
+      }
+      const olGeometry =
+        cut.length === 1 ? new Polygon(cut[0]) : new MultiPolygon(cut);
+      olGeometry.transform("EPSG:4326", MAP_PROJECTION_CODE);
+      const feature = new Feature(olGeometry);
+      for (const [key, value] of Object.entries(props)) feature.set(key, value, true);
+      return feature;
+    };
+
+    const countries = new VectorSource({
+      features: WORLD_FEATURES.filter((f) => f.countryId).map((f) =>
+        featureFrom(f.geometry as never, { countryId: f.countryId })
+      ),
+    });
+    const inert = new VectorSource({
+      features: REST_FEATURES.map((f) => featureFrom(f.geometry as never, {})),
+    });
+
+    // Provinces arrive as raw lon/lat rings; the engine projects them.
+    const ringFeatures: Feature[] = [];
+    for (const [baseOwner, regions] of REGIONS) {
+      for (const region of regions) {
+        for (const ring of region.rings) {
+          const geometry = new Polygon([ring as number[][]]);
+          geometry.transform("EPSG:4326", MAP_PROJECTION_CODE);
+          const feature = new Feature(geometry);
+          feature.set("baseOwner", baseOwner, true);
+          feature.set("regionId", region.id, true);
+          ringFeatures.push(feature);
+        }
       }
     }
-    // Capitals first, then by population, so culling keeps the important ones.
-    // Descending tier: 3 is a national capital, 1 is a minor city. Sorting
-    // ascending here would let a county-level town claim space before the
-    // prefecture city beside it.
-    candidates.sort((a, b) => b.city.tier - a.city.tier || b.city.population - a.city.population);
+    const conquest = new VectorSource({ features: ringFeatures });
+    // Same geometry, stroked instead of filled: the interior borders.
+    const provinces = new VectorSource({ features: ringFeatures.map((f) => f.clone()) });
 
-    // Collide the actual label boxes rather than a circular radius. A radius
-    // must be wide enough for the longest name, which suppresses a whole dense
-    // province at once: at 7x zoom a 40-unit radius culled Zunyi and
-    // Liupanshui while letting the more distant Xingyi through.
-    const boxes: { x: number; y: number; w: number; h: number }[] = [];
-    const out: { city: City; x: number; y: number }[] = [];
-    const pad = 1.2 / view.k;
+    const cityFeatures: Feature[] = [];
+    for (const [countryId, cities] of CITIES) {
+      for (const city of cities) {
+        const geometry = new Point(city.lonLat);
+        geometry.transform("EPSG:4326", MAP_PROJECTION_CODE);
+        const feature = new Feature(geometry);
+        feature.set("city", city, true);
+        feature.set("countryId", countryId, true);
+        cityFeatures.push(feature);
+      }
+    }
+    const cities = new VectorSource({ features: cityFeatures });
 
-    for (const c of candidates) {
-      const isCapital = c.city.tier === 3;
-      const fontSize = (isCapital ? 10 : 9) / view.k;
-      const dotR = (isCapital ? 2.1 : 1.5) / view.k;
-      const name = lang === "zh-cn" ? c.city.zh : c.city.en;
-      // Chinese glyphs are roughly square; Latin averages much narrower.
-      const charW = lang === "zh-cn" ? 1.0 : 0.55;
-      const w = name.length * fontSize * charW;
-      const h = fontSize * 1.25;
-      const lx = c.x + 3.4 / view.k;
-      const ly = c.y - h / 2;
-
-      const clashes = boxes.some(
-        (b) =>
-          Math.abs(b.x + b.w / 2 - (lx + w / 2)) < (b.w + w) / 2 + pad &&
-          Math.abs(b.y + b.h / 2 - (ly + h / 2)) < (b.h + h) / 2 + pad
+    // One anchor per nation, at the centre of its bounding box.
+    const labelFeatures: Feature[] = [];
+    for (const [countryId, world] of PLAYABLE_FEATURES) {
+      const geometry = featureFrom(world.geometry as never, {}).getGeometry();
+      if (!geometry) continue;
+      const extent = geometry.getExtent();
+      const point = new Feature(
+        new Point([(extent[0] + extent[2]) / 2, (extent[1] + extent[3]) / 2])
       );
-      if (clashes) continue;
-
-      boxes.push({ x: c.x - dotR, y: c.y - dotR, w: dotR * 2, h: dotR * 2 });
-      boxes.push({ x: lx, y: ly, w, h });
-      out.push(c);
+      point.set("countryId", countryId, true);
+      point.set("area", (extent[2] - extent[0]) * (extent[3] - extent[1]), true);
+      labelFeatures.push(point);
     }
-    return out;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    `city|${lang}|${warming}|${settings.showProvinceCapitals}|${settings.showMajorCities}` +
-      `|${Math.round(view.k * 4)}|${Math.round(view.x / 128)}|${Math.round(view.y / 128)}` +
-      `|${destroyedKey}`,
-  ]);
+    const labels = new VectorSource({ features: labelFeatures });
 
-  // Choose which labels to draw. Candidates must clear the area gate, then are
-  // placed largest-first, skipping any that would collide with one already
-  // placed. The gap is divided by zoom so labels separate as you zoom in —
-  // without this, France/Germany/Britain overlap into an unreadable pile.
-  const labelNodes = (() => {
-    const isHighlighted = (id: string) =>
-      id === playerId || selectedId === id || hoveredId === id;
+    return { countries, inert, conquest, provinces, cities, labels };
+  }, []);
 
-    const candidates = [...PLAYABLE_FEATURES.keys()]
-      .filter((id) => !destroyedIds.has(id))
-      .map((id) => ({
-        id,
-        country: countryById(id),
-        centroid: FEATURE_CENTROIDS.get(id),
-        area: FEATURE_AREAS.get(id) ?? 0,
-      }))
-      .filter((x) => x.country && x.centroid)
-      .filter((x) => x.area * view.k * view.k >= MIN_LABEL_AREA || isHighlighted(x.id))
-      .sort((a, b) => b.area - a.area);
+  // ── Styles ───────────────────────────────────────────────────────
+  const styles = useMemo(() => {
+    const country = (feature: FeatureLike): Style[] => {
+      const c = ctxRef.current;
+      const id = feature.get("countryId") as string | undefined;
+      if (!id || c.outOfPlay.has(id)) return [];
+      const selected = c.selectedId === id;
+      return [
+        new Style({
+          fill: new Fill({ color: c.atWar.has(id) ? PALETTE.war : c.colors[id] ?? PALETTE.neutral }),
+          stroke: new Stroke({
+            color: selected ? PALETTE.selected : PALETTE.border,
+            width: selected ? 2.4 : 1,
+          }),
+        }),
+      ];
+    };
 
-    // Names are full-length now ("United States", "中国") rather than a fixed
-    // three-letter code, so a circular radius is the wrong shape — it would
-    // have to be sized for the longest name and would wipe out most of Europe.
-    const boxes: { x: number; y: number; w: number; h: number }[] = [];
-    const out: LabelNode[] = [];
-    const fontSize = 9 / Math.sqrt(view.k);
-    const charW = lang === "zh-cn" ? 0.95 : 0.5;
-    // A flag emoji is about 1.3 em wide; the gap after it is a thin space.
-    const flagW = fontSize * 1.35;
-    const gapW = fontSize * 0.32;
+    const inert = new Style({
+      fill: new Fill({ color: PALETTE.unclaimed }),
+      stroke: new Stroke({ color: PALETTE.border, width: 0.6 }),
+    });
 
-    for (const c of candidates) {
-      const [cx, cy] = c.centroid!;
-      const name = countryName(c.country) + (ui.showDebugCodes ? ` (${c.id})` : "");
-      const nameW = name.length * fontSize * charW;
-      const total = flagW + gapW + nameW;
+    const conquest = (feature: FeatureLike): Style | void => {
+      const c = ctxRef.current;
+      const base = feature.get("baseOwner") as string;
+      // Land that sank is not repainted for whoever had occupied it.
+      if (c.destroyed.has(base)) return;
+      const owner = c.state?.regionOwner?.[feature.get("regionId") as string];
+      if (!owner || owner === base) return;
+      const fill = c.colors[owner];
+      if (fill) return new Style({ fill: new Fill({ color: fill }) });
+    };
 
-      if (!isHighlighted(c.id)) {
-        const w = total;
-        const h = fontSize * 1.3;
-        const pad = 2 / view.k;
-        const clashes = boxes.some(
-          (b) =>
-            Math.abs(b.x + b.w / 2 - cx) < (b.w + w) / 2 + pad &&
-            Math.abs(b.y + b.h / 2 - cy) < (b.h + h) / 2 + pad
-        );
-        if (clashes) continue;
-        boxes.push({ x: cx - w / 2, y: cy - h / 2, w, h });
+    const province = (feature: FeatureLike): Style | void => {
+      const c = ctxRef.current;
+      if (c.destroyed.has(feature.get("baseOwner") as string)) return;
+      return new Style({ stroke: new Stroke({ color: "rgba(8, 7, 5, 0.5)", width: 0.5 }) });
+    };
+
+    const city = (feature: FeatureLike): Style[] => {
+      const c = ctxRef.current;
+      const city = feature.get("city") as City;
+      const countryId = feature.get("countryId") as string;
+      if (c.outOfPlay.has(countryId)) return [];
+      const k = factorRef.current();
+      if (k < CITY_MIN_ZOOM[city.tier]) return [];
+      if (city.tier !== 3) {
+        const allowed = city.isProvinceCapital
+          ? c.settings.showProvinceCapitals
+          : c.settings.showMajorCities;
+        if (!allowed) return [];
       }
+      const capital = city.tier === 3;
+      return [
+        new Style({
+          image: new CircleStyle({
+            radius: capital ? 2.6 : 1.9,
+            fill: new Fill({ color: "#e9dfc6" }),
+            stroke: new Stroke({ color: PALETTE.border, width: 0.8 }),
+          }),
+          text: new TextStyle({
+            text: c.lang === "zh-cn" ? city.zh : city.en,
+            font: `${capital ? 11 : 10}px "WF Body", sans-serif`,
+            offsetX: 6,
+            textAlign: "left",
+            fill: new Fill({ color: "#e6dcc4" }),
+            stroke: new Stroke({ color: "rgba(6, 6, 5, 0.85)", width: 3 }),
+          }),
+        }),
+      ];
+    };
 
-      // Two anchors: the flag sits at the left edge of the run, the name after
-      // it. Both are middle-anchored so the pair stays centred on the centroid.
-      const left = cx - total / 2;
-      out.push({
-        ...c,
-        flagX: left + flagW / 2,
-        nameX: left + flagW + gapW + nameW / 2,
-        name,
+    const label = (feature: FeatureLike): Style[] => {
+      const c = ctxRef.current;
+      const id = feature.get("countryId") as string;
+      if (c.outOfPlay.has(id)) return [];
+      if (!(c.preview ? c.preview.showLabels !== false : c.settings.showCountryNames)) return [];
+      const highlighted = id === c.playerId || id === c.selectedId || id === c.hoveredId;
+      const k = factorRef.current();
+      if (((feature.get("area") as number) ?? 0) * k >= MIN_LABEL_AREA || highlighted) {
+        const country =
+          c.state?.countries.find((x) => x.id === id) ?? COUNTRIES.find((x) => x.id === id);
+        if (country) {
+          return [
+            new Style({
+              image: new Icon({
+                src: `/flags/${id.toLowerCase()}.svg`,
+                anchor: [1, 0.5],
+                scale: 0.16,
+              }),
+              text: new TextStyle({
+                text: countryName(country) + (c.ui.showDebugCodes ? ` (${id})` : ""),
+                font: '600 11px "WF Display", sans-serif',
+                offsetX: 9,
+                textAlign: "left",
+                fill: new Fill({ color: "#efe6ce" }),
+                stroke: new Stroke({ color: "rgba(6, 6, 5, 0.9)", width: 3.4 }),
+              }),
+            }),
+          ];
+        }
+      }
+      return [];
+    };
+
+    const regionLabel = (feature: FeatureLike): Style | void => {
+      const c = ctxRef.current;
+      if (!c.settings.showRegionNames) return;
+      const base = feature.get("baseOwner") as string;
+      if (c.destroyed.has(base)) return;
+      const k = factorRef.current();
+      if (k < REGION_LABEL_MIN_ZOOM) return;
+      const region: Region | undefined = REGIONS.get(base)?.find(
+        (r) => r.id === feature.get("regionId")
+      );
+      if (!region || region.area * k * k < MIN_REGION_LABEL_AREA) return;
+      return new Style({
+        text: new TextStyle({
+          text: c.lang === "zh-cn" ? region.zh : region.en,
+          font: '10px "WF Body", sans-serif',
+          fill: new Fill({ color: "rgba(216, 207, 186, 0.72)" }),
+          stroke: new Stroke({ color: "rgba(6, 6, 5, 0.8)", width: 3 }),
+        }),
       });
+    };
+
+    return { country, inert, conquest, province, city, label, regionLabel };
+  }, [baseZoom]);
+
+  // ── The map itself, created once ─────────────────────────────────
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+
+    const inertLayer = new VectorLayer({ source: sources.inert, style: styles.inert });
+    const layers: MapLayers = {
+      countries: new VectorLayer({ source: sources.countries, style: styles.country }),
+      conquest: new VectorLayer({ source: sources.conquest, style: styles.conquest, zIndex: 2 }),
+      provinces: new VectorLayer({ source: sources.provinces, style: styles.province, zIndex: 3 }),
+      regionLabels: new VectorLayer({
+        source: sources.provinces,
+        style: styles.regionLabel,
+        zIndex: 4,
+        declutter: true,
+      }),
+      // `declutter` is the engine dropping overlapping labels for us — the
+      // hand-rolled SVG map spent a few hundred lines on that.
+      cities: new VectorLayer({
+        source: sources.cities,
+        style: styles.city,
+        zIndex: 6,
+        declutter: true,
+      }),
+      labels: new VectorLayer({
+        source: sources.labels,
+        style: styles.label,
+        zIndex: 8,
+        declutter: true,
+      }),
+    };
+
+    const map = new Map({
+      target: containerRef.current,
+      layers: [
+        new Graticule({
+          strokeStyle: new Stroke({ color: PALETTE.graticule, width: 0.6 }),
+          showLabels: false,
+          wrapX: false,
+          zIndex: 0,
+        }),
+        inertLayer,
+        layers.countries,
+        layers.conquest,
+        layers.provinces,
+        layers.regionLabels,
+        layers.cities,
+        layers.labels,
+      ],
+      view: new View({
+        projection: MAP_PROJECTION_CODE,
+        center: [MAP_WIDTH / 2, MAP_HEIGHT / 2],
+        zoom: 0,
+        constrainResolution: false,
+        // Panning stops at the edges of the map plus a margin, instead of
+        // letting the camera wander into empty space. The margin matters at the
+        // fitted zoom: the world is 2:1 and the viewport rarely is, so some
+        // slack around the box keeps the letterboxed axis scrollable.
+        extent: [-PAD, -PAD, MAP_WIDTH + PAD, MAP_HEIGHT + PAD],
+      }),
+      controls: [],
+    });
+    mapRef.current = map;
+    layersRef.current = layers;
+
+    // Dev-only handle, the same courtesy the store extends to the console.
+    if (import.meta.env.DEV) {
+      (window as unknown as { __worldmap?: Map }).__worldmap = map;
     }
-    return out;
-  })();
+
+    const view = map.getView();
+    /**
+     * Frame the whole world.
+     *
+     * The container is laid out by the app shell a frame or two after mount, so
+     * fitting once at creation framed a map that was still 534 pixels wide and
+     * left the camera zoomed into the middle of Asia. It runs again on every
+     * container resize until it has a real size — and only until then, so
+     * opening a panel later does not yank the camera back.
+     */
+    let framed = false;
+    const frameWorld = () => {
+      const size = map.getSize();
+      if (!size || size[0] === 0) return;
+      map.updateSize();
+      // Contain the world box in the viewport, centred. Computed rather than
+      // fitted: `View.fit` also has to satisfy the view's own extent, and the
+      // pair together left the camera zoomed into Asia.
+      const resolution = Math.max(MAP_WIDTH / size[0], MAP_HEIGHT / size[1]);
+      view.setCenter([MAP_WIDTH / 2, MAP_HEIGHT / 2]);
+      view.setResolution(resolution);
+      if (framed) return;
+      framed = true;
+      baseResRef.current = resolution;
+      // Bounds for the wheel: from the framed world out to ZOOM_SPAN levels in,
+      // which is what the old SVG map allowed.
+      const zoom = view.getZoom() ?? 0;
+      view.setMinZoom(zoom);
+      view.setMaxZoom(zoom + ZOOM_SPAN);
+      setBaseZoom(resolution);
+    };
+    frameWorld();
+    const observer = new ResizeObserver(() => frameWorld());
+    observer.observe(containerRef.current);
+
+    const countryAt = (pixel: number[]) =>
+      map.forEachFeatureAtPixel(
+        pixel,
+        (f) => (f.get("countryId") as string | undefined) ?? null,
+        { hitTolerance: 1, layerFilter: (l) => l === layers.countries }
+      ) ?? null;
+
+    map.on("pointermove", (event) => {
+      const id = countryAt(event.pixel);
+      setHoveredId(id);
+      const original = event.originalEvent as PointerEvent;
+      setTooltip(id ? { x: original.offsetX, y: original.offsetY, id } : null);
+    });
+    map.on("singleclick", (event) => {
+      const id = countryAt(event.pixel);
+      if (!id) return;
+      if (ctxRef.current.preview) ctxRef.current.preview.onSelect(id);
+      else selectCountry(id);
+    });
+
+    return () => {
+      observer.disconnect();
+      map.setTarget(undefined);
+      mapRef.current = null;
+      layersRef.current = null;
+    };
+  }, [sources, styles, setHoveredId]);
+
+  // ── Restyle when the world changes ───────────────────────────────
+  // The signature covers everything the style functions read. Anything else —
+  // the clock ticking, a log line — must not force a repaint, which is the
+  // whole point of moving off per-frame SVG.
+  const signature = [
+    Object.values(colors).join(""),
+    [...atWar].sort().join(","),
+    [...outOfPlay].sort().join(","),
+    Object.entries(state?.regionOwner ?? {})
+      .sort()
+      .flat()
+      .join(","),
+    hoveredId ?? "",
+    selectedId ?? "",
+    String(settings.showCountryNames),
+    String(settings.showRegionNames),
+    String(settings.showProvinceCapitals),
+    String(settings.showMajorCities),
+    String(ui.showDebugCodes),
+    lang,
+    String(baseZoom),
+  ].join("|");
+
+  useEffect(() => {
+    const layers = layersRef.current;
+    if (!layers) return;
+    for (const layer of Object.values(layers)) layer.changed();
+  }, [signature]);
+
+  const resetView = () => {
+    const map = mapRef.current;
+    if (!map) return;
+    const size = map.getSize();
+    if (!size) return;
+    const resolution = Math.max(MAP_WIDTH / size[0], MAP_HEIGHT / size[1]);
+    map.getView().setCenter([MAP_WIDTH / 2, MAP_HEIGHT / 2]);
+    map.getView().setResolution(resolution);
+  };
+
+  const hovered: Country | undefined = tooltip
+    ? preview
+      ? COUNTRIES.find((c) => c.id === tooltip.id)
+      : state?.countries.find((c) => c.id === tooltip.id)
+    : undefined;
 
   return (
     <div className="worldmap">
-      <svg
-        ref={svgRef}
-        viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
-        preserveAspectRatio="xMidYMid meet"
-        onWheel={onWheel}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerLeave={() => {
-          endDrag();
-          setTooltip(null);
-          setHoveredId(null);
-        }}
-        className="worldmap-svg"
-      >
-        <defs>
-          <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <rect width="6" height="6" fill={PALETTE.war} />
-            <line x1="0" y1="0" x2="0" y2="6" stroke="#ffffff" strokeWidth="2" opacity="0.35" />
-          </pattern>
-          {/* Province borders come from a 10m dataset while the nation outline
-              is 110m. Clipping each nation's provinces to its own outline hides
-              that mismatch: lines stop exactly at the border instead of
-              spilling into the sea or over a neighbour. */}
-          {[...PLAYABLE_FEATURES.entries()].map(([id, f]) => (
-            <clipPath id={`clip-${id}`} key={`clip-${id}`}>
-              <path d={FEATURE_PATHS.get(f) ?? ""} />
-            </clipPath>
-          ))}
-        </defs>
-
-        <g transform={`translate(${view.x},${view.y}) scale(${view.k})`}>
-          <path d={SPHERE_PATH} fill={PALETTE.ocean} stroke="#1d2f3d" strokeWidth={1} />
-          <path d={GRATICULE_PATH} fill="none" stroke={PALETTE.graticule} strokeWidth={0.5} />
-
-          {/* Non-playable nations — inert backdrop */}
-          <InertLayer />
-
-          {/* Playable nations */}
-          {[...PLAYABLE_FEATURES.entries()].map(([countryId, f]) => {
-            if (destroyedIds.has(countryId)) return null;
-            const isSelected = selectedId === countryId;
-            const isHovered = hoveredId === countryId;
-            const atWar = atWarSet.has(countryId);
-            return (
-              <path
-                key={countryId}
-                data-country={countryId}
-                d={FEATURE_PATHS.get(f) ?? ""}
-                fill={atWar ? "url(#hatch)" : colors[countryId] ?? PALETTE.neutral}
-                stroke={isSelected ? PALETTE.selected : PALETTE.border}
-                strokeWidth={isSelected ? 2.5 : 1}
-                vectorEffect="non-scaling-stroke"
-                className={`worldmap-country${isHovered ? " is-hovered" : ""}${isSelected ? " is-selected" : ""}`}
-                onPointerEnter={() => setHoveredId(countryId)}
-                onPointerLeave={() => setHoveredId(null)}
-                onClick={() => handleSelect(countryId)}
-              />
-            );
-          })}
-
-          {/* Territory that changed hands, painted over the original owner */}
-          {!preview && (
-            <ConqueredLayer
-              regionOwner={state?.regionOwner ?? {}}
-              colors={colors}
-              destroyed={destroyedIds}
-            />
-          )}
-
-          {/* Interior administrative boundaries */}
-          {showInterior && <ProvinceLayer destroyed={destroyedIds} />}
-
-          {/* Cities — dot plus name, revealed tier by tier as you zoom */}
-          {showCities && cityLabels.map(({ city, x, y }) => {
-            const isCapital = city.tier === 3;
-            const r = (isCapital ? 2.1 : 1.5) / view.k;
-            const fontSize = (isCapital ? 10 : 9) / view.k;
-            return (
-              <g key={`city-${city.id}`} className={`worldmap-city worldmap-city--t${city.tier}`} pointerEvents="none">
-                <circle cx={x} cy={y} r={r} />
-                <text
-                  x={x + 3.4 / view.k}
-                  y={y}
-                  dominantBaseline="middle"
-                  style={{ fontSize: `${fontSize}px`, strokeWidth: `${fontSize * HALO_RATIO}px` }}
-                >
-                  {lang === "zh-cn" ? city.zh : city.en}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* Region labels — gated on zoom, thinned by collision */}
-          {showInterior && regionLabels.map(({ region, x, y }) => (
-            <text
-              key={`rlabel-${region.id}`}
-              x={x}
-              y={y}
-              textAnchor="middle"
-              className="worldmap-region-label"
-              style={{ fontSize: `${9.5 / view.k}px`, strokeWidth: `${(9.5 / view.k) * HALO_RATIO}px` }}
-              pointerEvents="none"
-            >
-              {lang === "zh-cn" ? region.zh : region.en}
-            </text>
-          ))}
-
-          {/* Nation labels */}
-          {/* Map flags are SVG images, not the emoji font.
-              Chromium renders the colour-glyph flags in SVG text fine; WebKit
-              does not — it drops the colour layers and draws the bare regional
-              indicators, so the map read "CN" / "US". It is also size-sensitive:
-              at map scale the glyph is only ~4 device pixels. An <image> has
-              neither problem and is identical in every engine. The emoji font
-              is still used everywhere flags appear as text (HTML), where it
-              works. */}
-          {showCountryLabels && labelNodes.map((node) => {
-            const { id, nameX, name } = node;
-            const y = node.centroid![1];
-            const size = 9 / Math.sqrt(view.k);
-            const cls = id === playerId ? " is-player" : "";
-            // Flag geometry: emoji flags are about 1.35 em wide and 1 em tall.
-            const fw = size * 1.35;
-            const fh = size * 0.98;
-            return (
-              <g key={`label-${id}`} pointerEvents="none">
-                <image
-                  href={`/flags/${id.toLowerCase()}.svg`}
-                  x={node.flagX - fw / 2}
-                  y={y - fh / 2}
-                  width={fw}
-                  height={fh}
-                  preserveAspectRatio="xMidYMid meet"
-                />
-                <text
-                  x={nameX}
-                  y={y}
-                  textAnchor="middle"
-                  className={`worldmap-label${cls}`}
-                  style={{ fontSize: `${size}px`, strokeWidth: `${size * HALO_RATIO}px` }}
-                >
-                  {name}
-                </text>
-              </g>
-            );
-          })}
-        </g>
-      </svg>
+      <div ref={containerRef} className="worldmap-svg" />
 
       {tooltip && hovered && (
-        <div
-          className="worldmap-tooltip"
-          style={{ left: tooltip.x + 14, top: tooltip.y + 14 }}
-        >
+        <div className="worldmap-tooltip" style={{ left: tooltip.x + 14, top: tooltip.y + 14 }}>
           <div className="worldmap-tooltip__title">
             {hovered.flag} {countryName(hovered)}
             {hovered.id === playerId && <span className="tag tag--you">{t("ui.side.you")}</span>}
           </div>
           {playerId && hovered.id !== playerId && (
             <div className="worldmap-tooltip__row">
-              {t("ui.diplo.relation")}: <b>{relFor(hovered.id)}</b> ·{" "}
-              {t(`att.${getAttitude(state?.countries.find((c) => c.id === hovered.id)?.relations[playerId] ?? 0)}_short`)}
+              {t("ui.diplo.relation")}: <b>{hovered.relations[playerId] ?? 0}</b> ·{" "}
+              {t(`att.${getAttitude(hovered.relations[playerId] ?? 0)}_short`)}
             </div>
           )}
           <div className="worldmap-tooltip__row">
-            {t("ui.nation.economy")} {hovered.economy} · {t("ui.nation.military")} {hovered.military} ·{" "}
-            {t("ui.nation.stability")} {hovered.stability}
+            {t("ui.nation.economy")} {hovered.economy} · {t("ui.nation.military")} {hovered.military}{" "}
+            · {t("ui.nation.stability")} {hovered.stability}
           </div>
-          {atWarSet.has(hovered.id) && <div className="worldmap-tooltip__war">⚔ {t("ui.legend.war")}</div>}
+          {atWar.has(hovered.id) && <div className="worldmap-tooltip__war">⚔ {t("ui.legend.war")}</div>}
           {/* Subject status is otherwise invisible: it lives on the lesser
               nation, or is implied by occupied land, and no panel shows it. */}
           {state && playerId && hovered.id !== playerId && (
@@ -678,12 +624,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
 
       {!preview && <div className="worldmap-hint">{t("ui.map.hint")}</div>}
 
-      <button
-        className="worldmap-reset"
-        onClick={() => setView(IDENTITY)}
-        title={t("ui.btn.reset_view")}
-      >
-        ⟲
+      <button className="worldmap-reset" onClick={resetView} title={t("ui.map.reset")}>
+        ⌖
       </button>
     </div>
   );

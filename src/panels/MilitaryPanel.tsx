@@ -1,6 +1,6 @@
 import React from "react";
 import { useStore, requestConfirm } from "../game/store";
-import { getCountryById, getPlayerCountry } from "../game/state";
+import { getCountryById, getPlayerCountry, isOutOfPlay } from "../game/state";
 import { Section, Stat, Bar, ActionButton, NationRow } from "../components/shared";
 import TimedAction from "../components/TimedAction";
 import { checkAction, getAction } from "../game/actions";
@@ -21,7 +21,7 @@ const MilitaryPanel: React.FC = () => {
   const target = getCountryById(state, selectedId);
   const isSelf = !target || target.id === state.playerCountryId;
 
-  const others = state.countries.filter((c) => c.id !== state.playerCountryId && !c.destroyed);
+  const others = state.countries.filter((c) => c.id !== state.playerCountryId && !isOutOfPlay(state, c.id));
 
   // Nuclear strike preconditions, mirroring the `nuclear` command exactly.
   const nukeCheck = checkAction(state, getAction("mil.nuclear")!, state.playerCountryId, target?.id);

@@ -40,7 +40,7 @@ npm run tauri:build    # → src-tauri/target/release/bundle/
 
 ## 已知限制
 
-- **世界新闻关键词在浏览器 / webview 里会退回内置列表。** 汇率接口（`open.er-api.com`）带 CORS 头，能实时获取；但 `news.google.com/rss` 没有，浏览器请求会被拦。原版是在 Bun 服务端抓的，没有这个问题。要恢复实时头条，需要把抓取挪到 Rust 侧（要引入 `reqwest` 之类的 HTTP 客户端）。
+- ~~世界新闻关键词在浏览器 / webview 里会退回内置列表。~~ **已修复**：桌面版的新闻抓取改由 Rust 侧完成（`fetch_feed` 命令，`reqwest` + rustls，URL 走白名单），webview 不再直接请求 `news.google.com` —— 那一侧的 CORS 拦不住 Rust。浏览器版（`npm run dev`）没有 Rust 可问，仍会退回内置关键词。汇率接口（`open.er-api.com`）带 CORS 头，一直是从前端直接取的。
 
 ## 操作
 
@@ -234,6 +234,8 @@ npm run tauri:build    # → src-tauri/target/release/bundle/
 
 **事件变得稀有。** 终端版**每天**生成 1–3 个世界事件，手动点日期时没问题，但在 5 天/秒下会刷屏。现在 `DAILY_EVENT_CHANCE = 0.08`（`src/game/events.ts`），绝大多数日子是平静的。
 
+**AI 不再无脑开战。** 每个国家带一个 `aggression`（俄罗斯 1.3、朝鲜 1.6、以色列 1.5；德国 0.4、巴西 0.3），开战要先过一道「立场」筛选：不与盟友或任何一方视为盟友的国家开战、必须**双方**都处于不死不休（关系 ≤ −50）且要么在彼此的 `enemies` 名单里、要么关系已经跌破 −70、必须是能打赢的仗（侵略性强的接受接近均势，其余要求至少 1.1 倍优势）、而且**已经在打的国家不会再开第二战场**。`aggression < 0.5` 的国家（德国、巴西）永不主动入侵。实测 5 场 400 天的模拟里 300 次宣战**全部**发生在彼此认定的敌对国家之间，且没有一次打在盟友、弱者或既有战事之外。
+
 **崩坏度被重新标定。** 沿用原来的每日数值，一个战役在 5× 下**约 6 秒就结束了**。收益现在以小数累积在 `worldCollapseRaw` 中（`worldCollapse` 是显示用的取整值），`src/game/state.ts` 里的 `COLLAPSE_SCALE` 是调节战役长度的唯一旋钮。目前一个战役约 **140 天**，足够让 60–180 天的科研和跨国策产生意义。按影响排序的调节项：`DAILY_EVENT_CHANCE`、`COLLAPSE_SCALE`、AI 的 `AI_WAR_CHANCE`。
 
 **事件以气泡呈现**，钉在地图右下角：世界事件**和** AI 行动都在那里。每条存活 30 秒，右键永久关闭（不存档、不重播）。完整记录保留在日志面板。AI 国家每天行动，所以只有**值得注意**的（宣战、和平、制裁）会打断你——十一个国家天天动，那是噪音不是新闻。世界新闻限流为每 5 个游戏日一条。
@@ -244,6 +246,8 @@ npm run tauri:build    # → src-tauri/target/release/bundle/
 
 ## 地图
 
+
+**渲染引擎：OpenLayers。** 地图以前是自己写的 SVG —— 每次 store 通知都要 React 重绘上千条省份 path，浏览器再把它们重新栅格化一遍，平移缩放都卡在这个循环里。现在几何体放在 canvas 里，移动的是相机：平移缩放是一次变换而不是一次协调，投影（`geo.ts` 里把 d3 的 Natural Earth 投影注册成了 OpenLayers 的坐标参考系）、命中测试、图层顺序、标签避让（`declutter`）都由引擎负责。观感不变：同一套投影、同一套调色板、同样的图层顺序。
 地图是真实地理——通过 `world-atlas` 使用 Natural Earth 110m 边界，用 `d3-geo`（Natural Earth I 投影）渲染为 SVG。约 177 个国家全部绘制，其中 12 个可玩国家可交互、有颜色，其余是惰性的灰色地形。
 
 六种地图模式按不同指标重新上色：
@@ -392,11 +396,11 @@ src/
     save.ts                base64 序列化（Tauri 文件系统或 localStorage）
     worldData.ts           实时汇率与新闻关键词提取
   map/
-    geo.ts                 TopoJSON → GeoJSON → 投影后的 SVG 路径
+    geo.ts                 TopoJSON → GeoJSON；d3 投影注册为 OpenLayers 的坐标参考系
     provinces.ts           行政区划数据与标注
     cities.ts              城市数据与分层
     colors.ts              地图模式配色与图例
-    WorldMap.tsx           SVG 地图：平移、缩放、悬停、选中
+    WorldMap.tsx           OpenLayers 地图：图层、样式、悬停、选中
   panels/                  右侧操作面板
     NationPanel / DecisionPanel / ResearchPanel / ArmyPanel
     CommandPanel / DiplomacyPanel / MilitaryPanel / EconomyPanel

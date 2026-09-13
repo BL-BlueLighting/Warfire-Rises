@@ -1,5 +1,12 @@
-import { GameState, getAttitude } from "./types";
-import { getCountryById, adjustRelation, applyCollapse, addForce, addPublicSupport } from "./state";
+import { GameState, getAttitude, type Country } from "./types";
+import {
+  getCountryById,
+  adjustRelation,
+  applyCollapse,
+  addForce,
+  addPublicSupport,
+  isOutOfPlay,
+} from "./state";
 import { t } from "../i18n";
 import { countryShortName } from "./names";
 import { startDefensiveWar } from "./war";
@@ -19,16 +26,22 @@ export const AI_WAR_CHANCE = 0.15;
 export interface AiAction {
   text: string;
   notable: boolean;
+  /**
+   * Set on declarations of war. The prose alone cannot say who moved: both
+   * sides' `atWarWith` lists grow on the same day, so anything watching the
+   * world (a test, a future notification) needs the pair spelled out.
+   */
+  war?: { attacker: string; defender: string };
 }
 
 export function runAI(state: GameState): AiAction[] {
   const actions: AiAction[] = [];
-  const note = (text: string, notable = false): void => {
-    actions.push({ text, notable });
+  const note = (text: string, notable = false, war?: AiAction["war"]): void => {
+    actions.push({ text, notable, war });
   };
-  // Erased nations have no government left to act.
+  // Erased or defeated nations have no government left to act.
   const aiCountries = state.countries.filter(
-    (c) => c.id !== state.playerCountryId && !c.destroyed
+    (c) => c.id !== state.playerCountryId && !isOutOfPlay(state, c.id)
   );
 
   for (const ai of aiCountries) {
@@ -40,41 +53,44 @@ export function runAI(state: GameState): AiAction[] {
       const target = pickAITarget(state, ai.id);
 
       if (roll < 0.25 && target) {
-        // Diplomatic action
+        // Diplomatic action — which, against the right country and given the
+        // appetite for it, may be a declaration of war.
+        const tgt = getCountryById(state, target);
         const attitude = getAttitude(ai.relations[target] ?? 0);
-        if (attitude === "peaceful" || attitude === "neutral") {
+        // Only a nation this country is genuinely finished with is a war
+        // target. `warCandidates` already sifted the world down to hostile,
+        // unallied, beatable nations; the target picked for diplomacy has to be
+        // one of them before the army is even an option.
+        const warTarget = warCandidates(state, ai).find((c) => c.id === target);
+        const warRoll =
+          AI_WAR_CHANCE * profileFor(state).warChance * (warTarget ? ai.aggression : 0);
+
+        if (warTarget && ai.publicSupport > 65 && ai.military > 50 && Math.random() < warRoll) {
+          // Attacking the player is an invasion, not background chatter.
+          if (target === state.playerCountryId) {
+            if (!startDefensiveWar(state, ai.id)) continue;
+            note(
+              t("ai.war_declared", { flag: ai.flag, name: countryShortName(ai), target: countryShortName(tgt) || target }),
+              true,
+              { attacker: ai.id, defender: target }
+            );
+            continue;
+          }
+          ai.atWarWith.push(target);
+          if (tgt) tgt.atWarWith.push(ai.id);
+          adjustRelation(state, ai.id, target, -25);
+          applyCollapse(state, 1.5, t("ai.war_declared", { flag: ai.flag, name: countryShortName(ai), target: countryShortName(tgt) || target }));
+          note(
+            t("ai.war_declared", { flag: ai.flag, name: countryShortName(ai), target: countryShortName(tgt) || target }),
+            true,
+            { attacker: ai.id, defender: target }
+          );
+        } else if (attitude === "peaceful" || attitude === "neutral") {
           adjustRelation(state, ai.id, target, 5 + Math.floor(Math.random() * 10));
           note(t("ai.action.diplomacy", { flag: ai.flag, name: countryShortName(ai) }));
-        } else if (attitude === "irreconcilable" && ai.publicSupport > 65 && ai.military > 50) {
-          const tgt = getCountryById(state, target);
-          // Guard against re-declaring: without this the same pair re-declares
-          // every single day, each time adding collapse and driving relations
-          // further down — a runaway that was invisible in the CLI edition's
-          // short campaign but ends a continuous-time game in seconds.
-          const alreadyAtWar =
-            ai.atWarWith.includes(target) || (tgt?.atWarWith.includes(ai.id) ?? false);
-          // Even when everything lines up, an AI only rarely takes the plunge.
-          // With 12 nations there are 66 possible pairs, so an ungated roll had
-          // wars accumulating into a collapse cascade.
-          if (!alreadyAtWar && Math.random() < AI_WAR_CHANCE * profileFor(state).warChance) {
-            // Attacking the player is an invasion, not background chatter.
-            if (target === state.playerCountryId) {
-              if (!startDefensiveWar(state, ai.id)) continue;
-              actions.push({
-                text: t("ai.war_declared", { flag: ai.flag, name: countryShortName(ai), target: countryShortName(tgt) || target }),
-                notable: true,
-              });
-              continue;
-            }
-            ai.atWarWith.push(target);
-            if (tgt) tgt.atWarWith.push(ai.id);
-            adjustRelation(state, ai.id, target, -25);
-            applyCollapse(state, 1.5, t("ai.war_declared", { flag: ai.flag, name: countryShortName(ai), target: countryShortName(tgt) || target }));
-            note(t("ai.war_declared", { flag: ai.flag, name: countryShortName(ai), target: countryShortName(tgt) || target }), true);
-          }
         } else {
           adjustRelation(state, ai.id, target, -5);
-          note(t("ai.sanction_imposed", { flag: ai.flag, name: countryShortName(ai), target: countryShortName(getCountryById(state, target)) || target }), true);
+          note(t("ai.sanction_imposed", { flag: ai.flag, name: countryShortName(ai), target: countryShortName(tgt) || target }), true);
         }
       } else if (roll < 0.45) {
         // Military drill
@@ -137,11 +153,64 @@ export function runAI(state: GameState): AiAction[] {
   return actions;
 }
 
+/**
+ * The nations this one is willing to fight *today*.
+ *
+ * The point is that a war should read as a position, not a dice roll. Most of
+ * that comes from the world's own data — the allies/enemies lists and the
+ * relations table are drawn from real alignments — and the rest from the
+ * nation's own appetite (`aggression`) and from whether the war is winnable.
+ *
+ * Excluded, in order: itself, nations already out of play, anyone either side
+ * counts as an ally, anyone the two are not *mutually* done with (one-sided
+ * hostility is a grudge), nations already at war, and nations too strong to
+ * take on.
+ */
+function warCandidates(state: GameState, ai: Country): Country[] {
+  // One war at a time. A nation already fighting does not open a second front
+  // on a whim — this single line removes most of the cascade the old AI caused.
+  if (ai.atWarWith.length > 0) return [];
+  // Some nations do not invade anybody. They still defend themselves, sanction
+  // and manoeuvre; they just never pull the trigger first.
+  if (ai.aggression < PACIFIST) return [];
+
+  return state.countries.filter((other) => {
+    if (other.id === ai.id) return false;
+    if (isOutOfPlay(state, other.id)) return false;
+    if (ai.allies.includes(other.id) || other.allies.includes(ai.id)) return false;
+    if (ai.atWarWith.includes(other.id) || other.atWarWith.includes(ai.id)) return false;
+    // Both sides have to be done with each other — one-sided hostility is a
+    // grudge, not a war.
+    const own = ai.relations[other.id] ?? 0;
+    const theirs = other.relations[ai.id] ?? 0;
+    if (own > IRRECONCILABLE || theirs > IRRECONCILABLE) return false;
+    // Either the roster already names them an adversary (that table is the
+    // world's own stance), or the relationship has gone past the point of no
+    // return since. Random pairs that merely drifted apart do not qualify.
+    if (!ai.enemies.includes(other.id) && !(own <= HOSTILE_RELATION && theirs <= HOSTILE_RELATION)) {
+      return false;
+    }
+    // A war you cannot win is not a plan: the aggressive nations will accept
+    // near parity, everyone else wants an edge.
+    const acceptable = ai.aggression >= 1.2 ? 0.85 : 1.1;
+    return ai.military >= other.military * acceptable;
+  });
+}
+
+/** Below this the UI already reads "irreconcilable" — see types.ts. */
+const IRRECONCILABLE = -50;
+
+/** Deep enough that even a nation without a grudge on record will move. */
+const HOSTILE_RELATION = -70;
+
+/** Nations below this appetite never start a war, whatever the provocation. */
+const PACIFIST = 0.5;
+
 function pickAITarget(state: GameState, countryId: string): string | null {
   const country = getCountryById(state, countryId);
   if (!country) return null;
 
-  const others = state.countries.filter((c) => c.id !== countryId && !c.destroyed);
+  const others = state.countries.filter((c) => c.id !== countryId && !isOutOfPlay(state, c.id));
   if (others.length === 0) return null;
 
   // Prefer enemies, then tense relations, then random

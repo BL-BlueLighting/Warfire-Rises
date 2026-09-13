@@ -3,6 +3,7 @@ import worldRaw from "world-atlas/countries-110m.json?raw";
 import { geoNaturalEarth1, geoPath, geoGraticule10 } from "d3-geo";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import { GEO_IDS, GEO_NAME_HINTS } from "../game/countries";
+import { Projection, addCoordinateTransforms, addProjection } from "ol/proj";
 
 /** Interior size of the map canvas. The SVG scales this to its container. */
 export const MAP_WIDTH = 1000;
@@ -151,3 +152,92 @@ export const FEATURE_CENTROIDS: Map<string, [number, number]> = new Map(
 export const FEATURE_AREAS: Map<string, number> = new Map(
   [...PLAYABLE_FEATURES.entries()].map(([id, f]) => [id, Math.abs(pathGen.area(f))])
 );
+
+
+/**
+ * Split a ring wherever it crosses the antimeridian.
+ *
+ * Russia's country outline, Chukotka's provinces, Antarctica and Fiji all have
+ * rings that run from +179° to -179°: a step of two degrees on the ground, but
+ * of 358 in longitude. Projected point by point — which is what a map engine
+ * does — that segment smears right across the map as a horizontal band. d3's
+ * `geoPath` cut these for the SVG renderer; a real engine has to be handed cut
+ * geometry. The crossing is interpolated to exactly ±180° so the halves meet on
+ * the seam rather than on a diagonal.
+ *
+ * Interior rings are not handled: this dataset has none, and a cut hole would
+ * come out filled.
+ *
+ * Typed structurally rather than as a tuple of pairs: TypeScript reads
+ * `[number, number][]` in a nested array position as a two-element *tuple* of
+ * arrays, and refuses the call.
+ */
+export function cutRingAtAntimeridian(ring: number[][]): number[][][] {
+  const pieces: number[][][] = [];
+  let current: number[][] = [];
+
+  for (const point of ring) {
+    const previous = current[current.length - 1];
+    if (previous && Math.abs(point[0] - previous[0]) > 180) {
+      const east = previous[0] > 0 ? 180 : -180;
+      const span = point[0] - previous[0];
+      const t = span === 0 ? 0 : (east - previous[0]) / span;
+      const lat = previous[1] + (point[1] - previous[1]) * t;
+      current.push([east, lat]);
+      if (current.length >= 3) pieces.push(current);
+      current = [[-east, lat], point];
+      continue;
+    }
+    current.push(point);
+  }
+  if (current.length >= 3) pieces.push(current);
+  return pieces;
+}
+
+// ── OpenLayers projection ──────────────────────────────────────────
+
+/**
+ * The same Natural Earth projection the SVG map used, registered with
+ * OpenLayers as a coordinate reference system.
+ *
+ * The engine projects for itself, so it needs a projection rather than
+ * pre-baked path data: `addCoordinateTransforms` is what lets a plain
+ * longitude/latitude pair go in and the d3 projection's own output come out.
+ * Units are nominal — every distance in this map is measured in the fitted
+ * 1000×500 box, and inventing metres for them would only add a conversion.
+ */
+export const MAP_PROJECTION_CODE = "NE1";
+
+export function registerMapProjection(): void {
+  const projection_ = new Projection({
+    code: MAP_PROJECTION_CODE,
+    units: "m",
+    // Projected extent (the fitted 1000×500 box) and the geographic one it
+    // covers. OpenLayers' graticule and extent maths read `worldExtent` to
+    // decide which lines of latitude exist at all; without it they see `null`.
+    extent: [0, 0, MAP_WIDTH, MAP_HEIGHT],
+    worldExtent: [-180, -90, 180, 90],
+    global: false,
+  });
+  addProjection(projection_);
+  // d3 measures y downwards from the top of the box (the SVG convention);
+  // OpenLayers measures it upwards from the bottom. Without this flip the whole
+  // world renders upside down.
+  const flip = (point: [number, number]): [number, number] => [point[0], MAP_HEIGHT - point[1]];
+
+  addCoordinateTransforms(
+    "EPSG:4326",
+    projection_,
+    // d3 returns null for anything it cannot place (poles, clipped corners).
+    (coord) => {
+      const projected = projection(coord as [number, number]) as [number, number] | null;
+      return projected ? flip(projected) : [MAP_WIDTH / 2, MAP_HEIGHT / 2];
+    },
+    (coord) => {
+      const inverted = projection.invert?.(
+        flip(coord as [number, number]) as [number, number]
+      ) as [number, number] | null;
+      return inverted ?? [0, 0];
+    }
+  );
+}

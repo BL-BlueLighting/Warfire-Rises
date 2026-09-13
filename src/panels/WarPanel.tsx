@@ -1,6 +1,6 @@
 import React from "react";
 import { useStore, runAction, selectCountry, requestConfirm } from "../game/store";
-import { getCountryById } from "../game/state";
+import { getCountryById, isOutOfPlay } from "../game/state";
 import { canDeclareWar, playerWarSide } from "../game/war";
 import { BASE_FRONTAGE, DEFENDER_FRONTAGE, DIVISION_WIDTH } from "../game/combat";
 import { Section, Stat, Bar, ActionButton, NationRow } from "../components/shared";
@@ -33,7 +33,7 @@ const WarPanel: React.FC = () => {
 
   const declareCheck = target && !isSelf ? canDeclareWar(state, target) : null;
 
-  const others = state.countries.filter((c) => c.id !== state.playerCountryId && !c.destroyed);
+  const others = state.countries.filter((c) => c.id !== state.playerCountryId && !isOutOfPlay(state, c.id));
 
   return (
     <>

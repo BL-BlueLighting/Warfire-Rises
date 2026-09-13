@@ -1,6 +1,8 @@
 import { Country } from "./types";
 
 const BASE = {
+  /** Baseline willingness to start a war; each nation overrides it. */
+  aggression: 1,
   publicSupport: 55,
   forceValue: 20,
   atWarWith: [] as string[],
@@ -38,6 +40,7 @@ export const COUNTRIES: Country[] = [
   {
     ...BASE, id: "USA", name: "United States", flag: "🇺🇸",
     government: "democracy", power: "superpower",
+    aggression: 1.0,
     economy: 95, military: 98, stability: 72, nuclear: true,
     treasury: 32000, population: 335,
     description: "country.USA.desc",
@@ -47,6 +50,7 @@ export const COUNTRIES: Country[] = [
   {
     ...BASE, id: "CHN", name: "China", flag: "🇨🇳",
     government: "communist", power: "superpower",
+    aggression: 0.7,
     economy: 90, military: 85, stability: 80, nuclear: true,
     treasury: 28000, population: 1410,
     description: "country.CHN.desc",
@@ -56,6 +60,7 @@ export const COUNTRIES: Country[] = [
   {
     ...BASE, id: "RUS", name: "Russia", flag: "🇷🇺",
     government: "authoritarian", power: "major",
+    aggression: 1.3,
     economy: 40, military: 88, stability: 60, nuclear: true,
     treasury: 6000, population: 144,
     description: "country.RUS.desc",
@@ -65,6 +70,7 @@ export const COUNTRIES: Country[] = [
   {
     ...BASE, id: "GBR", name: "United Kingdom", flag: "🇬🇧",
     government: "democracy", power: "major",
+    aggression: 0.8,
     economy: 75, military: 72, stability: 68, nuclear: true,
     treasury: 11000, population: 68,
     description: "country.GBR.desc",
@@ -74,6 +80,7 @@ export const COUNTRIES: Country[] = [
   {
     ...BASE, id: "FRA", name: "France", flag: "🇫🇷",
     government: "democracy", power: "major",
+    aggression: 0.8,
     economy: 72, military: 70, stability: 60, nuclear: true,
     treasury: 9500, population: 65,
     description: "country.FRA.desc",
@@ -83,6 +90,7 @@ export const COUNTRIES: Country[] = [
   {
     ...BASE, id: "DEU", name: "Germany", flag: "🇩🇪",
     government: "democracy", power: "major",
+    aggression: 0.4,
     economy: 85, military: 55, stability: 74, nuclear: false,
     treasury: 14000, population: 83,
     description: "country.DEU.desc",
@@ -92,6 +100,7 @@ export const COUNTRIES: Country[] = [
   {
     ...BASE, id: "JPN", name: "Japan", flag: "🇯🇵",
     government: "democracy", power: "regional",
+    aggression: 0.5,
     economy: 82, military: 45, stability: 85, nuclear: false,
     treasury: 10000, population: 125,
     description: "country.JPN.desc",
@@ -101,6 +110,7 @@ export const COUNTRIES: Country[] = [
   {
     ...BASE, id: "IND", name: "India", flag: "🇮🇳",
     government: "democracy", power: "regional",
+    aggression: 0.9,
     economy: 65, military: 68, stability: 55, nuclear: true,
     treasury: 8000, population: 1420,
     description: "country.IND.desc",
@@ -110,6 +120,7 @@ export const COUNTRIES: Country[] = [
   {
     ...BASE, id: "PRK", name: "North Korea", flag: "🇰🇵",
     government: "authoritarian", power: "minor",
+    aggression: 1.6,
     economy: 5, military: 60, stability: 90, nuclear: true,
     treasury: 20, population: 26,
     description: "country.PRK.desc",
@@ -119,6 +130,7 @@ export const COUNTRIES: Country[] = [
   {
     ...BASE, id: "IRN", name: "Iran", flag: "🇮🇷",
     government: "theocracy", power: "regional",
+    aggression: 1.2,
     economy: 30, military: 55, stability: 50, nuclear: true,
     treasury: 800, population: 88,
     description: "country.IRN.desc",
@@ -128,6 +140,7 @@ export const COUNTRIES: Country[] = [
   {
     ...BASE, id: "ISR", name: "Israel", flag: "🇮🇱",
     government: "democracy", power: "regional",
+    aggression: 1.5,
     economy: 70, military: 82, stability: 45, nuclear: true,
     treasury: 2500, population: 9.5,
     description: "country.ISR.desc",
@@ -137,6 +150,7 @@ export const COUNTRIES: Country[] = [
   {
     ...BASE, id: "BRA", name: "Brazil", flag: "🇧🇷",
     government: "democracy", power: "regional",
+    aggression: 0.3,
     economy: 55, military: 35, stability: 48, nuclear: false,
     treasury: 3000, population: 215,
     description: "country.BRA.desc",

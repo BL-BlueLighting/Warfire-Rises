@@ -123,6 +123,44 @@ fn decisions_dir(app: &tauri::AppHandle) -> Option<PathBuf> {
     candidates.into_iter().find(|p| p.is_dir())
 }
 
+/// Fetch a URL the webview is not allowed to reach.
+///
+/// `news.google.com/rss` sends no CORS headers, so a fetch from the frontend is
+/// blocked before it leaves the webview and the game silently falls back to its
+/// built-in keyword list. Rust has no such restriction — the frontend parses
+/// what comes back.
+///
+/// The URL is checked against an allowlist: the frontend only ever asks for the
+/// news feed, and a command that fetches arbitrary URLs on request is a gift to
+/// anything that manages to run script in the webview.
+#[tauri::command]
+async fn fetch_feed(url: String) -> Result<String, String> {
+    const ALLOWED: [&str; 1] = ["https://news.google.com/rss"];
+    if !ALLOWED.iter().any(|prefix| url.starts_with(prefix)) {
+        return Err(format!("refusing to fetch {url}"));
+    }
+
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(8))
+        .user_agent("WARFIRE RISES/2.0")
+        .build()
+        .map_err(|e| format!("cannot build http client: {e}"))?;
+
+    let response = client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| format!("request failed: {e}"))?;
+
+    if !response.status().is_success() {
+        return Err(format!("news feed returned {}", response.status()));
+    }
+    response
+        .text()
+        .await
+        .map_err(|e| format!("cannot read response: {e}"))
+}
+
 /// Read every `*.warf-decision` file on disk.
 ///
 /// Returns `(filename, contents)` pairs. An empty vec means "no directory
@@ -185,7 +223,8 @@ pub fn run() {
             save_location,
             delete_save,
             load_decision_files,
-            decisions_location
+            decisions_location,
+            fetch_feed
         ])
         .run(tauri::generate_context!())
         .expect("error while running WARFIRE RISES");
