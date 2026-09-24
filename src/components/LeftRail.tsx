@@ -1,5 +1,5 @@
 import React from "react";
-import { useStore, setTab } from "../game/store";
+import { useStore, setTab, campaignDate } from "../game/store";
 import { PanelTab } from "../game/types";
 import { t, useLanguage } from "../i18n";
 
@@ -55,7 +55,7 @@ const LeftRail: React.FC = () => {
       <div className="rail__section">
         <div className="rail__title">{t("ui.top.campaign_start")}</div>
         <div className="dim" style={{ fontSize: 11, padding: "0 4px" }}>
-          {ui.campaignStart}
+          {campaignDate(state)}
         </div>
       </div>
 

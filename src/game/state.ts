@@ -1,11 +1,57 @@
-import { ConquestRecord, GameState, ExchangeRates, WarState, Division } from "./types";
+import { ConquestRecord, Country, GameState, ExchangeRates, WarState, Division } from "./types";
 import { COUNTRIES, STARTING_NUKES, DIVISIONS_BY_POWER } from "./countries";
 import { makeGenerals, makeInitialGroups } from "./command";
 import { t } from "../i18n";
 import { DEFAULT_DIFFICULTY, profileFor } from "./difficulty";
 import { regionsOf } from "./peace";
+import { DEFAULT_ERA, getEra, eraProvinceOwners, type Era } from "./eras";
 
-export function createInitialState(keywords: string[], rates: ExchangeRates): GameState {
+/**
+ * Put the world in the shape a historical scenario says it was in.
+ *
+ * Three things move: the numbers each nation has, which of the twelve exist at
+ * all, and who owns which province. The borders the map draws come from the
+ * same era, loaded separately by the map itself.
+ */
+function applyEra(countries: Country[], era: Era) {
+  for (const country of countries) {
+    const nation = era.nations[country.id];
+    if (!nation) continue;
+    country.nameKey = nation.nameKey;
+    if (nation.name) country.name = nation.name;
+    if (nation.population !== undefined) country.population = nation.population;
+    if (nation.economy !== undefined) country.economy = nation.economy;
+    if (nation.military !== undefined) country.military = nation.military;
+    if (nation.stability !== undefined) country.stability = nation.stability;
+    if (nation.publicSupport !== undefined) country.publicSupport = nation.publicSupport;
+    if (nation.treasury !== undefined) country.treasury = nation.treasury;
+    if (nation.manpower !== undefined) country.manpower = nation.manpower;
+    if (nation.divisions !== undefined) {
+      country.divisions = country.divisions.slice(0, nation.divisions);
+      country.armyGroups = country.armyGroups.map((g) => ({
+        ...g,
+        divisionIds: g.divisionIds.filter((id) => country.divisions.some((d) => d.id === id)),
+      }));
+    }
+    // A 1938 campaign has no warheads anywhere, whatever the nation is today.
+    country.nuclear = nation.nuclear ?? false;
+    country.nukes = nation.nukes ?? 0;
+    country.researched = country.nuclear ? ["nuclear_weapons"] : [];
+    // A 1938 nation has no reactor to run, whatever it has today.
+    country.buildings = country.nuclear ? country.buildings : [];
+    country.allies = era.allies?.[country.id] ?? [];
+    country.enemies = era.enemies?.[country.id] ?? [];
+    for (const [other, value] of Object.entries(era.relations?.[country.id] ?? {})) {
+      country.relations[other] = value;
+    }
+  }
+}
+
+export function createInitialState(
+  keywords: string[],
+  rates: ExchangeRates,
+  eraId?: string
+): GameState {
   let divisionId = 0;
 
   const countries = COUNTRIES.map((c) => {
@@ -47,6 +93,21 @@ export function createInitialState(keywords: string[], rates: ExchangeRates): Ga
     country.armyGroups = makeInitialGroups(country, country.generals);
   }
 
+  const era = getEra(eraId ?? DEFAULT_ERA);
+  applyEra(countries, era);
+
+  // Wars the scenario says are already running. A campaign that opens in 1942
+  // should open at war, not one declaration short of it; the first pair the
+  // player is in becomes the live war, so the fighting ticks from day one.
+  const byId = new Map(countries.map((c) => [c.id, c]));
+  for (const [a, b] of era.atWar ?? []) {
+    const first = byId.get(a);
+    const second = byId.get(b);
+    if (!first || !second) continue;
+    if (!first.atWarWith.includes(b)) first.atWarWith.push(b);
+    if (!second.atWarWith.includes(a)) second.atWarWith.push(a);
+  }
+
   return {
     phase: "playing",
     day: 1,
@@ -63,6 +124,9 @@ export function createInitialState(keywords: string[], rates: ExchangeRates): Ga
     briefing: [],
     log: [],
     conquered: null,
+    era: era.id,
+    // A nation the era has not invented yet is simply not on the board.
+    absentCountries: COUNTRIES.filter((c) => !era.nations[c.id]).map((c) => c.id),
     publishedNews: [],
     defeatedCountries: [],
     eventIdCounter: 0,
@@ -70,7 +134,9 @@ export function createInitialState(keywords: string[], rates: ExchangeRates): Ga
     warHistory: [],
 
     difficulty: DEFAULT_DIFFICULTY,
-    regionOwner: {},
+    // Provinces the scenario says changed hands. The rest stay with their
+    // modern owner, which is what `regionOwner` falling through already means.
+    regionOwner: { ...eraProvinceOwners(era) },
     conference: null,
     clock: { time: 1, speed: 2, lastSpeed: 2 },
     tasks: [],
@@ -240,7 +306,11 @@ export function detonateNuke(state: GameState, attackerId: string, targetId: str
 export function isOutOfPlay(state: GameState, countryId: string): boolean {
   const country = getCountryById(state, countryId);
   if (!country) return true;
-  return country.destroyed || state.defeatedCountries.includes(countryId);
+  return (
+    country.destroyed ||
+    state.defeatedCountries.includes(countryId) ||
+    state.absentCountries.includes(countryId)
+  );
 }
 
 /**

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { COUNTRIES, getCountry } from "../game/countries";
+import { COUNTRIES } from "../game/countries";
 import { newGame, useStore, openSettings, openSaveDialog } from "../game/store";
 import { hasSave } from "../game/save";
 import { previewColorMap } from "../map/colors";
 import { DIFFICULTIES, DEFAULT_DIFFICULTY, type Difficulty } from "../game/difficulty";
+import { ERAS, DEFAULT_ERA, eraRoster } from "../game/eras";
 import { countryName } from "../game/names";
 import { t, useLanguage, setLanguage, type Language } from "../i18n";
 import WorldMap from "../map/WorldMap";
@@ -21,6 +22,14 @@ const TitleScreen: React.FC = () => {
   const lang = useLanguage();
   const [selected, setSelected] = useState("USA");
   const [difficulty, setDifficulty] = useState<Difficulty>(DEFAULT_DIFFICULTY);
+  const [eraId, setEraId] = useState<string>(DEFAULT_ERA);
+  // Switching to an era that never had the selected nation — Israel in 1938 —
+  // has to move the selection somewhere that existed.
+  React.useEffect(() => {
+    if (!eraRoster(eraId).some((c) => c.id === selected)) {
+      setSelected(eraRoster(eraId)[0]?.id ?? selected);
+    }
+  }, [eraId, selected]);
   const [saveAvailable, setSaveAvailable] = useState(false);
 
   useEffect(() => {
@@ -28,11 +37,14 @@ const TitleScreen: React.FC = () => {
   }, []);
 
   const nextLang: Language = lang === "zh-cn" ? "en-us" : "zh-cn";
-  const country = getCountry(selected) ?? COUNTRIES[0];
+  // The roster of the *selected era*, so the card and the relations list show
+  // the year the player is about to start in — not the present day.
+  const roster = eraRoster(eraId);
+  const country = roster.find((c) => c.id === selected) ?? roster[0] ?? COUNTRIES[0];
   const profile = DIFFICULTIES.find((d) => d.id === difficulty)!;
   // Sorted by starting relation, so a nation's friends and rivals are legible
   // before committing to it.
-  const neighbours = COUNTRIES.filter((c) => c.id !== country.id).sort(
+  const neighbours = roster.filter((c) => c.id !== country.id).sort(
     (a, b) => (country.relations[b.id] ?? 0) - (country.relations[a.id] ?? 0)
   );
 
@@ -41,6 +53,7 @@ const TitleScreen: React.FC = () => {
       <div className="title-screen__map">
         <WorldMap
           preview={{
+            eraId,
             colors: previewColorMap(selected),
             selectedId: selected,
             onSelect: setSelected,
@@ -66,6 +79,23 @@ const TitleScreen: React.FC = () => {
 
       {!ui.startup && (
         <aside className="title-panel title-panel--left">
+        <div className="section__title">{t("ui.title.era")}</div>
+        <div className="diffpicker">
+          {ERAS.map((era) => (
+            <button
+              key={era.id}
+              className={`diffcard${eraId === era.id ? " is-active" : ""}`}
+              onClick={() => setEraId(era.id)}
+            >
+              <span className="diffcard__name">{t(era.nameKey)}</span>
+              <span className="diffcard__desc">{t(era.descKey)}</span>
+            </button>
+          ))}
+        </div>
+        <div className="dim" style={{ fontSize: 10.5, margin: "6px 0 12px", lineHeight: 1.6 }}>
+          {t("ui.title.era_note")}
+        </div>
+
         <div className="section__title">{t("ui.title.difficulty")}</div>
         <div className="diffpicker">
           {DIFFICULTIES.map((d) => (
@@ -109,7 +139,7 @@ const TitleScreen: React.FC = () => {
         <button
           className="btn btn--primary"
           style={{ width: "100%", marginTop: 12, padding: "10px 0" }}
-          onClick={() => void newGame(selected, difficulty)}
+          onClick={() => void newGame(selected, difficulty, eraId)}
         >
           {t("ui.title.play")} — {country.flag} {countryName(country)}
         </button>

@@ -84,6 +84,26 @@ npm run tauri:build    # → src-tauri/target/release/bundle/
 | 军事演习 | 20 | 征兵（每师） | 30 |
 | 防御条约 | 30 | **正当化宣战理由** | 1–180 |
 
+## 时代（历史版图）
+
+开始游戏前可以和难度一起选**时代**，五个时代各自使用当年的真实国界、国力与阵营：
+
+| 时代 | 开局 | 版图 |
+|---|---|---|
+| 二战前夕 · 梦魇 | 1938 年 1 月 | 奥地利尚未并入德国，英国仍持巴勒斯坦与印度，日本据有朝鲜 |
+| 二战战争 · 死斗 | 1942 年 1 月 | 轴心国走得最远的一年：日本据有中国沿海与整个南方作战区，德国已吞下奥地利、捷克与波兰。**开局即在战争中** |
+| 二战战争 · 初醒 | 1945 年 1 月 | 大战最后一年，德国与日本尚在，满洲已回归中国。**开局即在战争中** |
+| 二十世纪 · 解体 | 1994 年 1 月 | 苏联已解体，十二国全部存在 |
+| 二一世纪 · 复兴 | 2000 年 1 月 | 世纪之交的大国格局 |
+
+边界来自 [`aourednik/historical-basemaps`](https://github.com/aourednik/historical-basemaps)（GPL-3.0，见 [NOTICE.md](./NOTICE.md)），由 `scripts/build-eras.mjs` 生成为 `public/eras/*.json`（地图按需加载）与 `src/map/data/eraRegions.json`（每个现代省份在该年归谁所有——**模拟层要的是省份，不是多边形**）。生成脚本还会把 1938 年数据里被拆开的中国（"Chinese warlords"、新疆、西藏）合回一个中国，并把以色列/朝鲜这类当年尚不存在的国家从名册里去掉。
+
+时代同时决定：国家数据（人口、经济、军力、国库、师的数量——1938 年的美国是 1.28 亿人、没有核弹）、初始阵营与关系，以及**战役的日历**（左栏显示的是 1938 年 1 月 3 日，不是今天）。
+
+**国名也随时代变**：1938 年的中国是「中华民国」、俄罗斯是「苏维埃社会主义共和国联盟」、日本是「大日本帝国」、德国是「德意志国」、印度是「英属印度」、巴西是「巴西合众国」；1942 年的法国是「自由法国」。这些名字写在语言文件里（`era.<era>.<ID>.full` / `.name`），由 `Country.nameKey` 指向，所以中英文各有一份。标题界面用的也是时代名录，不会出现「1938 年选以色列」这种事。
+
+> 还没做两件事：**国旗仍是现代的**（苏联显示俄罗斯三色旗），**国家简介仍是现代的**（1938 年的苏联简介里还写着「拥有核武器」）。
+
 ## 国策（`decisions/*.warf-decision`）
 
 国策是纯 JSON，在代码之外编写。把文件丢进 `decisions/`，在国策面板点「从磁盘重新载入」即可——桌面版无需重新编译。构建时也会把文件打包进去，所以浏览器版没有文件系统也能用。
@@ -339,7 +359,15 @@ Natural Earth 还把科索沃、北塞浦路斯、索马里兰、西撒哈拉、
 
 每个字体都用 `pyftsubset` 子集化到游戏能打印的字符，并留了余量：CJK 字体覆盖约 4,500 字，而仓库里当前只用了 1,370 字——因为国策文件是**玩家自己写的**，按当前文本切分的子集会在他们打出一个新词的瞬间变成豆腐块。字符集通过扫描语言文件、国策文件以及省名/城市数据集得出。
 
-改动字体后用 `python3 <build-fonts.py>` 重建；WOFF2 需要 `brotli`，在 Arch 上意味着要用 venv（而且 `pyftsubset` 的 shebang 指向系统 Python，无论如何都得用 `python -m fontTools.subset` 调用）。
+改动中文文案后必须重建 `public/fonts/body-cjk.woff2`，否则新字会变豆腐块：
+
+```bash
+python3 -m venv /tmp/fontenv
+/tmp/fontenv/bin/pip install fonttools brotli
+/tmp/fontenv/bin/python scripts/build-body-font.py
+```
+
+脚本扫描语言文件、国策文件、`src/game/*.ts`（将领名字在里面）以及省名/城市数据集，**并额外并入 GB2312 一级常用字**——那 3,755 字就是留白：子集化之后没法再加字，而国策是玩家自己写的，写一个新词就出豆腐块。当前成品约 4,000 字形 / 1.3 MB。WOFF2 需要 `brotli`，Arch 的系统 Python 装不了（externally managed），所以上面用 venv。
 
 ## 观感
 
@@ -438,6 +466,8 @@ useSyncExternalStore(subscribe, getSnapshot)   // store.ts
 
 ## 协议
 
-**GNU 宽通用公共许可证 v3.0（LGPL-3.0）** —— 见 [LICENSE](./LICENSE)。
+**GNU 通用公共许可证 v3.0（GPL-3.0）** —— 见 [LICENSE](./LICENSE)。
+
+> 原先发布在 LGPL-3.0 下。改为 GPL-3.0 是因为加入了**历史版图**：那些边界来自 [`aourednik/historical-basemaps`](https://github.com/aourednik/historical-basemaps)（GPL-3.0），它们和游戏编译在同一个二进制里、由同一张地图加载，所以整体按 GPL 分发。授权只收紧、没有放宽：自己写的代码仍可沿用原先更宽松的条款。
 
 第三方素材（字体、地图数据、图标）各自保留其授权，署名见 [NOTICE.md](./NOTICE.md)。特别是 Twemoji 国旗使用 CC BY 4.0，**要求署名**——署名就在那个文件里。

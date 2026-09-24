@@ -900,6 +900,73 @@ ui.settings.stat_events: 事件频率
 ui.settings.stat_wars: 开战频率
 ui.settings.stat_collapse: 崩坏速度
 ui.settings.stat_regen: 我方恢复
+ui.title.era: 时代
+ui.title.era_note: 每个时代使用当年的真实国界，国家数据与阵营也按当年设定。
+# ── 历史时代的国名（见 src/game/eras.ts）──
+era.ww2_eve.CHN.full: 中华民国
+era.ww2_eve.CHN.name: 中国
+era.ww2_eve.RUS.full: 苏维埃社会主义共和国联盟
+era.ww2_eve.RUS.name: 苏联
+era.ww2_eve.DEU.full: 德意志国
+era.ww2_eve.DEU.name: 德国
+era.ww2_eve.JPN.full: 大日本帝国
+era.ww2_eve.JPN.name: 日本
+era.ww2_eve.GBR.full: 大英帝国
+era.ww2_eve.GBR.name: 英国
+era.ww2_eve.IND.full: 英属印度
+era.ww2_eve.IND.name: 印度
+era.ww2_eve.IRN.full: 伊朗帝国
+era.ww2_eve.IRN.name: 伊朗
+era.ww2_eve.BRA.full: 巴西合众国
+era.ww2_eve.BRA.name: 巴西
+era.ww2_eve.FRA.full: 法兰西第三共和国
+era.ww2_eve.FRA.name: 法国
+era.ww2_fight.CHN.full: 中华民国
+era.ww2_fight.CHN.name: 中国
+era.ww2_fight.RUS.full: 苏维埃社会主义共和国联盟
+era.ww2_fight.RUS.name: 苏联
+era.ww2_fight.DEU.full: 德意志国
+era.ww2_fight.DEU.name: 德国
+era.ww2_fight.JPN.full: 大日本帝国
+era.ww2_fight.JPN.name: 日本
+era.ww2_fight.GBR.full: 大英帝国
+era.ww2_fight.GBR.name: 英国
+era.ww2_fight.IND.full: 英属印度
+era.ww2_fight.IND.name: 印度
+era.ww2_fight.IRN.full: 伊朗帝国
+era.ww2_fight.IRN.name: 伊朗
+era.ww2_fight.BRA.full: 巴西合众国
+era.ww2_fight.BRA.name: 巴西
+era.ww2_fight.FRA.full: 自由法国
+era.ww2_fight.FRA.name: 法国
+era.ww2_war.CHN.full: 中华民国
+era.ww2_war.CHN.name: 中国
+era.ww2_war.RUS.full: 苏维埃社会主义共和国联盟
+era.ww2_war.RUS.name: 苏联
+era.ww2_war.DEU.full: 德国
+era.ww2_war.DEU.name: 德国
+era.ww2_war.JPN.full: 大日本帝国
+era.ww2_war.JPN.name: 日本
+era.ww2_war.GBR.full: 大英帝国
+era.ww2_war.GBR.name: 英国
+era.ww2_war.IND.full: 英属印度
+era.ww2_war.IND.name: 印度
+era.ww2_war.IRN.full: 伊朗帝国
+era.ww2_war.IRN.name: 伊朗
+era.ww2_war.BRA.full: 巴西合众国
+era.ww2_war.BRA.name: 巴西
+era.ww2_war.FRA.full: 法兰西共和国
+era.ww2_war.FRA.name: 法国
+era.ww2_eve.name: 二战前夕 · 梦魇
+era.ww2_eve.desc: 1938 年 1 月。大战前的最后一次平静——奥地利尚未并入德国，噩梦还未开始。
+era.ww2_fight.name: 二战战争 · 死斗
+era.ww2_fight.desc: 1942 年。中国战场的第五年，也是轴心国走得最远的一年：日本据有中国沿海与整个南方作战区，德国吞下奥地利、捷克与波兰。
+era.ww2_war.name: 二战战争 · 初醒
+era.ww2_war.desc: 1945 年。大战的最后一年：德国与日本仍在，满洲已回归中国，噩梦即将醒来。
+era.late_20c.name: 二十世纪 · 解体
+era.late_20c.desc: 1994 年。苏联已经解体，冷战结束，一个新的秩序正在成形。
+era.early_21c.name: 二一世纪 · 复兴
+era.early_21c.desc: 2000 年。世纪之交，各国重拾雄心，大国关系进入新的紧绷状态。
 ui.title.difficulty: 难度
 ui.title.relations: 初始关系
 ui.title.inspect: 点击地图或列表中的任意国家查看详情。

@@ -63,6 +63,11 @@ export interface Country {
   enemies: string[];
   relations: Record<string, number>;
   /**
+   * Prefix for this nation's display names, when a historical scenario renames
+   * it — `era.ww2_eve.CHN` instead of `country.CHN`. Set by `applyEra`.
+   */
+  nameKey?: string;
+  /**
    * How readily this nation starts a war, 1 being the baseline.
    *
    * Static posture, not a game fact: it sits next to the real-world alliances
@@ -291,6 +296,10 @@ export interface GameState {
   log: string[];
   /** Set when the player's nation has been conquered; null while it stands. */
   conquered: ConquestRecord | null;
+  /** The historical scenario this campaign runs: see eras.ts. */
+  era: string;
+  /** Nations that do not exist in this era, and are out of play because of it. */
+  absentCountries: string[];
   /** News ids already published by a decision file's `EffectNews` reward. */
   publishedNews: string[];
   /**

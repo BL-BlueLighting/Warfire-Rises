@@ -19,3 +19,6 @@ src-tauri/.cargo/
 .DS_Store
 *.local
 .claude/
+
+# Scratch space for scripts/build-eras.mjs (downloads and intermediates).
+tmp/

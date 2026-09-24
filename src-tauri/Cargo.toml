@@ -3,6 +3,7 @@ name = "warfire-rises"
 version = "2.0.0"
 description = "WARFIRE RISES — A HOI4-style world simulation game"
 authors = ["Warfire Rises"]
+license = "GPL-3.0-only"
 edition = "2021"
 rust-version = "1.77.2"
 

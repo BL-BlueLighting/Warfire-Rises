@@ -1,6 +1,7 @@
 {
   "name": "warfire-rises",
   "private": true,
+  "license": "GPL-3.0-only",
   "version": "2.0.0",
   "type": "module",
   "description": "WARFIRE RISES — A HOI4-style world simulation game, built with Tauri",

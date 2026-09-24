@@ -57,6 +57,8 @@ export function serialize(state: GameState): string {
   lines.push(`conference:${state.conference ? JSON.stringify(state.conference) : "null"}`);
   lines.push(`conquered:${state.conquered ? JSON.stringify(state.conquered) : "null"}`);
   lines.push(`defeatedCountries:${JSON.stringify(state.defeatedCountries)}`);
+  lines.push(`era:${state.era}`);
+  lines.push(`absentCountries:${JSON.stringify(state.absentCountries)}`);
   lines.push(`publishedNews:${JSON.stringify(state.publishedNews)}`);
 
   lines.push(`exchangeRates:${JSON.stringify(state.exchangeRates)}`);
@@ -139,6 +141,8 @@ export function deserialize(state: GameState, encoded: string): boolean {
       state.conquered = c && c !== "null" ? (JSON.parse(c) as GameState["conquered"]) : null;
     } catch { state.conquered = null; }
     try { state.defeatedCountries = JSON.parse(map.get("defeatedCountries") ?? "[]"); } catch { state.defeatedCountries = []; }
+    state.era = map.get("era") ?? state.era;
+    try { state.absentCountries = JSON.parse(map.get("absentCountries") ?? "[]"); } catch { state.absentCountries = []; }
     try { state.publishedNews = JSON.parse(map.get("publishedNews") ?? "[]"); } catch { state.publishedNews = []; }
 
     try { state.exchangeRates = JSON.parse(map.get("exchangeRates") ?? "{}"); } catch { /* keep */ }
@@ -228,6 +232,8 @@ export interface SaveSlotMeta {
   countryId: string;
   day: number;
   difficulty: string;
+  /** Historical scenario; absent in saves written before scenarios existed. */
+  era?: string;
   /** Wall-clock ms when it was written, or null for saves from before then. */
   savedAt: number | null;
 }
@@ -268,7 +274,13 @@ export function peekSave(encoded: string): SaveSlotMeta | null {
       const idx = line.indexOf(":");
       if (idx === -1) continue;
       const key = line.slice(0, idx);
-      if (key === "day" || key === "playerCountryId" || key === "difficulty" || key === "savedAt") {
+      if (
+        key === "day" ||
+        key === "playerCountryId" ||
+        key === "difficulty" ||
+        key === "era" ||
+        key === "savedAt"
+      ) {
         header.set(key, line.slice(idx + 1));
       }
     }
@@ -277,6 +289,7 @@ export function peekSave(encoded: string): SaveSlotMeta | null {
       countryId: header.get("playerCountryId") ?? "USA",
       day: parseInt(header.get("day") ?? "1"),
       difficulty: header.get("difficulty") ?? "regular",
+      era: header.get("era"),
       savedAt: Number.isFinite(savedAt) ? savedAt : null,
     };
   } catch {

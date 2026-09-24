@@ -7,10 +7,14 @@ import { t } from "../i18n";
  * The lang files carry `country.<ID>.name` translations, but the original CLI
  * edition always printed the English `country.name` and never consulted them.
  * Falls back to the English name when a translation is absent.
+ *
+ * A historical scenario renames the nations it needs to — 1938's China is the
+ * Republic, its Russia the Soviet Union — by pointing `nameKey` at that era's
+ * translations, so the same lookup serves both.
  */
 export function countryName(c: Country | undefined | null): string {
   if (!c) return "";
-  const key = `country.${c.id}.full`;
+  const key = `${c.nameKey ?? `country.${c.id}`}.full`;
   const value = t(key);
   return value === key ? c.name : value;
 }
@@ -24,7 +28,7 @@ export function countryName(c: Country | undefined | null): string {
  */
 export function countryShortName(c: Country | undefined | null): string {
   if (!c) return "";
-  const key = `country.${c.id}.name`;
+  const key = `${c.nameKey ?? `country.${c.id}`}.name`;
   const value = t(key);
   return value === key ? c.name : value;
 }

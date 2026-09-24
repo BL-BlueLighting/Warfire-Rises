@@ -29,6 +29,7 @@ import { PALETTE, buildColorMap } from "./colors";
 import { CITIES, CITY_MIN_ZOOM, type City } from "./cities";
 import { REGIONS, REGION_LABEL_MIN_ZOOM, type Region } from "./provinces";
 import { COUNTRIES } from "../game/countries";
+import { DEFAULT_ERA, eraRoster } from "../game/eras";
 import { useSettings } from "../game/settings";
 import "./worldmap.css";
 
@@ -57,6 +58,8 @@ export interface MapPreview {
   showLabels?: boolean;
   /** Kept for callers that pre-warm the map; OpenLayers draws on demand. */
   warm?: boolean;
+  /** Historical borders to draw: see game/eras.ts. */
+  eraId?: string;
 }
 
 interface WorldMapProps {
@@ -99,6 +102,7 @@ interface MapContext {
 
 interface MapLayers {
   countries: VectorLayer<VectorSource>;
+  era: VectorLayer<VectorSource>;
   conquest: VectorLayer<VectorSource>;
   provinces: VectorLayer<VectorSource>;
   cities: VectorLayer<VectorSource>;
@@ -115,6 +119,10 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
   const mapRef = useRef<Map | null>(null);
   const layersRef = useRef<MapLayers | null>(null);
   const [baseZoom, setBaseZoom] = useState(0);
+  /** The scenario whose borders are on screen, and the features fetched for it. */
+  const eraId = preview?.eraId ?? state?.era ?? DEFAULT_ERA;
+  const eraFeaturesRef = useRef<Feature[] | null>(null);
+  const [eraReady, setEraReady] = useState(0);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; id: string } | null>(null);
   const [localHover, setLocalHover] = useState<string | null>(null);
 
@@ -183,6 +191,37 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
   const factorRef = useRef(factor);
   factorRef.current = factor;
 
+  // ── The era's borders, fetched when the scenario changes ─────────
+  useEffect(() => {
+    let cancelled = false;
+    eraFeaturesRef.current = null;
+    setEraReady(0);
+    fetch(`/eras/${eraId}.json`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then((collection: { features: { properties: { nation: string }; geometry: unknown }[] }) => {
+        if (cancelled) return;
+        const features = collection.features.map((f) => {
+          const geometry = f.geometry as { type: string; coordinates: number[][][] | number[][][][] };
+          const ol =
+            geometry.type === "Polygon"
+              ? new Polygon(geometry.coordinates as number[][][])
+              : new MultiPolygon(geometry.coordinates as number[][][][]);
+          ol.transform("EPSG:4326", MAP_PROJECTION_CODE);
+          const feature = new Feature(ol);
+          feature.set("nation", f.properties.nation, true);
+          return feature;
+        });
+        eraFeaturesRef.current = features;
+        setEraReady((n) => n + 1);
+      })
+      .catch(() => {
+        if (!cancelled) setEraReady((n) => n + 1);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [eraId]);
+
   // ── Sources, built once ──────────────────────────────────────────
   const sources = useMemo(() => {
     registerMapProjection();
@@ -226,6 +265,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
         featureFrom(f.geometry as never, { countryId: f.countryId })
       ),
     });
+    const era = new VectorSource({ features: [] });
     const inert = new VectorSource({
       features: REST_FEATURES.map((f) => featureFrom(f.geometry as never, {})),
     });
@@ -276,7 +316,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     }
     const labels = new VectorSource({ features: labelFeatures });
 
-    return { countries, inert, conquest, provinces, cities, labels };
+    return { countries, era, inert, conquest, provinces, cities, labels };
   }, []);
 
   // ── Styles ───────────────────────────────────────────────────────
@@ -295,6 +335,26 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
           }),
         }),
       ];
+    };
+
+    const eraNation = (feature: FeatureLike): Style => {
+      const c = ctxRef.current;
+      const nation = feature.get("nation") as string;
+      const isNation = nation !== "other" && Boolean(COUNTRIES.find((x) => x.id === nation));
+      const selected = isNation && c.selectedId === nation;
+      return new Style({
+        fill: new Fill({
+          color: isNation
+            ? c.atWar.has(nation)
+              ? PALETTE.war
+              : c.colors[nation] ?? PALETTE.neutral
+            : PALETTE.unclaimed,
+        }),
+        stroke: new Stroke({
+          color: selected ? PALETTE.selected : PALETTE.border,
+          width: selected ? 2.2 : isNation ? 1 : 0.5,
+        }),
+      });
     };
 
     const inert = new Style({
@@ -360,8 +420,11 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
       const highlighted = id === c.playerId || id === c.selectedId || id === c.hoveredId;
       const k = factorRef.current();
       if (((feature.get("area") as number) ?? 0) * k >= MIN_LABEL_AREA || highlighted) {
+        // In a campaign the live roster; on the title screen the era's.
         const country =
-          c.state?.countries.find((x) => x.id === id) ?? COUNTRIES.find((x) => x.id === id);
+          c.state?.countries.find((x) => x.id === id) ??
+          eraRoster(c.preview?.eraId ?? DEFAULT_ERA).find((x) => x.id === id) ??
+          COUNTRIES.find((x) => x.id === id);
         if (country) {
           return [
             new Style({
@@ -406,7 +469,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
       });
     };
 
-    return { country, inert, conquest, province, city, label, regionLabel };
+    return { country, eraNation, inert, conquest, province, city, label, regionLabel };
   }, [baseZoom]);
 
   // ── The map itself, created once ─────────────────────────────────
@@ -416,6 +479,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     const inertLayer = new VectorLayer({ source: sources.inert, style: styles.inert });
     const layers: MapLayers = {
       countries: new VectorLayer({ source: sources.countries, style: styles.country }),
+      era: new VectorLayer({ source: sources.era, style: styles.eraNation, zIndex: 1 }),
       conquest: new VectorLayer({ source: sources.conquest, style: styles.conquest, zIndex: 2 }),
       provinces: new VectorLayer({ source: sources.provinces, style: styles.province, zIndex: 3 }),
       regionLabels: new VectorLayer({
@@ -451,6 +515,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
         }),
         inertLayer,
         layers.countries,
+        layers.era,
         layers.conquest,
         layers.provinces,
         layers.regionLabels,
@@ -513,12 +578,21 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     const observer = new ResizeObserver(() => frameWorld());
     observer.observe(containerRef.current);
 
-    const countryAt = (pixel: number[]) =>
-      map.forEachFeatureAtPixel(
+    const countryAt = (pixel: number[]) => {
+      const era = map.forEachFeatureAtPixel(
         pixel,
-        (f) => (f.get("countryId") as string | undefined) ?? null,
-        { hitTolerance: 1, layerFilter: (l) => l === layers.countries }
-      ) ?? null;
+        (f) => (f.get("nation") as string | undefined) ?? null,
+        { hitTolerance: 1, layerFilter: (l) => l === layers.era }
+      );
+      if (era && era !== "other") return era;
+      return (
+        map.forEachFeatureAtPixel(
+          pixel,
+          (f) => (f.get("countryId") as string | undefined) ?? null,
+          { hitTolerance: 1, layerFilter: (l) => l === layers.countries }
+        ) ?? null
+      );
+    };
 
     map.on("pointermove", (event) => {
       const id = countryAt(event.pixel);
@@ -570,6 +644,22 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     for (const layer of Object.values(layers)) layer.changed();
   }, [signature]);
 
+  // Push the fetched scenario into its layer, and take the modern borders off
+  // screen: two sets of coastlines at once read as a mistake.
+  useEffect(() => {
+    const layers = layersRef.current;
+    const features = eraFeaturesRef.current;
+    if (!layers) return;
+    if (!features) return;
+    const source = layers.era.getSource();
+    if (!source) return;
+    source.clear();
+    source.addFeatures(features);
+    layers.countries.setVisible(false);
+    layers.provinces.setVisible(false);
+    layers.era.changed();
+  }, [eraReady]);
+
   const resetView = () => {
     const map = mapRef.current;
     if (!map) return;
@@ -582,7 +672,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
 
   const hovered: Country | undefined = tooltip
     ? preview
-      ? COUNTRIES.find((c) => c.id === tooltip.id)
+      ? eraRoster(preview.eraId ?? DEFAULT_ERA).find((c) => c.id === tooltip.id) ??
+        COUNTRIES.find((c) => c.id === tooltip.id)
       : state?.countries.find((c) => c.id === tooltip.id)
     : undefined;
 

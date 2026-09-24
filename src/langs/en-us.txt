@@ -900,6 +900,73 @@ ui.settings.stat_events: Event rate
 ui.settings.stat_wars: War rate
 ui.settings.stat_collapse: Collapse rate
 ui.settings.stat_regen: Your recovery
+ui.title.era: Era
+ui.title.era_note: Each era uses that year's real borders, numbers and alignments.
+# ── Nation names in the historical scenarios ──
+era.ww2_eve.CHN.full: Republic of China
+era.ww2_eve.CHN.name: China
+era.ww2_eve.RUS.full: Union of Soviet Socialist Republics
+era.ww2_eve.RUS.name: Soviet Union
+era.ww2_eve.DEU.full: German Reich
+era.ww2_eve.DEU.name: Germany
+era.ww2_eve.JPN.full: Empire of Japan
+era.ww2_eve.JPN.name: Japan
+era.ww2_eve.GBR.full: British Empire
+era.ww2_eve.GBR.name: Britain
+era.ww2_eve.IND.full: British India
+era.ww2_eve.IND.name: India
+era.ww2_eve.IRN.full: Imperial State of Iran
+era.ww2_eve.IRN.name: Iran
+era.ww2_eve.BRA.full: United States of Brazil
+era.ww2_eve.BRA.name: Brazil
+era.ww2_eve.FRA.full: French Third Republic
+era.ww2_eve.FRA.name: France
+era.ww2_fight.CHN.full: Republic of China
+era.ww2_fight.CHN.name: China
+era.ww2_fight.RUS.full: Union of Soviet Socialist Republics
+era.ww2_fight.RUS.name: Soviet Union
+era.ww2_fight.DEU.full: German Reich
+era.ww2_fight.DEU.name: Germany
+era.ww2_fight.JPN.full: Empire of Japan
+era.ww2_fight.JPN.name: Japan
+era.ww2_fight.GBR.full: British Empire
+era.ww2_fight.GBR.name: Britain
+era.ww2_fight.IND.full: British India
+era.ww2_fight.IND.name: India
+era.ww2_fight.IRN.full: Imperial State of Iran
+era.ww2_fight.IRN.name: Iran
+era.ww2_fight.BRA.full: United States of Brazil
+era.ww2_fight.BRA.name: Brazil
+era.ww2_fight.FRA.full: Free France
+era.ww2_fight.FRA.name: France
+era.ww2_war.CHN.full: Republic of China
+era.ww2_war.CHN.name: China
+era.ww2_war.RUS.full: Union of Soviet Socialist Republics
+era.ww2_war.RUS.name: Soviet Union
+era.ww2_war.DEU.full: Germany
+era.ww2_war.DEU.name: Germany
+era.ww2_war.JPN.full: Empire of Japan
+era.ww2_war.JPN.name: Japan
+era.ww2_war.GBR.full: British Empire
+era.ww2_war.GBR.name: Britain
+era.ww2_war.IND.full: British India
+era.ww2_war.IND.name: India
+era.ww2_war.IRN.full: Imperial State of Iran
+era.ww2_war.IRN.name: Iran
+era.ww2_war.BRA.full: United States of Brazil
+era.ww2_war.BRA.name: Brazil
+era.ww2_war.FRA.full: French Republic
+era.ww2_war.FRA.name: France
+era.ww2_eve.name: Eve of the War · Nightmare
+era.ww2_eve.desc: January 1938. The last quiet year — Austria is not yet part of the Reich, and the nightmare has not begun.
+era.ww2_fight.name: The War · Death Grapple
+era.ww2_fight.desc: 1942. The fifth year of the war in China and the Axis at its height: Japan holds the Chinese coast and the whole southern operation, Germany has swallowed Austria, the Czech lands and Poland.
+era.ww2_war.name: The War · First Awakening
+era.ww2_war.desc: 1945. The war's last year: Germany and Japan still stand, Manchuria is Chinese again, and the nightmare is about to break.
+era.late_20c.name: Twentieth Century · Dissolution
+era.late_20c.desc: 1994. The Soviet Union is gone, the Cold War is over, a new order is forming.
+era.early_21c.name: Twenty-First Century · Revival
+era.early_21c.desc: 2000. The turn of the century: ambitions return and the great powers settle into a new tension.
 ui.title.difficulty: DIFFICULTY
 ui.title.relations: STARTING RELATIONS
 ui.title.inspect: Click any nation on the map or in this list to inspect it.

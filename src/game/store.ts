@@ -17,6 +17,7 @@ import {
   continueAs,
 } from "./state";
 import { DEFAULT_DIFFICULTY, isDifficulty, type Difficulty } from "./difficulty";
+import { DEFAULT_ERA, getEra, formatEraDate } from "./eras";
 import { getSettings } from "./settings";
 import { chairOf, closeConference, runAIClaims } from "./peace";
 import { pickObjection, overruleCost } from "./autoArmy";
@@ -24,7 +25,7 @@ import { countryName } from "./names";
 import { processDayEvents } from "./events";
 import { executeCommand } from "./commands";
 import { fetchExchangeRates, fetchWorldKeywords, getTodayDate } from "./worldData";
-import { annexRegions } from "./state";
+import { annexRegions, createWarState } from "./state";
 import {
   deserialize,
   listSaves,
@@ -56,6 +57,8 @@ export interface UiState {
   consoleLines: string[];
   consoleOpen: boolean;
   campaignStart: string;
+  /** Historical scenario selected on the title screen. */
+  eraId: string;
   /** Country id awaiting an irreversible-action confirmation. */
   pendingConfirm: { kind: "nuclear" | "retreat"; countryId?: string } | null;
   loadingStep: number;
@@ -210,6 +213,7 @@ const store: Store = {
     consoleLines: [],
     consoleOpen: false,
     campaignStart: getTodayDate(),
+    eraId: DEFAULT_ERA,
     pendingConfirm: null,
     loadingStep: 0,
     narrative: null,
@@ -290,6 +294,11 @@ export function getStore(): Store {
 // automated test. Stripped from production bundles by the DEV guard.
 if (import.meta.env.DEV) {
   (window as unknown as { __warfire?: Store }).__warfire = store;
+}
+
+/** "September 3, 1939" — the campaign's own calendar, not the wall clock. */
+export function campaignDate(state: GameState): string {
+  return formatEraDate(getEra(state.era), Math.max(0, state.day - 1));
 }
 
 export function getDecisions(): Map<string, DecisionDef> {
@@ -601,7 +610,28 @@ export const STAFF_SILENCE_DAYS = 15;
 /** How long the streaming disclaimer is held. */
 export const DISCLAIMER_MS = 5000;
 
-export async function newGame(countryId: string, difficulty: Difficulty = DEFAULT_DIFFICULTY): Promise<void> {
+/**
+ * If the scenario starts the player at war, make that the live war.
+ *
+ * `activeWar` is what the daily combat tick runs on, and it only ever represents
+ * the player's own conflict — the AI's wars are lists. Without this a 1942
+ * campaign would open with the war declared on paper and no fighting.
+ */
+function openEraWar(state: GameState): void {
+  if (state.activeWar?.active) return;
+  const player = getCountryById(state, state.playerCountryId);
+  const era = getEra(state.era);
+  const pair = (era.atWar ?? []).find(([a, b]) => a === player?.id || b === player?.id);
+  if (!player || !pair) return;
+  const [a, b] = pair;
+  state.activeWar = createWarState(a, b, state.day);
+}
+
+export async function newGame(
+  countryId: string,
+  difficulty: Difficulty = DEFAULT_DIFFICULTY,
+  eraId: string = DEFAULT_ERA
+): Promise<void> {
   const startedAt = Date.now();
   const deadline = startedAt + STARTUP_SECONDS * 1000;
   store.ui.startup = { progress: 0, stageKey: "ui.startup.intel", secondsLeft: STARTUP_SECONDS };
@@ -628,9 +658,12 @@ export async function newGame(countryId: string, difficulty: Difficulty = DEFAUL
   store.ui.decisionSource = decisions.source;
   rebuildDecisionMap();
 
-  const state = createInitialState(keywords, rates);
+  const state = createInitialState(keywords, rates, eraId);
   state.playerCountryId = countryId;
   state.difficulty = difficulty;
+  // A scenario that opens at war gives the player the war they are in: the
+  // live war state only exists for a conflict the player is part of.
+  openEraWar(state);
   processDayEvents(state);
 
   // The campaign is held back until preparation finishes. Publishing it now
@@ -886,9 +919,9 @@ export async function loadGameFromTitle(slot: string): Promise<void> {
   const meta = peekSave(encoded);
   const difficulty: Difficulty =
     meta && isDifficulty(meta.difficulty) ? meta.difficulty : DEFAULT_DIFFICULTY;
-  // The nation only matters for the preparation screens: `deserialize` replaces
-  // the player's country with the one the save was written for.
-  await newGame(meta?.countryId ?? "USA", difficulty);
+  // The nation and era only matter for the preparation screens: `deserialize`
+  // replaces both with what the save was written for.
+  await newGame(meta?.countryId ?? "USA", difficulty, meta?.era ?? DEFAULT_ERA);
   await loadGame(target);
 }
 
