@@ -1,10 +1,12 @@
 import React from "react";
 import { Country } from "../game/types";
-import { countryName } from "../game/names";
-import { t } from "../i18n";
+import { countryDesc, countryName } from "../game/names";
 import { PALETTE, relationBucket, RELATION_COLORS } from "../map/colors";
+import Flag from "./Flag";
 
-export const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+// `title` takes a node, not a string: a section about a nation titles itself
+// with that nation's flag as well as its name.
+export const Section: React.FC<{ title: React.ReactNode; children: React.ReactNode }> = ({ title, children }) => (
   <div className="section">
     <div className="section__title">{title}</div>
     {children}
@@ -88,9 +90,9 @@ export const NationRow: React.FC<{
   <button
     className={`nationrow${isSelected ? " is-selected" : ""}`}
     onClick={onClick}
-    title={t(country.description)}
+    title={countryDesc(country)}
   >
-    <span className="nationrow__flag">{country.flag}</span>
+    <Flag id={country.id} className="nationrow__flag" />
     <span className="nationrow__name">{countryName(country)}</span>
     {isPlayer ? (
       <span className="tag tag--you">YOU</span>

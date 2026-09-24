@@ -3,6 +3,7 @@ import { useStore, succeedTo, quitToTitle } from "../game/store";
 import { getCountryById, successorCandidates } from "../game/state";
 import { countryName } from "../game/names";
 import { t, useLanguage } from "../i18n";
+import Flag from "./Flag";
 
 /**
  * Shown when the player's nation has been conquered.
@@ -62,7 +63,7 @@ const GameOverScreen: React.FC = () => {
           {candidates.map((c) => (
             <button key={c.id} className="nationcard" onClick={() => succeedTo(c.id)}>
               <div className="nationcard__top">
-                <span className="nationcard__flag">{c.flag}</span>
+                <Flag id={c.id} className="nationcard__flag" />
                 <div>
                   <div className="nationcard__name">{countryName(c)}</div>
                   <div className="nationcard__meta">

@@ -5,9 +5,10 @@ import { hasSave } from "../game/save";
 import { previewColorMap } from "../map/colors";
 import { DIFFICULTIES, DEFAULT_DIFFICULTY, type Difficulty } from "../game/difficulty";
 import { ERAS, DEFAULT_ERA, eraRoster } from "../game/eras";
-import { countryName } from "../game/names";
+import { countryDesc, countryName } from "../game/names";
 import { t, useLanguage, setLanguage, type Language } from "../i18n";
 import WorldMap from "../map/WorldMap";
+import Flag from "./Flag";
 
 /**
  * Campaign setup.
@@ -141,7 +142,7 @@ const TitleScreen: React.FC = () => {
           style={{ width: "100%", marginTop: 12, padding: "10px 0" }}
           onClick={() => void newGame(selected, difficulty, eraId)}
         >
-          {t("ui.title.play")} — {country.flag} {countryName(country)}
+          {t("ui.title.play")} — <Flag id={country.id} era={eraId} /> {countryName(country)}
         </button>
 
         {saveAvailable && (
@@ -159,7 +160,7 @@ const TitleScreen: React.FC = () => {
       {!ui.startup && (
         <aside className="title-panel title-panel--right">
         <div className="title-nation">
-          <span className="title-nation__flag">{country.flag}</span>
+          <Flag id={country.id} era={eraId} className="title-nation__flag" />
           <div>
             <div className="title-nation__name">{countryName(country)}</div>
             <div className="title-nation__meta">
@@ -170,7 +171,7 @@ const TitleScreen: React.FC = () => {
         </div>
 
         <div className="dim" style={{ fontSize: 11.5, lineHeight: 1.65, marginBottom: 10 }}>
-          {t(country.description)}
+          {countryDesc(country)}
         </div>
 
         <div className="title-stats">
@@ -193,7 +194,7 @@ const TitleScreen: React.FC = () => {
               : "var(--red-bright)";
             return (
               <button className="title-relation" key={c.id} onClick={() => setSelected(c.id)}>
-                <span>{c.flag}</span>
+                <Flag id={c.id} era={eraId} />
                 <span className="title-relation__name">{countryName(c)}</span>
                 <span className="title-relation__rel" style={{ color: colour }}>
                   {rel > 0 ? `+${rel}` : rel}

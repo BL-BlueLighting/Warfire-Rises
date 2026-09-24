@@ -38,7 +38,7 @@ Full licence texts:
 | [Natural Earth](https://www.naturalearthdata.com/) | Country outlines (`world-atlas`, 110 m), administrative regions (10 m), populated places | **Public domain** |
 | [world-atlas](https://github.com/topojson/world-atlas) | TopoJSON packaging of the Natural Earth outlines | ISC |
 | [Twemoji](https://github.com/jdecked/twemoji) | The twelve national flags in `public/flags/` | **CC BY 4.0** |
-
+| [Wikimedia Commons](https://commons.wikimedia.org/) | The historical flags in `public/flags/hist/` | Public domain (national flags, PD-ineligible or PD-old) |
 | [historical-basemaps](https://github.com/aourednik/historical-basemaps) | The historical borders behind the 1938 / 1945 / 1994 / 2000 scenarios (`public/eras/`) | **GPL-3.0** |
 
 The region dataset in `src/map/data/` is generated from Natural Earth's
@@ -46,6 +46,21 @@ The region dataset in `src/map/data/` is generated from Natural Earth's
 nations, stripped of interior rings and simplified. The city dataset is
 similarly derived from `ne_10m_populated_places`. `src/map/data/eraRegions.json`
 is generated from the historical borders above by `scripts/build-eras.mjs`.
+
+## Flags
+
+`public/flags/` holds the twelve modern flags, from Twemoji. `public/flags/hist/`
+holds the ones the era scenarios need — the Republic of China's, the Soviet
+Union's, the German Reich's, the Empire of Japan's, the British Raj's, the
+lion-and-sun flag of Iran, the 1889-1960 flag of Brazil, the 48-star flag of
+the United States, and Free France's. These are the original files from
+Wikimedia Commons, downloaded by `scripts/fetch-flags.py`, which wraps each in
+the same 36×36 canvas as the modern set so that every flag in the game is drawn
+at one size. Nothing is drawn by hand.
+
+The script also writes `reich-stream.svg`, a second version of the German
+Reich's flag with the swastika replaced by 乐. Streaming mode draws that one
+instead, and prints the date the Reich fell underneath — see `game/flags.ts`.
 
 The 1942 scenario (`ww2-fight`) is a *derivation*: that dataset has no year
 between 1938 and 1945, so its borders are the 1938 ones with the annexations and

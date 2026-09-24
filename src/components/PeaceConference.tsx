@@ -6,6 +6,7 @@ import { REGIONS } from "../map/provinces";
 import { PALETTE, relationBucket, RELATION_COLORS } from "../map/colors";
 import { countryName } from "../game/names";
 import { t, useLanguage } from "../i18n";
+import Flag from "./Flag";
 
 /**
  * The peace conference.
@@ -103,7 +104,7 @@ const PeaceConference: React.FC = () => {
                 <span className="peace__region-name">{lang === "zh-cn" ? region.zh : region.en}</span>
                 {takenBy && (
                   <span className="peace__region-owner" style={{ color: colourFor(takenBy) }}>
-                    {getCountryById(state, takenBy)?.flag}
+                    <Flag id={takenBy} />
                   </span>
                 )}
               </button>

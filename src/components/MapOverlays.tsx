@@ -4,6 +4,7 @@ import { MapMode } from "../game/types";
 import { legendFor } from "../map/colors";
 import { t, useLanguage } from "../i18n";
 import { countryName } from "../game/names";
+import Flag from "./Flag";
 
 const MODES: { id: MapMode; labelKey: string }[] = [
   { id: "political", labelKey: "ui.map.political" },
@@ -73,7 +74,7 @@ const MapOverlays: React.FC = () => {
         <div className="mapwar">
           <div className="mapwar__side">
             <div className="mapwar__side-name">
-              {attacker.flag} {countryName(attacker)}
+              <Flag id={attacker.id} /> {countryName(attacker)}
             </div>
             <div className="mapwar__bar">
               <i style={{ width: `${war.attackerMorale}%`, background: "var(--green)" }} />
@@ -82,7 +83,7 @@ const MapOverlays: React.FC = () => {
           <div className="mapwar__vs">{t("ui.war.vs")}</div>
           <div className="mapwar__side">
             <div className="mapwar__side-name">
-              {defender.flag} {countryName(defender)}
+              <Flag id={defender.id} /> {countryName(defender)}
             </div>
             <div className="mapwar__bar">
               <i style={{ width: `${war.defenderMorale}%`, background: "var(--red)" }} />

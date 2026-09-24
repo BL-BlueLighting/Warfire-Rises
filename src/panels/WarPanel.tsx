@@ -8,6 +8,7 @@ import TimedAction from "../components/TimedAction";
 import { getAction } from "../game/actions";
 import { t, useLanguage } from "../i18n";
 import { countryName } from "../game/names";
+import Flag from "../components/Flag";
 
 const WarPanel: React.FC = () => {
   const { state, ui } = useStore();
@@ -52,7 +53,7 @@ const WarPanel: React.FC = () => {
             {/* Read player-first: "our forces" is whichever side you are on. */}
             <div style={{ display: "flex", justifyContent: "space-between", margin: "10px 0" }}>
               <div style={{ textAlign: "center", flex: 1 }}>
-                <div style={{ fontSize: 22 }}>{us?.flag}</div>
+                <div style={{ fontSize: 22 }}>{us && <Flag id={us.id} />}</div>
                 <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--gold-bright)" }}>
                   {countryName(us)}
                 </div>
@@ -62,7 +63,7 @@ const WarPanel: React.FC = () => {
                 {t("ui.war.vs")}
               </div>
               <div style={{ textAlign: "center", flex: 1 }}>
-                <div style={{ fontSize: 22 }}>{them?.flag}</div>
+                <div style={{ fontSize: 22 }}>{them && <Flag id={them.id} />}</div>
                 <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--gold-bright)" }}>
                   {countryName(them)}
                 </div>
@@ -180,7 +181,13 @@ const WarPanel: React.FC = () => {
       )}
 
       {!war?.active && !isSelf && target && declareCheck && (
-        <Section title={`${target.flag} ${countryName(target)}`}>
+        <Section
+          title={
+            <>
+              <Flag id={target.id} /> {countryName(target)}
+            </>
+          }
+        >
           <div className="actions">
             <ActionButton
               icon="🔥"
@@ -207,11 +214,13 @@ const WarPanel: React.FC = () => {
                 <div className="battle battle--draw" key={i}>
                   <div className="battle__head">
                     <span>
-                      {a?.flag} {countryName(a)} {t("ui.war.vs")} {d?.flag} {countryName(d)}
+                      {a && <Flag id={a.id} />} {countryName(a)} {t("ui.war.vs")}{" "}
+                      {d && <Flag id={d.id} />} {countryName(d)}
                     </span>
                   </div>
                   <div>
-                    {t("war.winner")}: {win ? `${win.flag} ${countryName(win)}` : "—"} · {t("war.losses")}{" "}
+                    {t("war.winner")}: {win && <Flag id={win.id} />} {win ? countryName(win) : "—"} ·{" "}
+                    {t("war.losses")}{" "}
                     {w.attackerLosses}/{w.defenderLosses}
                   </div>
                 </div>

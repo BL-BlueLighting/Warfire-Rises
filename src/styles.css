@@ -117,6 +117,36 @@ button {
   cursor: pointer;
 }
 
+/* ── Flags ─────────────────────────────────────────────────────────
+   A flag is a picture now, not a colour glyph — see components/Flag.tsx.
+   Every flag file is the same square canvas (36x36, the flag drawn inside
+   32x26), so sizing one by height sizes them all alike. The `em` keeps a
+   flag in proportion with whatever text it sits beside, which is what the
+   emoji used to do for free. */
+
+.flag {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.flag__img {
+  display: block;
+  height: 1.15em;
+  width: auto;
+}
+
+/* Streaming mode prints the date a defeated regime fell, under its flag. */
+.flag__note {
+  font-family: var(--font-mono);
+  font-size: 0.46em;
+  line-height: 1.3;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
 /* ── App shell ─────────────────────────────────────────────────── */
 
 .app {

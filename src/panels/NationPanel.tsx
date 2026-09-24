@@ -3,7 +3,8 @@ import { useStore, runAction } from "../game/store";
 import { getPlayerCountry } from "../game/state";
 import { Section, Stat, Bar, ActionButton } from "../components/shared";
 import { t, useLanguage } from "../i18n";
-import { countryName } from "../game/names";
+import { countryDesc, countryName } from "../game/names";
+import Flag from "../components/Flag";
 
 const NationPanel: React.FC = () => {
   const { state } = useStore();
@@ -24,7 +25,9 @@ const NationPanel: React.FC = () => {
     <>
       <Section title={t("ui.nation.header")}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-          <span style={{ fontSize: 30 }}>{p.flag}</span>
+          <span style={{ fontSize: 30 }}>
+            <Flag id={p.id} />
+          </span>
           <div>
             <div style={{ fontSize: 16, fontWeight: 600, color: "var(--gold-bright)" }}>{countryName(p)}</div>
             <div className="dim" style={{ fontSize: 11 }}>
@@ -34,7 +37,7 @@ const NationPanel: React.FC = () => {
           </div>
         </div>
         <div className="dim" style={{ fontSize: 11.5, lineHeight: 1.6, fontStyle: "italic" }}>
-          {t(p.description)}
+          {countryDesc(p)}
         </div>
       </Section>
 

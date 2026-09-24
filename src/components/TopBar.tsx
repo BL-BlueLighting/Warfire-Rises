@@ -4,6 +4,7 @@ import SpeedControls from "./SpeedControls";
 import { getPlayerCountry } from "../game/state";
 import { t, useLanguage, type Language } from "../i18n";
 import { countryName } from "../game/names";
+import Flag from "./Flag";
 
 /** Colour a 0-100 resource bar by how healthy the value is. */
 function healthColor(value: number, invert = false): string {
@@ -43,7 +44,7 @@ const TopBar: React.FC = () => {
   return (
     <header className="topbar">
       <div className="topbar__nation">
-        <span className="topbar__flag">{p.flag}</span>
+        <Flag id={p.id} className="topbar__flag" />
         <div>
           <div className="topbar__name">{countryName(p)}</div>
           <div className="topbar__sub">{t(`gov.${p.government}`)}</div>

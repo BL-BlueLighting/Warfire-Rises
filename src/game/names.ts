@@ -33,6 +33,21 @@ export function countryShortName(c: Country | undefined | null): string {
   return value === key ? c.name : value;
 }
 
+/**
+ * The nation's blurb, in the scenario being played.
+ *
+ * A 1938 Soviet Union is a country of peasants and five-year plans, not the
+ * nuclear power the modern blurb describes; the era writes its own and points
+ * `descKey` at it. Scenarios that have not written one fall back to the
+ * modern text, which is what every campaign used before there were eras.
+ */
+export function countryDesc(c: Country | undefined | null): string {
+  if (!c) return "";
+  const key = c.descKey ?? c.description;
+  const value = t(key);
+  return value === key ? t(c.description) : value;
+}
+
 export function countryNameById(state: GameState | null, id: string | undefined): string {
   if (!state || !id) return "";
   return countryName(state.countries.find((c) => c.id === id));

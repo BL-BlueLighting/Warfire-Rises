@@ -7,6 +7,7 @@ import TimedAction from "../components/TimedAction";
 import { getAction } from "../game/actions";
 import { t, useLanguage } from "../i18n";
 import { countryName } from "../game/names";
+import Flag from "../components/Flag";
 
 const SPY_COST = 12;
 
@@ -26,7 +27,13 @@ const IntelligencePanel: React.FC = () => {
     <>
       {!isSelf && target ? (
         <>
-          <Section title={`${t("ui.intel.report")} — ${target.flag} ${countryName(target)}`}>
+          <Section
+            title={
+              <>
+                {t("ui.intel.report")} — <Flag id={target.id} /> {countryName(target)}
+              </>
+            }
+          >
             <Stat label={t("ui.nation.government")} value={t(`gov.${target.government}`)} />
             <Stat label={t("ui.nation.power")} value={t(`power.${target.power}`)} />
             <Stat label={t("ui.nation.economy")} value={`${target.economy}/100`} />

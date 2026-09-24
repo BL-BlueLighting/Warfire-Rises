@@ -59,6 +59,12 @@ export interface Era {
   allies?: Record<string, string[]>;
   enemies?: Record<string, string[]>;
   /**
+   * The flag each nation actually flew, by file name in `public/flags/hist/`.
+   * A nation left out kept the flag it still uses today — Britain, and the
+   * whole roster after the war. See `flagSrc` in flags.ts.
+   */
+  flags?: Record<string, string>;
+  /**
    * Wars already under way when the scenario opens.
    *
    * The first pair involving the player becomes the live war, so a campaign
@@ -66,6 +72,18 @@ export interface Era {
    * short of it.
    */
   atWar?: [string, string][];
+}
+
+/**
+ * The lang key for a scenario's blurb about a nation: `era.ww2_eve.CHN.desc`.
+ *
+ * Derived rather than declared, so a scenario can write about as many of the
+ * twelve as it has something to say about — a nation with no such key keeps
+ * its modern blurb. The id's hyphens become underscores, as they do in every
+ * other era key.
+ */
+export function eraDescKey(eraId: string, countryId: string): string {
+  return `era.${eraId.replace(/-/g, "_")}.${countryId}.desc`;
 }
 
 /** A short label for the picker: "1936" rather than a slogan. */
@@ -95,6 +113,28 @@ export function formatEraDate(era: Era, days: number): string {
 // Numbers are the historical ones as best they are known — millions for people,
 // billions for money, divisions and manpower as fielded. The territory of each
 // scenario is not written here: it comes from the generated borders.
+
+/**
+ * What the twelve nations flew between 1938 and 1945.
+ *
+ * Britain's flag is the one exception: the Union Jack of 1938 is the Union
+ * Jack of today, so it is not listed. Everything here is the original file
+ * from Wikimedia Commons, downloaded by `scripts/fetch-flags.py` — nothing is
+ * drawn by hand.
+ */
+const WW2_FLAGS: Record<string, string> = {
+  USA: "usa", // 48 stars
+  CHN: "roc", // the Republic, not the People's Republic
+  RUS: "ussr",
+  DEU: "reich",
+  JPN: "jpn", // 1870-1999, the empire's
+  IND: "raj", // the Raj, not the republic
+  IRN: "iran", // the lion and sun
+  BRA: "bra",
+};
+
+/** 1942 only: France is Free France, and flies the Cross of Lorraine. */
+const WW2_FIGHT_FLAGS: Record<string, string> = { ...WW2_FLAGS, FRA: "fra_free" };
 
 /**
  * 1938: the eve of the war.
@@ -141,6 +181,10 @@ const WW2_EVE: Era = {
   },
   allies: { DEU: [], RUS: [], GBR: ["FRA"], FRA: ["GBR", "USA"], USA: ["GBR"], JPN: [], CHN: [], IND: [], IRN: [], BRA: [] },
   enemies: { DEU: ["RUS", "FRA"], RUS: ["DEU", "JPN"], JPN: ["CHN", "RUS"], CHN: ["JPN"] },
+  // The quiet is Europe's: Japan and China have been fighting since July 1937,
+  // and a January 1938 campaign that opened in peace would be the wrong war.
+  atWar: [["JPN", "CHN"]],
+  flags: WW2_FLAGS,
 };
 
 /**
@@ -197,6 +241,7 @@ const WW2_FIGHT: Era = {
     GBR: ["DEU", "JPN"], USA: ["DEU", "JPN"], RUS: ["DEU"], CHN: ["JPN"], FRA: ["DEU"],
   },
   atWar: [["DEU", "GBR"], ["JPN", "CHN"]],
+  flags: WW2_FIGHT_FLAGS,
 };
 
 /**
@@ -247,6 +292,7 @@ const WW2_WAR: Era = {
   },
   enemies: { DEU: ["FRA", "GBR", "USA", "RUS"], RUS: ["DEU"], JPN: ["CHN", "USA"], CHN: ["JPN"], GBR: ["DEU", "JPN"], FRA: ["DEU"] },
   atWar: [["DEU", "USA"], ["JPN", "CHN"]],
+  flags: WW2_FLAGS,
 };
 
 /**
@@ -352,6 +398,9 @@ export function eraRoster(eraId: string): Country[] {
       allies: [...(era.allies?.[c.id] ?? [])],
       enemies: [...(era.enemies?.[c.id] ?? [])],
       nameKey: nation.nameKey,
+      // The same key `applyEra` sets on a running campaign, so the title
+      // screen and the game it starts describe a nation identically.
+      descKey: eraDescKey(era.id, c.id),
       name: nation.name ?? c.name,
       population: nation.population ?? c.population,
       economy: nation.economy ?? c.economy,

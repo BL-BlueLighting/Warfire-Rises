@@ -30,6 +30,8 @@ import { CITIES, CITY_MIN_ZOOM, type City } from "./cities";
 import { REGIONS, REGION_LABEL_MIN_ZOOM, type Region } from "./provinces";
 import { COUNTRIES } from "../game/countries";
 import { DEFAULT_ERA, eraRoster } from "../game/eras";
+import { flagSrc } from "../game/flags";
+import Flag from "../components/Flag";
 import { useSettings } from "../game/settings";
 import "./worldmap.css";
 
@@ -79,6 +81,16 @@ const MIN_LABEL_AREA = 250;
 const MIN_REGION_LABEL_AREA = 26;
 
 /**
+ * Nation labels: the one piece of text the map is read for.
+ *
+ * Sized in pixels of the *canvas*, so they do not grow when the map is zoomed
+ * — a name is a label, not a feature. 15px is the smallest that stays legible
+ * over the palette without the two dozen names crowding each other out.
+ */
+const COUNTRY_LABEL_FONT = '600 15px "WF Display", "WF Body", sans-serif';
+const COUNTRY_FLAG_PX = 24;
+
+/**
  * Everything a style function needs, in a ref.
  *
  * OpenLayers calls style functions from its own render loop, not from React's,
@@ -90,6 +102,8 @@ interface MapContext {
   state: ReturnType<typeof useStore>["state"];
   ui: ReturnType<typeof useStore>["ui"];
   settings: ReturnType<typeof useSettings>;
+  /** The scenario on screen, for the flag each nation flies. */
+  eraId: string;
   lang: string;
   colors: Record<string, string>;
   atWar: Set<string>;
@@ -151,6 +165,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     state,
     ui,
     settings,
+    eraId,
     lang,
     colors,
     atWar,
@@ -166,6 +181,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     state,
     ui,
     settings,
+    eraId,
     lang,
     colors,
     atWar,
@@ -373,10 +389,19 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
       if (fill) return new Style({ fill: new Fill({ color: fill }) });
     };
 
+    /**
+     * Province boundaries: the dividing lines inside a nation.
+     *
+     * Stroked only, never filled — the fill belongs to whichever layer owns
+     * the land, so these lines read the same whether the modern borders are
+     * being drawn under them or a scenario's.
+     */
     const province = (feature: FeatureLike): Style | void => {
       const c = ctxRef.current;
       if (c.destroyed.has(feature.get("baseOwner") as string)) return;
-      return new Style({ stroke: new Stroke({ color: "rgba(8, 7, 5, 0.5)", width: 0.5 }) });
+      return new Style({
+        stroke: new Stroke({ color: "rgba(8, 7, 5, 0.75)", width: 1 }),
+      });
     };
 
     const city = (feature: FeatureLike): Style[] => {
@@ -429,17 +454,19 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
           return [
             new Style({
               image: new Icon({
-                src: `/flags/${id.toLowerCase()}.svg`,
+                src: flagSrc(id, c.eraId, c.settings.streamingMode),
                 anchor: [1, 0.5],
-                scale: 0.16,
+                // Width rather than scale: the flag files are not all the same
+                // aspect ratio, and a nation's name is read before its flag.
+                width: COUNTRY_FLAG_PX,
               }),
               text: new TextStyle({
                 text: countryName(country) + (c.ui.showDebugCodes ? ` (${id})` : ""),
-                font: '600 11px "WF Display", sans-serif',
-                offsetX: 9,
+                font: COUNTRY_LABEL_FONT,
+                offsetX: COUNTRY_FLAG_PX + 6,
                 textAlign: "left",
-                fill: new Fill({ color: "#efe6ce" }),
-                stroke: new Stroke({ color: "rgba(6, 6, 5, 0.9)", width: 3.4 }),
+                fill: new Fill({ color: "#f3ead4" }),
+                stroke: new Stroke({ color: "rgba(6, 6, 5, 0.92)", width: 4 }),
               }),
             }),
           ];
@@ -644,8 +671,12 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     for (const layer of Object.values(layers)) layer.changed();
   }, [signature]);
 
-  // Push the fetched scenario into its layer, and take the modern borders off
-  // screen: two sets of coastlines at once read as a mistake.
+  // Push the fetched scenario into its layer, and take the modern *national*
+  // borders off screen: two sets of coastlines at once read as a mistake.
+  //
+  // The province layer stays. Its lines are the only subdivision the map has
+  // — the scenario borders are country outlines, with nothing inside them —
+  // and without it a nation is one flat shape with no interior at all.
   useEffect(() => {
     const layers = layersRef.current;
     const features = eraFeaturesRef.current;
@@ -656,7 +687,6 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     source.clear();
     source.addFeatures(features);
     layers.countries.setVisible(false);
-    layers.provinces.setVisible(false);
     layers.era.changed();
   }, [eraReady]);
 
@@ -684,7 +714,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
       {tooltip && hovered && (
         <div className="worldmap-tooltip" style={{ left: tooltip.x + 14, top: tooltip.y + 14 }}>
           <div className="worldmap-tooltip__title">
-            {hovered.flag} {countryName(hovered)}
+            <Flag id={hovered.id} era={eraId} /> {countryName(hovered)}
             {hovered.id === playerId && <span className="tag tag--you">{t("ui.side.you")}</span>}
           </div>
           {playerId && hovered.id !== playerId && (

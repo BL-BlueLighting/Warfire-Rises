@@ -4,7 +4,7 @@ import { makeGenerals, makeInitialGroups } from "./command";
 import { t } from "../i18n";
 import { DEFAULT_DIFFICULTY, profileFor } from "./difficulty";
 import { regionsOf } from "./peace";
-import { DEFAULT_ERA, getEra, eraProvinceOwners, type Era } from "./eras";
+import { DEFAULT_ERA, eraDescKey, getEra, eraProvinceOwners, type Era } from "./eras";
 
 /**
  * Put the world in the shape a historical scenario says it was in.
@@ -15,6 +15,11 @@ import { DEFAULT_ERA, getEra, eraProvinceOwners, type Era } from "./eras";
  */
 function applyEra(countries: Country[], era: Era) {
   for (const country of countries) {
+    // Every scenario *may* write a blurb for every nation, and one that wrote
+    // none leaves this pointing at a key that does not exist — `countryDesc`
+    // then falls back to the modern text.
+    country.descKey = eraDescKey(era.id, country.id);
+
     const nation = era.nations[country.id];
     if (!nation) continue;
     country.nameKey = nation.nameKey;

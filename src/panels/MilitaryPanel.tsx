@@ -6,6 +6,7 @@ import TimedAction from "../components/TimedAction";
 import { checkAction, getAction } from "../game/actions";
 import { t, useLanguage } from "../i18n";
 import { countryName } from "../game/names";
+import Flag from "../components/Flag";
 import { selectCountry } from "../game/store";
 
 const AE_COST = 15;
@@ -43,7 +44,13 @@ const MilitaryPanel: React.FC = () => {
       </Section>
 
       {!isSelf && target ? (
-        <Section title={`${target.flag} ${countryName(target)}`}>
+        <Section
+          title={
+            <>
+              <Flag id={target.id} /> {countryName(target)}
+            </>
+          }
+        >
           <div className="actions">
             {["mil.drill", "mil.deploy", "mil.strike", "mil.aid"].map((id) => (
               <TimedAction key={id} def={getAction(id)!} actorId={state.playerCountryId} targetId={target.id} />

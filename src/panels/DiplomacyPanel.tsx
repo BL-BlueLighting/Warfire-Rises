@@ -8,6 +8,7 @@ import { getAction, justifyDays } from "../game/actions";
 import { PALETTE, relationBucket, RELATION_COLORS } from "../map/colors";
 import { t, useLanguage } from "../i18n";
 import { countryName } from "../game/names";
+import Flag from "../components/Flag";
 
 const DIPLO_COST = 10;
 
@@ -35,7 +36,9 @@ const DiplomacyPanel: React.FC = () => {
         <>
           <Section title={t("ui.diplo.title")}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-              <span style={{ fontSize: 28 }}>{target.flag}</span>
+              <span style={{ fontSize: 28 }}>
+                <Flag id={target.id} />
+              </span>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gold-bright)" }}>{countryName(target)}</div>
                 <div className="dim" style={{ fontSize: 11 }}>

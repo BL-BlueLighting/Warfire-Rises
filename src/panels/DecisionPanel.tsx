@@ -15,6 +15,7 @@ import {
 } from "../game/decisions";
 import { countryName } from "../game/names";
 import { Section, ActionButton } from "../components/shared";
+import Flag from "../components/Flag";
 import { t, useLanguage } from "../i18n";
 
 /** Reward names that act on the decision's picked counterpart. */
@@ -116,7 +117,7 @@ const DecisionPanel: React.FC = () => {
                     <span className="dim">{t("ui.decision.target")}: </span>
                     {target ? (
                       <span>
-                        {target.flag} {target.name}{" "}
+                        <Flag id={target.id} /> {countryName(target)}{" "}
                         <span
                           className="mono"
                           style={{ color: "var(--blue)", cursor: "pointer" }}

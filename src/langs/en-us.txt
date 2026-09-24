@@ -958,7 +958,7 @@ era.ww2_war.BRA.name: Brazil
 era.ww2_war.FRA.full: French Republic
 era.ww2_war.FRA.name: France
 era.ww2_eve.name: Eve of the War · Nightmare
-era.ww2_eve.desc: January 1938. The last quiet year — Austria is not yet part of the Reich, and the nightmare has not begun.
+era.ww2_eve.desc: January 1938. Europe's last quiet year — Austria is not yet part of the Reich. China has been at war for six months: play it and the campaign opens in one.
 era.ww2_fight.name: The War · Death Grapple
 era.ww2_fight.desc: 1942. The fifth year of the war in China and the Axis at its height: Japan holds the Chinese coast and the whole southern operation, Germany has swallowed Austria, the Czech lands and Poland.
 era.ww2_war.name: The War · First Awakening
@@ -967,6 +967,69 @@ era.late_20c.name: Twentieth Century · Dissolution
 era.late_20c.desc: 1994. The Soviet Union is gone, the Cold War is over, a new order is forming.
 era.early_21c.name: Twenty-First Century · Revival
 era.early_21c.desc: 2000. The turn of the century: ambitions return and the great powers settle into a new tension.
+
+# ── Each scenario's own blurb for each nation (era.<era>.<ID>.desc) ──
+# A nation without one falls back to country.<ID>.desc, its modern text —
+# see countryDesc in names.ts.
+era.ww2_eve.USA.desc: An industrial giant in an isolationist mood: the world's largest economy and an army ranked somewhere in the teens. The Depression is not over, and Congress wants no part of Europe's next war.
+era.ww2_eve.CHN.desc: Half a year into the war of resistance: Beiping, Shanghai and Nanjing have fallen, the government has gone upriver to Chongqing, and the Japanese are advancing along the Yangtze. Unification is nominal — the Republic's writ runs from the southwest.
+era.ww2_eve.RUS.desc: The second five-year plan has just finished and heavy industry leads Europe. The purges have gutted the Red Army's officer corps; Stalin is watching Europe's next war from the side.
+era.ww2_eve.GBR.desc: The last light of an empire on which the sun never set — India, Palestine and half of Africa are still on the map — while appeasement gives ground in Europe again and again.
+era.ww2_eve.FRA.desc: Called the finest army in Europe, and thinking entirely behind the Maginot Line. The Third Republic changes governments twice a year.
+era.ww2_eve.DEU.desc: Versailles has been torn open, Austria is still its own country and annexation is only a matter of time. Armoured divisions and an air force are being rebuilt — and the generals fear a war too soon.
+era.ww2_eve.JPN.desc: Korea and Taiwan are colonies, Manchukuo is in hand, and the war in China has been total since July 1937 — but the oil and the scrap steel still depend on Washington.
+era.ww2_eve.IND.desc: The second-largest population on earth, supplying Britain with manpower and material, while the independence movement grows under the Congress flag.
+era.ww2_eve.IRN.desc: Oil has made it a board between Britain and Russia. Reza Shah's modernization has barely begun and the railway has only just reached the Gulf.
+era.ww2_eve.BRA.desc: Under Vargas's Estado Novo, coffee and rubber buy industry — with German trade on one side and American pressure on the other.
+
+era.ww2_fight.USA.desc: After Pearl Harbor the arsenal of democracy is finally running: ten million men will be under arms within two years, and Midway has just been fought.
+era.ww2_fight.CHN.desc: The fifth year of the war: the coast is lost, Chongqing holds, and Japan stands at the furthest reach of its southern operation — while China pins down the bulk of the Japanese army.
+era.ww2_fight.RUS.desc: The hardest year of the Great Patriotic War: Leningrad is besieged, Stalingrad is street by street, and the factories are moving east of the Urals.
+era.ww2_fight.GBR.desc: Breathing after the Battle of Britain: London under the Blitz, the desert seesawing with Rommel, and the Empire's manpower arriving from India and Africa.
+era.ww2_fight.FRA.desc: Free France: the metropole has fallen, de Gaulle commands a small force and a few colonies from London, and Vichy sits on the other side.
+era.ww2_fight.DEU.desc: The Reich at its furthest: from the Arctic Circle to North Africa, from Brittany to the Volga. Winter and oil will both become problems.
+era.ww2_fight.JPN.desc: The Empire of Japan at its height: the southern operation runs from the Philippines to Burma, oil and rubber are in hand — and American industry is ten times its own.
+era.ww2_fight.IND.desc: The Cripps mission came home empty-handed, Quit India is brewing, and Indian soldiers are still fighting for the Empire in Africa and Burma.
+era.ww2_fight.IRN.desc: Occupied by Britain and Russia in 1941 and with Reza Shah abdicated, the Persian Corridor is shipping Lend-Lease north by the ton.
+era.ww2_fight.BRA.desc: At war with the Axis since 1942. Natal, in the northeast, is the shortest hop from the Americas to Africa.
+
+era.ww2_war.USA.desc: Industrial master of two oceans: the European front is on the Rhine, the Pacific is closing on the home islands, and it alone holds a weapon nobody else has.
+era.ww2_war.CHN.desc: The eighth year: the Japanese still hold central and south China, the Burma Road and the Hump keep supply trickling in, and Manchuria is still not hers.
+era.ww2_war.RUS.desc: The Red Army is on the Oder with Berlin in sight — at a cost of twenty million dead and half a country in ruins.
+era.ww2_war.GBR.desc: Winning the war and losing the ledger: India is on its way out, a Labour government is rebuilding at home, and rationing is still on.
+era.ww2_war.FRA.desc: Liberated in 1944 and shaping a new republic: French troops fight on the Rhine while the cracks in the colonies begin to show.
+era.ww2_war.DEU.desc: The Reich's last year: fighting on both fronts inside its own borders, its cities in rubble, calling up the old men and the boys.
+era.ww2_war.JPN.desc: The Empire's last year: island by island the perimeter is lost, the home islands are burning, and it is still looking for one decisive victory.
+era.ww2_war.IND.desc: The war is nearly over, the Quit India leadership is still in prison, and partition is already casting its shadow.
+era.ww2_war.IRN.desc: Oil has bought it a seat in the post-war order. Foreign troops are leaving under treaty, and Tehran faces a Soviet-backed government in Azerbaijan.
+era.ww2_war.BRA.desc: Its expeditionary force fought in Italy, Vargas's Estado Novo is wobbling, and the calls for democracy have started.
+
+era.late_20c.USA.desc: Sole victor of the Cold War: a unipolar moment, with the Gulf War just behind it — and Somalia and the deficit hinting at the limits.
+era.late_20c.CHN.desc: The sixteenth year of reform: double-digit growth, foreign capital flooding the coast, and an army only starting the road from mass to modern.
+era.late_20c.RUS.desc: Three years after the Union dissolved: the economy in free fall, Chechnya about to begin, and the arsenal and the UN seat the only great-power credentials left.
+era.late_20c.GBR.desc: Britain after Thatcher: the City and North Sea oil carry the economy, and Hong Kong goes back to China in three years.
+era.late_20c.FRA.desc: The end of the Mitterrand years: the Franco-German axis drives a forming European Union, with the force de frappe and African influence still the cards of an independent policy.
+era.late_20c.DEU.desc: Fourth year after reunification: the east in painful transition, the mark the anchor of Europe, and a constitution that still keeps the army at home.
+era.late_20c.JPN.desc: Third year after the bubble burst: the world's second economy bleeding slowly, and the Self-Defense Forces only just allowed out of the country.
+era.late_20c.IND.desc: India after the Rao reforms: the economy opening, a nuclear programme moving in the dark, and Kashmir never quiet.
+era.late_20c.PRK.desc: With the Soviet subsidy gone, the Arduous March has begun — and the nuclear programme is the only future it is betting on.
+era.late_20c.IRN.desc: Five years after the war with Iraq, rebuilding while the nuclear programme and Western suspicion begin together.
+era.late_20c.ISR.desc: Oslo has just been signed, peace with Jordan is on the way, and Rabin's gamble is still unproven.
+era.late_20c.BRA.desc: The Real plan has just broken hyperinflation, Mercosur is taking shape, and Brazil is starting to think of itself as a regional power.
+
+era.early_21c.USA.desc: The only global power: defence spending larger than the next ten combined, the dot-com bubble just past its peak, and an election year on top of it.
+era.early_21c.CHN.desc: Twenty years into reform: the economy has just passed a trillion dollars, WTO membership is weeks away, and the army is still catching up.
+era.early_21c.RUS.desc: Russia under a brand-new president: Chechnya is not over, the oil price is starting to climb, and energy is buying back great-power standing.
+era.early_21c.GBR.desc: Britain under New Labour: Kosovo has it intervening abroad again, and the City is heading for its peak.
+era.early_21c.FRA.desc: The euro's first year: driving European integration with Germany, with overseas intervention and the nuclear deterrent unchanged.
+era.early_21c.DEU.desc: The first year the euro replaces the mark: still digesting the cost of unity, and the army allowed abroad for the first time.
+era.early_21c.JPN.desc: The lost decade at its end: a stagnant economy, a falling population, and North Korean missiles over the Sea of Japan.
+era.early_21c.IND.desc: Two years after the nuclear tests: IT is taking off, growth is closing on China's, and the border with Pakistan stays tense.
+era.early_21c.PRK.desc: The Arduous March is just over, missile technology buys grain, and talks and friction run side by side.
+era.early_21c.IRN.desc: Three years into a reformist president, a nuclear programme moving in the dark, and the distrust of Washington unresolved.
+era.early_21c.ISR.desc: Camp David has collapsed and the Second Intifada has begun.
+era.early_21c.BRA.desc: Adjusting after the devaluation, and positioning itself as South America's leader.
+
 ui.title.difficulty: DIFFICULTY
 ui.title.relations: STARTING RELATIONS
 ui.title.inspect: Click any nation on the map or in this list to inspect it.

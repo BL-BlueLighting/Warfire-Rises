@@ -4,6 +4,7 @@ import { getCountryById } from "../game/state";
 import { taskProgress, tasksFor } from "../game/scheduler";
 import { describeReward, type DecisionDef } from "../game/decisions";
 import { t, useLanguage } from "../i18n";
+import Flag from "./Flag";
 
 /** Progress bars for everything the player has queued up. */
 const TaskQueue: React.FC = () => {
@@ -40,7 +41,12 @@ const TaskQueue: React.FC = () => {
               <span className="task__icon">{task.icon}</span>
               <span className="task__name">
                 {primary}
-                {target ? ` · ${target.flag}` : ""}
+                {target && (
+                  <>
+                    {" · "}
+                    <Flag id={target.id} />
+                  </>
+                )}
               </span>
               <span className="task__days">{t("ui.task.days_left", { n: daysLeft })}</span>
               {task.cancellable && (

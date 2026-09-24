@@ -68,6 +68,12 @@ export interface Country {
    */
   nameKey?: string;
   /**
+   * The scenario's own blurb for this nation — `era.ww2_eve.CHN.desc`. Set by
+   * `applyEra`; nations the scenario has not written one for keep
+   * `description`, which is the modern text.
+   */
+  descKey?: string;
+  /**
    * How readily this nation starts a war, 1 being the baseline.
    *
    * Static posture, not a game fact: it sits next to the real-world alliances

@@ -11,6 +11,7 @@ import { getCountryById } from "../game/state";
 import { COUNTRIES } from "../game/countries";
 import { countryName } from "../game/names";
 import { t, useLanguage } from "../i18n";
+import Flag from "./Flag";
 
 /**
  * Three save slots, reachable before a campaign and during one.
@@ -50,7 +51,11 @@ const SaveDialog: React.FC = () => {
                   <span className="slot__name">{t("ui.save.slot", { n: slot })}</span>
                   {meta ? (
                     <span className="slot__meta">
-                      {country ? `${country.flag} ` : ""}
+                      {country && (
+                        <>
+                          <Flag id={country.id} era={meta.era} />{" "}
+                        </>
+                      )}
                       {country ? countryName(country) : meta.countryId} ·{" "}
                       {t("ui.save.day", { day: meta.day })} · {t(`diff.${meta.difficulty}.name`)}
                       {" · "}
