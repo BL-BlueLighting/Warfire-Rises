@@ -226,13 +226,3 @@
   font-weight: 700;
 }
 
-/* First-order administrative boundaries inside the playable nations. */
-
-/* Administrative region names — quieter than the nation labels. */
-
-/* Cities: a dot with its name set alongside. */
-
-/* Flags are colour glyphs: leave them unstroked so the colour layers survive.
-   Stroking a COLR glyph makes some engines discard the colour and draw the
-   bare regional-indicator letters instead — "CN" rather than 🇨🇳. */
-.worldmap-label__flag,
