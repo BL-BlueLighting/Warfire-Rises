@@ -1038,7 +1038,7 @@ era.early_21c.IRN.desc: 改革派总统上台三年，核计划在暗处推进�
 era.early_21c.ISR.desc: 戴维营谈判破裂，第二次巴勒斯坦大起义已经开始。
 era.early_21c.BRA.desc: 雷亚尔贬值后的调整期，正把自己定位为南美洲的领袖。
 
-dec.err.play_time: 国策「{name}」的 PlayTime 无法识别：{code}（可写 ngtm / dfig / waku / splt / resm，或用数组写多个）
+dec.err.play_time: 国策「{name}」的 PlayTime 无法识别：{code}（可写 allt / ngtm / dfig / waku / splt / resm，或用数组写多个）
 ui.decision.wrong_era: 这项国策不属于当前时代。
 ui.title.difficulty: 难度
 ui.title.relations: 初始关系

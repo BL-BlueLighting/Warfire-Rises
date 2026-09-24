@@ -135,9 +135,20 @@ export const PLAY_TIME_CODES: Record<string, EraId> = {
 /** The scenario a decision with no `PlayTime` belongs to. */
 export const DEFAULT_PLAY_TIME = "resm";
 
+/**
+ * `"PlayTime": "allt"` — the decision belongs to every scenario.
+ *
+ * For the ones that are not about a year at all: mobilizing for war, the
+ * general staff, propaganda. Written as a code rather than as the list of all
+ * five so that adding a sixth scenario does not silently leave them behind.
+ */
+export const ALL_TIME_CODE = "allt";
+
 /** Is this a code the game knows? Used to report a file that got one wrong. */
 export function isPlayTimeCode(code: unknown): boolean {
-  return typeof code === "string" && PLAY_TIME_CODES[code.trim().toLowerCase()] !== undefined;
+  if (typeof code !== "string") return false;
+  const key = code.trim().toLowerCase();
+  return key === ALL_TIME_CODE || PLAY_TIME_CODES[key] !== undefined;
 }
 
 /**
@@ -152,7 +163,12 @@ export function playTimeEras(playTime: string | string[] | undefined): EraId[] {
     playTime === undefined ? [DEFAULT_PLAY_TIME] : Array.isArray(playTime) ? playTime : [playTime];
   const eras: EraId[] = [];
   for (const code of codes) {
-    const era = isPlayTimeCode(code) ? PLAY_TIME_CODES[code.trim().toLowerCase()] : undefined;
+    if (typeof code !== "string") continue;
+    if (code.trim().toLowerCase() === ALL_TIME_CODE) {
+      for (const era of ERAS) if (!eras.includes(era.id)) eras.push(era.id);
+      continue;
+    }
+    const era = PLAY_TIME_CODES[code.trim().toLowerCase()];
     if (era && !eras.includes(era)) eras.push(era);
   }
   return eras;

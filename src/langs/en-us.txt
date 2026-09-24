@@ -1039,7 +1039,7 @@ era.early_21c.IRN.desc: Three years into a reformist president, a nuclear progra
 era.early_21c.ISR.desc: Camp David has collapsed and the Second Intifada has begun.
 era.early_21c.BRA.desc: Adjusting after the devaluation, and positioning itself as South America's leader.
 
-dec.err.play_time: Decision "{name}": unknown PlayTime "{code}" (use ngtm / dfig / waku / splt / resm, or an array of them)
+dec.err.play_time: Decision "{name}": unknown PlayTime "{code}" (use allt / ngtm / dfig / waku / splt / resm, or an array of them)
 ui.decision.wrong_era: This decision belongs to another era.
 ui.title.difficulty: DIFFICULTY
 ui.title.relations: STARTING RELATIONS

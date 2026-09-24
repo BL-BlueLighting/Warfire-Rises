@@ -124,11 +124,13 @@ npm run tauri:build    # → src-tauri/target/release/bundle/
 
 **国策可以限定时代**：加 `"PlayTime": "ngtm"` 就只在 1938 年那一局出现，`["dfig","waku"]` 则是 1942 与 1945 两局。代码取自时代英文名的首字母：
 
-| `ngtm` | `dfig` | `waku` | `splt` | `resm` |
-|---|---|---|---|---|
-| 二战前夕 · 梦魇（1938） | 二战战争 · 死斗（1942） | 二战战争 · 初醒（1945） | 二十世纪 · 解体（1994） | 二一世纪 · 复兴（2000） |
+| `allt` | `ngtm` | `dfig` | `waku` | `splt` | `resm` |
+|---|---|---|---|---|---|
+| **所有时代** | 二战前夕 · 梦魇（1938） | 二战战争 · 死斗（1942） | 二战战争 · 初醒（1945） | 二十世纪 · 解体（1994） | 二一世纪 · 复兴（2000） |
 
-**不写 `PlayTime` 的国策默认是 `resm`**，也就是只在 21 世纪初那一局出现——写错代码会报错并丢弃该条国策，不会静默当成 `resm`。目前 `decisions/` 里的国策都还没有标注，所以它们在其余四个时代都不会出现。
+**不写 `PlayTime` 的国策默认是 `resm`**，也就是只在 21 世纪初那一局出现；写错代码会报错并丢弃该条国策，不会静默当成 `resm`。
+
+目前 `all.warf-decision` 里 **战时经济动员、对敌宣传攻势、邀请军事指挥家**（总参谋部自动指挥）标了 `allt`，其余国策都是 `resm`——`全国团结号召`、`china.warf-decision`、`china-tfr.warf-decision` 里的尚未标注。
 
 完整的字段、属性与排错说明见 **[docs/decisions.md](./docs/decisions.md)**，可以直接抄的模板在 [`decisions/templates/`](./decisions/templates/)。
 

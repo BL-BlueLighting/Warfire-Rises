@@ -4,6 +4,7 @@
         {
             "Type": "Decisions",
             "Name": "战时经济动员",
+            "PlayTime": "allt",
             "Description": "(持续性国策)\n将民用工业转向军工生产，为长期冲突做准备。",
             "Require": [
                 {
@@ -111,6 +112,7 @@
         {
             "Type": "Decisions",
             "Name": "对敌宣传攻势",
+            "PlayTime": "allt",
             "Description": "(持续性国策)\n针对关系恶劣的国家发动宣传战，动摇其民心。",
             "Require": [
                 {
@@ -171,6 +173,7 @@
         {
             "Type": "Decisions",
             "Name": "邀请军事指挥家",
+            "PlayTime": "allt",
             "Description": "(一次性国策)\n现有的军队将领不足以带领我们打赢胜仗，让更有经验的领导者上任。\n\n完成后，军队的训练、分配与调遣将交由参谋部自动处理。你仍可亲自下令，但参谋部会提出异议——若一意孤行，将白白折损我军的耐力。",
             "Require": [],
             "Time": 25,
