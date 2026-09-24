@@ -23,6 +23,7 @@ function applyEra(countries: Country[], era: Era) {
     const nation = era.nations[country.id];
     if (!nation) continue;
     country.nameKey = nation.nameKey;
+    if (nation.government) country.government = nation.government;
     if (nation.name) country.name = nation.name;
     if (nation.population !== undefined) country.population = nation.population;
     if (nation.economy !== undefined) country.economy = nation.economy;

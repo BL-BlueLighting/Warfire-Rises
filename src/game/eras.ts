@@ -1,4 +1,4 @@
-import { Country } from "./types";
+import { Country, GovernmentType } from "./types";
 import { COUNTRIES } from "./countries";
 import { REGIONS } from "../map/provinces";
 import eraRegions from "../map/data/eraRegions.json";
@@ -23,6 +23,12 @@ export type EraId = "ww2-eve" | "ww2-fight" | "ww2-war" | "late-20c" | "early-21
 export interface EraNation {
   /** What this nation was called that year, as an i18n key prefix. */
   nameKey?: string;
+  /**
+   * What kind of state it was that year. A nation that changed its nature
+   * keeps its modern label unless the scenario says otherwise — which is how
+   * the Republic of China came to be displayed as a communist state.
+   */
+  government?: GovernmentType;
   /** Its name in English, for the paths that never localise. */
   name?: string;
   /** Millions. */
@@ -74,6 +80,11 @@ export interface Era {
   atWar?: [string, string][];
   /** Provinces the central government did not actually run. See `EraAutonomy`. */
   autonomous?: EraAutonomy[];
+  /**
+   * Government types that differ from the modern roster's, by country id.
+   * A nation left out keeps the label it has today.
+   */
+  governments?: Record<string, GovernmentType>;
 }
 
 /**
@@ -177,6 +188,34 @@ const WARLORD_CHINA: EraAutonomy[] = [
   { nameKey: "faction.tibet", regions: ["CHN:Tibet"] }, // 噶厦
 ];
 
+/**
+ * What kind of state each of the twelve was in the war years.
+ *
+ * Only the ones that differ from today are listed. The Republic of China was
+ * a one-party Nationalist state, not a communist one; the Reich and Vargas's
+ * Estado Novo were dictatorships, not democracies; the Empire of Japan, the
+ * Raj and Reza Shah's Iran were all monarchies.
+ */
+const WW2_GOVERNMENTS: Record<string, GovernmentType> = {
+  CHN: "authoritarian", // 中华民国: KMT one-party rule (训政)
+  RUS: "communist",
+  DEU: "authoritarian", // the Reich
+  JPN: "monarchy", // the Empire
+  IND: "monarchy", // the Raj, under the Crown
+  IRN: "monarchy", // Imperial State of Iran
+  BRA: "authoritarian", // Vargas's Estado Novo, 1937-1945
+};
+
+/**
+ * 1994: two of the twelve had changed nature since the war years and changed
+ * back later. Yeltsin's Russia was three years old and still counted as a
+ * democracy; the DPRK was Kim Il-sung's, and he had months to live.
+ */
+const LATE_20C_GOVERNMENTS: Record<string, GovernmentType> = {
+  RUS: "democracy",
+  PRK: "communist",
+};
+
 /** 1945: the same map, minus Xinjiang. */
 const WARLORD_CHINA_1945: EraAutonomy[] = WARLORD_CHINA.filter(
   (bloc) => bloc.nameKey !== "faction.xinjiang"
@@ -232,6 +271,7 @@ const WW2_EVE: Era = {
   atWar: [["JPN", "CHN"]],
   flags: WW2_FLAGS,
   autonomous: WARLORD_CHINA,
+  governments: WW2_GOVERNMENTS,
 };
 
 /**
@@ -290,6 +330,7 @@ const WW2_FIGHT: Era = {
   atWar: [["DEU", "GBR"], ["JPN", "CHN"]],
   flags: WW2_FIGHT_FLAGS,
   autonomous: WARLORD_CHINA,
+  governments: WW2_GOVERNMENTS,
 };
 
 /**
@@ -342,6 +383,7 @@ const WW2_WAR: Era = {
   atWar: [["DEU", "USA"], ["JPN", "CHN"]],
   flags: WW2_FLAGS,
   autonomous: WARLORD_CHINA_1945,
+  governments: WW2_GOVERNMENTS,
 };
 
 /**
@@ -375,6 +417,7 @@ const LATE_20C: Era = {
     CHN: { USA: 0, RUS: 55, PRK: 40, JPN: -20, IND: -25, GBR: 10, FRA: 10, DEU: 15, ISR: 5, IRN: 25, BRA: 20 },
     JPN: { USA: 75, CHN: -20, RUS: 15, PRK: -75, GBR: 50, FRA: 45, DEU: 50, IND: 35, ISR: 25, IRN: -10, BRA: 25 },
   },
+  governments: LATE_20C_GOVERNMENTS,
   allies: { USA: ["GBR", "FRA", "DEU", "JPN", "ISR"], GBR: ["USA", "FRA", "DEU"], FRA: ["USA", "GBR", "DEU"], DEU: ["USA", "GBR", "FRA"], JPN: ["USA"], ISR: ["USA"], RUS: [], CHN: ["PRK"], PRK: ["CHN"], IND: [], IRN: [], BRA: [] },
   enemies: { USA: ["PRK", "IRN"], PRK: ["USA", "JPN"], IRN: ["USA", "ISR"], ISR: ["IRN"], CHN: ["JPN"], RUS: [] },
 };
@@ -450,6 +493,7 @@ export function eraRoster(eraId: string): Country[] {
       // The same key `applyEra` sets on a running campaign, so the title
       // screen and the game it starts describe a nation identically.
       descKey: eraDescKey(era.id, c.id),
+      government: era.governments?.[c.id] ?? c.government,
       name: nation.name ?? c.name,
       population: nation.population ?? c.population,
       economy: nation.economy ?? c.economy,
