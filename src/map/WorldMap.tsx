@@ -30,7 +30,7 @@ import { PALETTE, buildColorMap } from "./colors";
 import { CITIES, CITY_MIN_ZOOM, type City } from "./cities";
 import { REGIONS, REGION_LABEL_MIN_ZOOM, type Region } from "./provinces";
 import { COUNTRIES } from "../game/countries";
-import { DEFAULT_ERA, eraRoster } from "../game/eras";
+import { DEFAULT_ERA, eraAutonomousRegions, eraRoster, getEra } from "../game/eras";
 import { flagSrc } from "../game/flags";
 import Flag from "../components/Flag";
 import { useSettings } from "../game/settings";
@@ -124,6 +124,8 @@ interface MapContext {
   settings: ReturnType<typeof useSettings>;
   /** The scenario on screen, for the flag each nation flies. */
   eraId: string;
+  /** Province id → who ran it, for provinces the capital did not govern. */
+  autonomous: Record<string, string>;
   lang: string;
   colors: Record<string, string>;
   atWar: Set<string>;
@@ -137,6 +139,7 @@ interface MapContext {
 interface MapLayers {
   countries: VectorLayer<VectorSource>;
   era: VectorLayer<VectorSource>;
+  autonomy: VectorLayer<VectorSource>;
   conquest: VectorLayer<VectorSource>;
   provinces: VectorLayer<VectorSource>;
   cities: VectorLayer<VectorSource>;
@@ -171,6 +174,16 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
   const atWar = new Set(
     preview ? [] : state?.countries.find((c) => c.id === state.playerCountryId)?.atWarWith ?? []
   );
+  // The provinces the capital did not govern, as a lookup for the style
+  // function — which runs outside React and cannot afford a list scan. The
+  // title screen reads the scenario's table directly, so the map shows the
+  // country you are about to pick, cliques and all.
+  const autonomous: Record<string, string> = Object.fromEntries(
+    (preview
+      ? eraAutonomousRegions(getEra(preview.eraId ?? DEFAULT_ERA))
+      : state?.autonomous ?? []
+    ).map((a) => [a.regionId, a.nameKey])
+  );
   const destroyed = new Set(
     (preview ? [] : state?.countries ?? []).filter((c) => c.destroyed).map((c) => c.id)
   );
@@ -186,6 +199,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     ui,
     settings,
     eraId,
+    autonomous,
     lang,
     colors,
     atWar,
@@ -202,6 +216,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     ui,
     settings,
     eraId,
+    autonomous,
     lang,
     colors,
     atWar,
@@ -411,6 +426,29 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     };
 
     /**
+     * Provinces the capital did not govern — 1938 China's cliques.
+     *
+     * A mark on the land, not an owner: the province still belongs to the
+     * country, so this is a wash over that country's colour and a broken
+     * border, never another nation's fill.
+     */
+    const autonomy = (feature: FeatureLike): Style | void => {
+      const c = ctxRef.current;
+      const regionId = feature.get("regionId") as string;
+      const destroyed = feature.get("baseOwner") as string;
+      if (c.destroyed.has(destroyed)) return;
+      if (!c.autonomous[regionId]) return;
+      return new Style({
+        fill: new Fill({ color: "rgba(10, 9, 5, 0.45)" }),
+        stroke: new Stroke({
+          color: "rgba(228, 216, 188, 0.5)",
+          width: 1,
+          lineDash: [4, 3],
+        }),
+      });
+    };
+
+    /**
      * Province boundaries: the dividing lines inside a nation.
      *
      * Stroked only, never filled — the fill belongs to whichever layer owns
@@ -517,7 +555,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
       });
     };
 
-    return { country, eraNation, inert, conquest, province, city, label, regionLabel };
+    return { country, eraNation, autonomy, inert, conquest, province, city, label, regionLabel };
   }, [baseZoom]);
 
   // ── The map itself, created once ─────────────────────────────────
@@ -528,6 +566,9 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     const layers: MapLayers = {
       countries: new VectorLayer({ source: sources.countries, style: styles.country }),
       era: new VectorLayer({ source: sources.era, style: styles.eraNation, zIndex: 1 }),
+      // Between the country's own colour and everything painted over it: an
+      // occupied province is a stronger fact than a semi-autonomous one.
+      autonomy: new VectorLayer({ source: sources.provinces, style: styles.autonomy, zIndex: 1.5 }),
       conquest: new VectorLayer({ source: sources.conquest, style: styles.conquest, zIndex: 2 }),
       provinces: new VectorLayer({ source: sources.provinces, style: styles.province, zIndex: 3 }),
       regionLabels: new VectorLayer({
@@ -564,6 +605,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
         inertLayer,
         layers.countries,
         layers.era,
+        layers.autonomy,
         layers.conquest,
         layers.provinces,
         layers.regionLabels,
@@ -721,6 +763,18 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     map.getView().setResolution(resolution);
   };
 
+  /** The provinces of a nation its capital did not govern, named for display. */
+  const autonomousBy = (countryId: string) =>
+    (state?.autonomous ?? [])
+      .filter((a) => a.regionId.startsWith(`${countryId}-`))
+      .map((a) => {
+        const region = REGIONS.get(countryId)?.find((r) => r.id === a.regionId);
+        return {
+          region: region ? (lang === "zh-cn" ? region.zh : region.en) : a.regionId,
+          nameKey: a.nameKey,
+        };
+      });
+
   const hovered: Country | undefined = tooltip
     ? preview
       ? eraRoster(preview.eraId ?? DEFAULT_ERA).find((c) => c.id === tooltip.id) ??
@@ -749,6 +803,18 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
             · {t("ui.nation.stability")} {hovered.stability}
           </div>
           {atWar.has(hovered.id) && <div className="worldmap-tooltip__war">⚔ {t("ui.legend.war")}</div>}
+          {/* Shaded provinces are otherwise unexplained: the wash says "someone
+              else runs this" and this says who. */}
+          {state && autonomousBy(hovered.id).length > 0 && (
+            <div className="worldmap-tooltip__row">
+              {t("ui.nation.autonomous")}:{" "}
+              {autonomousBy(hovered.id)
+                .slice(0, 4)
+                .map((a) => `${a.region}·${t(a.nameKey)}`)
+                .join(lang === "zh-cn" ? "、" : ", ")}
+              {autonomousBy(hovered.id).length > 4 && " …"}
+            </div>
+          )}
           {/* Subject status is otherwise invisible: it lives on the lesser
               nation, or is implied by occupied land, and no panel shows it. */}
           {state && playerId && hovered.id !== playerId && (

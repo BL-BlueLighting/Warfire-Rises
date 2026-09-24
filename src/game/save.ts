@@ -54,6 +54,7 @@ export function serialize(state: GameState): string {
   lines.push(`eventIdCounter:${state.eventIdCounter}`);
   lines.push(`difficulty:${state.difficulty}`);
   lines.push(`regionOwner:${JSON.stringify(state.regionOwner)}`);
+  lines.push(`autonomous:${JSON.stringify(state.autonomous)}`);
   lines.push(`conference:${state.conference ? JSON.stringify(state.conference) : "null"}`);
   lines.push(`conquered:${state.conquered ? JSON.stringify(state.conquered) : "null"}`);
   lines.push(`defeatedCountries:${JSON.stringify(state.defeatedCountries)}`);
@@ -132,6 +133,11 @@ export function deserialize(state: GameState, encoded: string): boolean {
     state.eventIdCounter = parseInt(map.get("eventIdCounter") ?? "0");
     { const d = map.get("difficulty"); if (d && isDifficulty(d)) state.difficulty = d; }
     try { state.regionOwner = JSON.parse(map.get("regionOwner") ?? "{}"); } catch { state.regionOwner = {}; }
+    // Absent in saves written before scenarios had autonomous provinces: those
+    // keep whatever the scenario just set, rather than losing it.
+    if (map.has("autonomous")) {
+      try { state.autonomous = JSON.parse(map.get("autonomous")!); } catch { /* keep the scenario's */ }
+    }
     try {
       const c = map.get("conference");
       state.conference = c && c !== "null" ? JSON.parse(c) : null;

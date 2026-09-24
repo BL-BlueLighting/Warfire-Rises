@@ -4,7 +4,7 @@ import { makeGenerals, makeInitialGroups } from "./command";
 import { t } from "../i18n";
 import { DEFAULT_DIFFICULTY, profileFor } from "./difficulty";
 import { regionsOf } from "./peace";
-import { DEFAULT_ERA, eraDescKey, getEra, eraProvinceOwners, type Era } from "./eras";
+import { DEFAULT_ERA, eraAutonomousRegions, eraDescKey, getEra, eraProvinceOwners, type Era } from "./eras";
 
 /**
  * Put the world in the shape a historical scenario says it was in.
@@ -143,6 +143,9 @@ export function createInitialState(
     // modern owner, which is what `regionOwner` falling through already means.
     regionOwner: { ...eraProvinceOwners(era) },
     conference: null,
+    // Same province ids as `regionOwner`, different question: not who owns it,
+    // but who runs it.
+    autonomous: eraAutonomousRegions(era),
     clock: { time: 1, speed: 2, lastSpeed: 2 },
     tasks: [],
     taskIdCounter: 0,

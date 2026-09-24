@@ -72,6 +72,25 @@ export interface Era {
    * short of it.
    */
   atWar?: [string, string][];
+  /** Provinces the central government did not actually run. See `EraAutonomy`. */
+  autonomous?: EraAutonomy[];
+}
+
+/**
+ * Land that is one country on paper and somebody else's on the ground.
+ *
+ * Not a separate nation: the borders do not move, and the province stays in
+ * the country it belongs to for war, peace and every list in the game. What
+ * the map draws differently is the *control* — the provinces the capital did
+ * not govern. The Republic of China is the case this exists for: it was one
+ * country and a dozen governments' worth of country, and a 1938 map that
+ * colours it as uniformly as France is not a map of 1938.
+ */
+export interface EraAutonomy {
+  /** Who actually runs these provinces: `faction.jin` → 晋系. */
+  nameKey: string;
+  /** The provinces, named as the region dataset names them: `"CHN:Shanxi"`. */
+  regions: string[];
 }
 
 /**
@@ -137,6 +156,33 @@ const WW2_FLAGS: Record<string, string> = {
 const WW2_FIGHT_FLAGS: Record<string, string> = { ...WW2_FLAGS, FRA: "fra_free" };
 
 /**
+ * Who actually ran China's provinces, 1938-1942.
+ *
+ * The Northern Expedition did not disarm the cliques; it made them sign on.
+ * The war was fought by 晋系 in Shanxi, 桂系 in Guangxi, 滇系 in Yunnan and
+ * the 三马 in the northwest — under Chongqing's flag, and not always on
+ * Chongqing's orders. 新疆 answered to 盛世才 and, behind him, to Moscow;
+ * 西藏 had governed itself since 1912.
+ *
+ * Xinjiang drops out in 1945 (see below) — 盛世才 broke with Moscow in 1942
+ * and was removed by Chongqing in 1944, and the province was the Nationalist
+ * government's for the last year of the war.
+ */
+const WARLORD_CHINA: EraAutonomy[] = [
+  { nameKey: "faction.jin", regions: ["CHN:Shanxi"] }, // 阎锡山
+  { nameKey: "faction.gui", regions: ["CHN:Guangxi"] }, // 李宗仁、白崇禧
+  { nameKey: "faction.dian", regions: ["CHN:Yunnan"] }, // 龙云
+  { nameKey: "faction.ma", regions: ["CHN:Ningxia", "CHN:Qinghai", "CHN:Gansu"] }, // 三马
+  { nameKey: "faction.xinjiang", regions: ["CHN:Xinjiang"] }, // 盛世才
+  { nameKey: "faction.tibet", regions: ["CHN:Tibet"] }, // 噶厦
+];
+
+/** 1945: the same map, minus Xinjiang. */
+const WARLORD_CHINA_1945: EraAutonomy[] = WARLORD_CHINA.filter(
+  (bloc) => bloc.nameKey !== "faction.xinjiang"
+);
+
+/**
  * 1938: the eve of the war.
  *
  * The Anschluss has not happened: Austria is still its own country, the Reich
@@ -185,6 +231,7 @@ const WW2_EVE: Era = {
   // and a January 1938 campaign that opened in peace would be the wrong war.
   atWar: [["JPN", "CHN"]],
   flags: WW2_FLAGS,
+  autonomous: WARLORD_CHINA,
 };
 
 /**
@@ -242,6 +289,7 @@ const WW2_FIGHT: Era = {
   },
   atWar: [["DEU", "GBR"], ["JPN", "CHN"]],
   flags: WW2_FIGHT_FLAGS,
+  autonomous: WARLORD_CHINA,
 };
 
 /**
@@ -293,6 +341,7 @@ const WW2_WAR: Era = {
   enemies: { DEU: ["FRA", "GBR", "USA", "RUS"], RUS: ["DEU"], JPN: ["CHN", "USA"], CHN: ["JPN"], GBR: ["DEU", "JPN"], FRA: ["DEU"] },
   atWar: [["DEU", "USA"], ["JPN", "CHN"]],
   flags: WW2_FLAGS,
+  autonomous: WARLORD_CHINA_1945,
 };
 
 /**
@@ -433,6 +482,32 @@ export function eraRoster(eraId: string): Country[] {
  * A province that is not listed keeps its modern owner: the generator only
  * records the places that changed hands.
  */
+/**
+ * The scenario's autonomous provinces, resolved to region ids.
+ *
+ * Same lookup as `eraProvinceOwners`, and for the same reason: the table is
+ * written with province names so it stays readable, and the simulation works
+ * in ids.
+ */
+export function eraAutonomousRegions(era: Era): AutonomousRegion[] {
+  const out: AutonomousRegion[] = [];
+  for (const bloc of era.autonomous ?? []) {
+    for (const key of bloc.regions) {
+      const [country, region] = key.split(":");
+      const match = REGIONS.get(country)?.find((r) => r.en === region);
+      if (match) out.push({ regionId: match.id, nameKey: bloc.nameKey });
+    }
+  }
+  return out;
+}
+
+/** One province the capital did not govern, and who did. */
+export interface AutonomousRegion {
+  regionId: string;
+  /** i18n key for who runs it: `faction.jin` → 晋系. */
+  nameKey: string;
+}
+
 export function eraProvinceOwners(era: Era): Record<string, string> {
   const table = (eraRegions as Record<string, Record<string, string>>)[era.id] ?? {};
   const owners: Record<string, string> = {};

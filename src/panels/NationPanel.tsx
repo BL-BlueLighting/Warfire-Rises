@@ -5,13 +5,23 @@ import { Section, Stat, Bar, ActionButton } from "../components/shared";
 import { t, useLanguage } from "../i18n";
 import { countryDesc, countryName } from "../game/names";
 import Flag from "../components/Flag";
+import { REGIONS } from "../map/provinces";
 
 const NationPanel: React.FC = () => {
   const { state } = useStore();
-  useLanguage();
+  const lang = useLanguage();
 
   if (!state) return null;
   const p = getPlayerCountry(state);
+
+  // Provinces of the player's own nation that answer to somebody else — for a
+  // 1938 China, the cliques. Shown, not acted on: they are still ours.
+  const regionsRunByOthers = state.autonomous
+    .filter((a) => a.regionId.startsWith(`${p.id}-`))
+    .map((a) => {
+      const region = REGIONS.get(p.id)?.find((r) => r.id === a.regionId);
+      return { region: region ? (lang === "zh-cn" ? region.zh : region.en) : a.regionId, nameKey: a.nameKey };
+    });
 
   const forceText =
     p.forceValue >= 70 ? t("force.extreme")
@@ -39,6 +49,12 @@ const NationPanel: React.FC = () => {
         <div className="dim" style={{ fontSize: 11.5, lineHeight: 1.6, fontStyle: "italic" }}>
           {countryDesc(p)}
         </div>
+        {regionsRunByOthers.length > 0 && (
+          <div className="dim" style={{ fontSize: 11, lineHeight: 1.6, marginTop: 6 }}>
+            {t("ui.nation.autonomous")}:{" "}
+            {regionsRunByOthers.map((r) => `${r.region}（${t(r.nameKey)}）`).join(lang === "zh-cn" ? "、" : ", ")}
+          </div>
+        )}
       </Section>
 
       <Section title={t("ui.nation.stats")}>

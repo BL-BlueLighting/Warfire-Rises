@@ -968,6 +968,15 @@ era.late_20c.desc: 1994. The Soviet Union is gone, the Cold War is over, a new o
 era.early_21c.name: Twenty-First Century · Revival
 era.early_21c.desc: 2000. The turn of the century: ambitions return and the great powers settle into a new tension.
 
+# ── Provinces their capital did not govern (see EraAutonomy in eras.ts) ──
+ui.nation.autonomous: Semi-autonomous
+faction.jin: Shanxi clique
+faction.gui: Guangxi clique
+faction.dian: Yunnan clique
+faction.ma: Ma clique
+faction.xinjiang: Sheng Shicai
+faction.tibet: Ganden Phodrang
+
 # ── Each scenario's own blurb for each nation (era.<era>.<ID>.desc) ──
 # A nation without one falls back to country.<ID>.desc, its modern text —
 # see countryDesc in names.ts.

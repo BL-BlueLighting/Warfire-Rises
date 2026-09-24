@@ -968,6 +968,15 @@ era.late_20c.desc: 1994 年。苏联已经解体，冷战结束，一个新的�
 era.early_21c.name: 二一世纪 · 复兴
 era.early_21c.desc: 2000 年。世纪之交，各国重拾雄心，大国关系进入新的紧绷状态。
 
+# ── 半独立地区（见 eras.ts 的 EraAutonomy）──
+ui.nation.autonomous: 半独立地区
+faction.jin: 晋系
+faction.gui: 桂系
+faction.dian: 滇系
+faction.ma: 马家军
+faction.xinjiang: 盛世才
+faction.tibet: 噶厦
+
 # ── 各时代下的国家简介（era.<时代>.<国家>.desc）──
 # 没写的国家回落到 country.<ID>.desc（现代简介），见 names.ts 的 countryDesc。
 era.ww2_eve.USA.desc: 孤立主义中的工业巨人：工业产值世界第一，陆军却排在十几位。大萧条还没走远，国会不想碰欧洲的下一场战争。

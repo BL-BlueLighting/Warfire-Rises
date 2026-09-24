@@ -336,6 +336,15 @@ export interface GameState {
   regionOwner: Record<string, string>;
   /** Open peace conference, if one is in session. */
   conference: PeaceConference | null;
+  /**
+   * Provinces the capital did not actually govern — 1938 China's cliques.
+   *
+   * Not ownership: the province still belongs to its country, and war, peace
+   * and every panel treat it as such. This is what the map shades, and what
+   * the nation panel lists, so a country that was several governments' worth
+   * of country does not read as one colour.
+   */
+  autonomous: { regionId: string; nameKey: string }[];
 }
 
 /**
