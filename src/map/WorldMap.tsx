@@ -8,6 +8,7 @@ import Graticule from "ol/layer/Graticule";
 import MultiPolygon from "ol/geom/MultiPolygon";
 import Point from "ol/geom/Point";
 import Polygon from "ol/geom/Polygon";
+import type Geometry from "ol/geom/Geometry";
 import { Style, Fill, Stroke, Circle as CircleStyle, Icon, Text as TextStyle } from "ol/style";
 import { useStore, selectCountry, setHovered } from "../game/store";
 import { isOutOfPlay } from "../game/state";
@@ -89,6 +90,25 @@ const MIN_REGION_LABEL_AREA = 26;
  */
 const COUNTRY_LABEL_FONT = '600 15px "WF Display", "WF Body", sans-serif';
 const COUNTRY_FLAG_PX = 24;
+
+/**
+ * Where a nation's name goes.
+ *
+ * Not the centre of its bounding box. A nation's outline comes in pieces, and
+ * the pieces can be half a world apart: Russia's Chukotka is past the date
+ * line, so the box that spans it runs from Europe to the Bering Strait and its
+ * centre lands in the North Sea; France's Guyana is in South America, which
+ * puts the French label off Morocco. The name belongs on the largest piece,
+ * at a point the engine guarantees is inside it.
+ */
+function labelAnchor(geometry: Geometry): Point {
+  const pieces =
+    geometry.getType() === "MultiPolygon"
+      ? (geometry as MultiPolygon).getPolygons()
+      : [geometry as Polygon];
+  const mainland = pieces.reduce((a, b) => (b.getArea() > a.getArea() ? b : a));
+  return mainland.getInteriorPoint();
+}
 
 /**
  * Everything a style function needs, in a ref.
@@ -317,15 +337,16 @@ const WorldMap: React.FC<WorldMapProps> = ({ preview }) => {
     }
     const cities = new VectorSource({ features: cityFeatures });
 
-    // One anchor per nation, at the centre of its bounding box.
+    // One anchor per nation, on the mainland.
     const labelFeatures: Feature[] = [];
     for (const [countryId, world] of PLAYABLE_FEATURES) {
       const geometry = featureFrom(world.geometry as never, {}).getGeometry();
       if (!geometry) continue;
+      // `area` stays the bounding box of the whole nation: it is the gate that
+      // decides whether a nation is big enough to carry a name, and the box is
+      // the honest measure of that. The *anchor* is a different question.
       const extent = geometry.getExtent();
-      const point = new Feature(
-        new Point([(extent[0] + extent[2]) / 2, (extent[1] + extent[3]) / 2])
-      );
+      const point = new Feature(labelAnchor(geometry));
       point.set("countryId", countryId, true);
       point.set("area", (extent[2] - extent[0]) * (extent[3] - extent[1]), true);
       labelFeatures.push(point);
