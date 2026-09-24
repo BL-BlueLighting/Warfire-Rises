@@ -13,6 +13,7 @@ import { t } from "../i18n";
 import { countryShortName } from "./names";
 import { isSubjectOf, setSubject } from "./subjects";
 import { BASE_DECISION_FILE_NAME as BASE_DECISION_FILE, getSettings } from "./settings";
+import { isPlayTimeCode, playTimeEras } from "./eras";
 
 // ── File schema ────────────────────────────────────────────────────
 // Mirrors the `.warf-decision` format. Every decision file is
@@ -64,6 +65,12 @@ export interface DecisionDef {
   Require: DecisionRequire[];
   /** Days, or "inf" for a repeating decision. */
   Time: number | "inf";
+  /**
+   * Which scenarios this decision belongs to: one code or a list.
+   * `ngtm` `dfig` `waku` `splt` `resm` — see PLAY_TIME_CODES. Absent means
+   * `resm`, the present day.
+   */
+  PlayTime?: string | string[];
   InfinityPhases?: InfinityPhase[];
   Result?: DecisionResult[];
   /** Set by the loader — which file this came from. */
@@ -169,6 +176,21 @@ export function parseDecisionFile(
     def.__source = source;
     def.__id = `${obj.Country}::${def.Name}`;
     if (!Array.isArray(def.Require)) def.Require = [];
+
+    // PlayTime is a closed vocabulary: a code the game does not know is a
+    // typo, and a typo silently answered with "resm" would put a 1938 decision
+    // in a 2000 campaign. Say so instead, and leave the decision out.
+    if (def.PlayTime !== undefined) {
+      const codes = Array.isArray(def.PlayTime) ? def.PlayTime : [def.PlayTime];
+      const bad = codes.find((c) => !isPlayTimeCode(c));
+      if (bad !== undefined) {
+        errors.push({ source, message: t("dec.err.play_time", { name: def.Name, code: String(bad) }) });
+        continue;
+      }
+      def.PlayTime = Array.isArray(def.PlayTime)
+        ? def.PlayTime.map((c) => c.trim().toLowerCase())
+        : def.PlayTime.trim().toLowerCase();
+    }
 
     if (def.Time === "inf") {
       if (!Array.isArray(def.InfinityPhases) || def.InfinityPhases.length === 0) {
@@ -300,6 +322,17 @@ export async function loadDecisions(): Promise<DecisionLoadResult> {
 }
 
 /** Decisions available to a given country ("all" matches everyone). */
+/**
+ * Is this decision playable in this scenario?
+ *
+ * A decision that names no `PlayTime` is `resm` — the present day — so a file
+ * written before the field existed keeps working exactly as it did, in the
+ * campaign it was written for.
+ */
+export function decisionFitsEra(decision: DecisionDef, eraId: string): boolean {
+  return playTimeEras(decision.PlayTime).includes(eraId as never);
+}
+
 export function decisionsForCountry(files: DecisionFile[], countryId: string): DecisionDef[] {
   const out: DecisionDef[] = [];
   for (const f of files) {
@@ -964,6 +997,12 @@ export function startDecision(
   targetId?: string
 ): { ok: boolean; message: string } {
   const id = decision.__id ?? decision.Name;
+
+  // The panel only lists this scenario's decisions; this is the backstop for
+  // the paths that do not come through it.
+  if (!decisionFitsEra(decision, state.era)) {
+    return { ok: false, message: t("ui.decision.wrong_era") };
+  }
 
   if (decisionInProgress(state, id)) {
     return { ok: false, message: t("ui.task.busy") };

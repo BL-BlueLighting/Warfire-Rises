@@ -38,7 +38,7 @@ import {
   type SaveSlotInfo,
 } from "./save";
 import { advanceTime, taskProgress as computeProgress, dropTask } from "./scheduler";
-import { loadDecisions, decisionsForCountry, registerNews, type DecisionDef, type DecisionFile } from "./decisions";
+import { loadDecisions, decisionsForCountry, decisionFitsEra, registerNews, type DecisionDef, type DecisionFile } from "./decisions";
 import { setDecisionFileEnabled } from "./settings";
 import { cancelTask } from "./actions";
 import { t, setLanguage, getLanguage, Language } from "../i18n";
@@ -316,6 +316,9 @@ export function getDecisions(): Map<string, DecisionDef> {
 export function availableDecisions(countryId: string): DecisionDef[] {
   const state = store.state;
   return decisionsForCountry(store.ui.decisionFiles, countryId).filter((d) => {
+    // A decision belongs to a scenario: a 1938 file has no business in a 2000
+    // campaign, and vice versa.
+    if (state && !decisionFitsEra(d, state.era)) return false;
     if (d.Time === "inf" || !state) return true;
     const runtime = state.decisionStates[d.__id ?? d.Name];
     return !runtime || runtime.completed === 0;

@@ -116,6 +116,48 @@ export function eraDescKey(eraId: string, countryId: string): string {
   return `era.${eraId.replace(/-/g, "_")}.${countryId}.desc`;
 }
 
+/**
+ * The codes a decision file's `PlayTime` accepts.
+ *
+ * They are the initials of the scenario names in English — 梦魇 Nightmare,
+ * 死斗 Death Grapple, 初醒 First Awakening, 解体 Dissolution, 复兴 Revival —
+ * rather than the era ids: a decision file is written by hand, and `ww2-fight`
+ * is not what 1942 is called.
+ */
+export const PLAY_TIME_CODES: Record<string, EraId> = {
+  ngtm: "ww2-eve",
+  dfig: "ww2-fight",
+  waku: "ww2-war",
+  splt: "late-20c",
+  resm: "early-21c",
+};
+
+/** The scenario a decision with no `PlayTime` belongs to. */
+export const DEFAULT_PLAY_TIME = "resm";
+
+/** Is this a code the game knows? Used to report a file that got one wrong. */
+export function isPlayTimeCode(code: unknown): boolean {
+  return typeof code === "string" && PLAY_TIME_CODES[code.trim().toLowerCase()] !== undefined;
+}
+
+/**
+ * The scenarios a decision is for — one code, or a list of them.
+ *
+ * No `PlayTime` means `resm`: a decision that does not say when it belongs is
+ * for the present day, which is what decision files written before this field
+ * existed were for anyway.
+ */
+export function playTimeEras(playTime: string | string[] | undefined): EraId[] {
+  const codes =
+    playTime === undefined ? [DEFAULT_PLAY_TIME] : Array.isArray(playTime) ? playTime : [playTime];
+  const eras: EraId[] = [];
+  for (const code of codes) {
+    const era = isPlayTimeCode(code) ? PLAY_TIME_CODES[code.trim().toLowerCase()] : undefined;
+    if (era && !eras.includes(era)) eras.push(era);
+  }
+  return eras;
+}
+
 /** A short label for the picker: "1936" rather than a slogan. */
 export function eraYear(era: Era): string {
   return String(era.start.year);
